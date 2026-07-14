@@ -1326,7 +1326,10 @@ def train_one_model(block_size=100, noise_scale=0.1, lr=1e-3, n_layer=2, n_embd=
     print("\nSetting up model...")
     model = setup_model(
         block_size=block_size, n_layer=n_layer, n_embd=n_embd, device=device,
-        track_attention_entropy=(attention_entropy_reg != 0.0)
+        # Track entropy for every run, including lambda=0, so baseline and
+        # regularized entropy curves can be compared directly. For lambda=0
+        # this is logging only and does not change the optimization objective.
+        track_attention_entropy=True
     )
     print_gpu_memory_stats("After model setup: ")
     
