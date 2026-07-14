@@ -461,7 +461,7 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
                 clear_gpu_cache()
         
         # Evaluate at specified frequency
-        if i % prob_freq == 0:
+        if i % prob_freq == 0 or i == n_steps - 1:
             print(f"\nEvaluating at step {i+1}...")
             eval_step_results = {}
             
@@ -1412,6 +1412,8 @@ def train_one_model(block_size=100, noise_scale=0.1, lr=1e-3, n_layer=2, n_embd=
         'train_size': train_size,
         'test_size': test_size,
         'loss_mask': loss_mask,
+        'n_steps': n_steps,
+        'prob_freq': prob_freq,
         'attention_entropy_reg': attention_entropy_reg,
         'attention_entropy_reg_start_step': attention_entropy_reg_start_step,
         'attention_entropy_reg_end_step': attention_entropy_reg_end_step,
@@ -1522,7 +1524,7 @@ def sweep_parameters(block_size_list, num_trajectories_list, noise_scale_list, l
                         entropy_suffix = attention_entropy_result_suffix(
                             entropy_reg, entropy_start, entropy_end
                         )
-                        results_filename = f'./results/kepler_cv_blocksize/results_block_size_{block_size}_num_trajectories_{num_traj}_noise_scale_{noise_scale}_loss_mask_{loss_mask}{entropy_suffix}.npz'
+                        results_filename = f'./results/kepler_cv_blocksize/results_block_size_{block_size}_num_trajectories_{num_traj}_noise_scale_{noise_scale}_loss_mask_{loss_mask}{entropy_suffix}_n_steps_{n_steps}.npz'
                         if not os.path.exists(results_filename):
                             configs_to_run.append((
                                 block_size, num_traj, noise_scale, loss_mask,
@@ -1560,7 +1562,7 @@ def sweep_parameters(block_size_list, num_trajectories_list, noise_scale_list, l
         entropy_suffix = attention_entropy_result_suffix(
             entropy_reg, entropy_start, entropy_end
         )
-        results_filename = f'./results/kepler_cv_blocksize/results_block_size_{block_size}_num_trajectories_{num_traj}_noise_scale_{noise_scale}_loss_mask_{loss_mask}{entropy_suffix}.npz'
+        results_filename = f'./results/kepler_cv_blocksize/results_block_size_{block_size}_num_trajectories_{num_traj}_noise_scale_{noise_scale}_loss_mask_{loss_mask}{entropy_suffix}_n_steps_{n_steps}.npz'
         os.makedirs(os.path.dirname(results_filename), exist_ok=True)
         np.savez(results_filename, **results)
         print(f"Saved results to {results_filename}")
@@ -1590,15 +1592,17 @@ def main():
     #block_size_list = [100]
     #noise_scale_list = [0.1]
     #loss_mask_list = ['all']
-    n_steps = 2001
-    prob_freq = 100
+    n_steps = 20000
+    # Probes/rollouts dominate runtime, so evaluate every 1000 steps and once
+    # more at the final step. Train/test losses are still recorded every step.
+    prob_freq = 1000
     # Entropy regularization is active on the half-open interval [start, end).
     # Examples:
     #   before step 1000: start=0, end=1000
     #   after step 1000:  start=1000, end=None
     #   steps 500-1500:   start=500, end=1500
-    # Lists are paired by index. This trains a baseline plus one regularized model.
-    attention_entropy_reg_list = [1e-2, 1e-1]
+    # Lists are paired by index. Train baseline and lambda=1e-3 for 20,000 steps.
+    attention_entropy_reg_list = [0.0, 1e-3]
     attention_entropy_reg_start_step_list = [0, 0]
     attention_entropy_reg_end_step_list = [None, None]
     sweep_parameters(block_size_list, num_trajectories_list, noise_scale_list, loss_mask_list, 
