@@ -30,7 +30,12 @@ num_points_per_trajectory = 100
 
 
 # Device setup
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+if torch.cuda.is_available():
+    device = torch.device("cuda")
+elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+    device = torch.device("mps")
+else:
+    device = torch.device("cpu")
 print(f"Using device: {device}")
 
 
@@ -230,7 +235,12 @@ def setup_model(block_size, n_layer=2, n_embd=32, device=None,
                 track_attention_entropy=False):
     """Setup and initialize the GPT model for continuous vision."""
     if device is None:
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        if torch.cuda.is_available():
+            device = torch.device("cuda")
+        elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+            device = torch.device("mps")
+        else:
+            device = torch.device("cpu")
     
     GPTConfigCV.block_size = block_size
     GPTConfigCV.input_dim = 2  # 2D coordinates (x, y)
@@ -1435,8 +1445,9 @@ def attention_entropy_result_suffix(coefficient, start_step, end_step):
 
 def sweep_parameters(block_size_list, num_trajectories_list, noise_scale_list, loss_mask_list=['all'],
                      lr=1e-3, n_layer=2, n_embd=32, n_steps=1001, prob_freq=100, seed=1,
-                     attention_entropy_reg=0.0, attention_entropy_reg_start_step=0,
-                     attention_entropy_reg_end_step=None):
+                     attention_entropy_reg_list=None,
+                     attention_entropy_reg_start_step_list=None,
+                     attention_entropy_reg_end_step_list=None):
     """
     Sweep over block_size, num_trajectories, noise_scale, and loss_mask parameters.
     
@@ -1448,14 +1459,38 @@ def sweep_parameters(block_size_list, num_trajectories_list, noise_scale_list, l
         lr: Learning rate (fixed)
         n_layer: Number of transformer layers (fixed)
         n_embd: Embedding dimension (fixed)
-        attention_entropy_reg: Entropy regularization coefficient (fixed)
-        attention_entropy_reg_start_step: Start of the regularized interval (inclusive)
-        attention_entropy_reg_end_step: End of the regularized interval (exclusive), or None
+        attention_entropy_reg_list: List of entropy regularization coefficients
+        attention_entropy_reg_start_step_list: List of inclusive start steps
+        attention_entropy_reg_end_step_list: List of exclusive end steps; None means
+            regularize through the end. The three lists are paired by index.
     
     Returns:
         Dictionary mapping (block_size, num_trajectories, noise_scale, loss_mask) to results
     """
     
+    if attention_entropy_reg_list is None:
+        attention_entropy_reg_list = [0.0]
+    if attention_entropy_reg_start_step_list is None:
+        attention_entropy_reg_start_step_list = [0]
+    if attention_entropy_reg_end_step_list is None:
+        attention_entropy_reg_end_step_list = [None]
+
+    entropy_list_lengths = {
+        len(attention_entropy_reg_list),
+        len(attention_entropy_reg_start_step_list),
+        len(attention_entropy_reg_end_step_list),
+    }
+    if len(entropy_list_lengths) != 1 or not attention_entropy_reg_list:
+        raise ValueError(
+            "attention_entropy_reg_list, attention_entropy_reg_start_step_list, "
+            "and attention_entropy_reg_end_step_list must have the same non-zero length"
+        )
+    attention_entropy_configs = list(zip(
+        attention_entropy_reg_list,
+        attention_entropy_reg_start_step_list,
+        attention_entropy_reg_end_step_list,
+    ))
+
     print(f"\n{'='*80}")
     print(f"Starting parameter sweep:")
     print(f"  block_size: {block_size_list}")
@@ -1465,12 +1500,14 @@ def sweep_parameters(block_size_list, num_trajectories_list, noise_scale_list, l
     print(f"  lr: {lr} (fixed)")
     print(f"  n_layer: {n_layer} (fixed)")
     print(f"  n_embd: {n_embd} (fixed)")
-    print(f"  attention_entropy_reg: {attention_entropy_reg} (fixed)")
-    print(f"  entropy regularization interval: "
-          f"[{attention_entropy_reg_start_step}, {attention_entropy_reg_end_step})")
+    print("  attention entropy configs:")
+    for coefficient, start_step, end_step in attention_entropy_configs:
+        print(f"    coefficient={coefficient}, interval=[{start_step}, {end_step})")
     print(f"{'='*80}\n")
     
-    total_runs = len(block_size_list) * len(num_trajectories_list) * len(noise_scale_list) * len(loss_mask_list)
+    total_runs = (len(block_size_list) * len(num_trajectories_list)
+                  * len(noise_scale_list) * len(loss_mask_list)
+                  * len(attention_entropy_configs))
     run_count = 0
 
     num_traj = 10000
@@ -1481,21 +1518,28 @@ def sweep_parameters(block_size_list, num_trajectories_list, noise_scale_list, l
         for noise_scale in noise_scale_list:
             for num_traj in num_trajectories_list:
                 for loss_mask in loss_mask_list:
-                    entropy_suffix = attention_entropy_result_suffix(
-                        attention_entropy_reg, attention_entropy_reg_start_step,
-                        attention_entropy_reg_end_step
-                    )
-                    results_filename = f'./results/kepler_cv_blocksize/results_block_size_{block_size}_num_trajectories_{num_traj}_noise_scale_{noise_scale}_loss_mask_{loss_mask}{entropy_suffix}.npz'
-                    if not os.path.exists(results_filename):
-                        configs_to_run.append((block_size, num_traj, noise_scale, loss_mask))
-                    else:
-                        print(f"Skipping existing result: {results_filename}")
+                    for entropy_reg, entropy_start, entropy_end in attention_entropy_configs:
+                        entropy_suffix = attention_entropy_result_suffix(
+                            entropy_reg, entropy_start, entropy_end
+                        )
+                        results_filename = f'./results/kepler_cv_blocksize/results_block_size_{block_size}_num_trajectories_{num_traj}_noise_scale_{noise_scale}_loss_mask_{loss_mask}{entropy_suffix}.npz'
+                        if not os.path.exists(results_filename):
+                            configs_to_run.append((
+                                block_size, num_traj, noise_scale, loss_mask,
+                                entropy_reg, entropy_start, entropy_end
+                            ))
+                        else:
+                            print(f"Skipping existing result: {results_filename}")
 
     print(f"\nTotal configurations: {total_runs}, Already completed: {total_runs - len(configs_to_run)}, To run: {len(configs_to_run)}")
     
-    for block_size, num_traj, noise_scale, loss_mask in configs_to_run:
+    for (block_size, num_traj, noise_scale, loss_mask,
+         entropy_reg, entropy_start, entropy_end) in configs_to_run:
         run_count += 1
-        print(f"\n[{run_count}/{len(configs_to_run)}] Running: block_size={block_size}, num_trajectories={num_traj}, noise_scale={noise_scale}, loss_mask={loss_mask}")
+        print(f"\n[{run_count}/{len(configs_to_run)}] Running: block_size={block_size}, "
+              f"num_trajectories={num_traj}, noise_scale={noise_scale}, "
+              f"loss_mask={loss_mask}, attention_entropy_reg={entropy_reg}, "
+              f"entropy_interval=[{entropy_start}, {entropy_end})")
         results = train_one_model(
             block_size=block_size,
             noise_scale=noise_scale,
@@ -1507,15 +1551,14 @@ def sweep_parameters(block_size_list, num_trajectories_list, noise_scale_list, l
             prob_freq=prob_freq,
             loss_mask=loss_mask,
             seed=seed,
-            attention_entropy_reg=attention_entropy_reg,
-            attention_entropy_reg_start_step=attention_entropy_reg_start_step,
-            attention_entropy_reg_end_step=attention_entropy_reg_end_step
+            attention_entropy_reg=entropy_reg,
+            attention_entropy_reg_start_step=entropy_start,
+            attention_entropy_reg_end_step=entropy_end
         )
 
         # save results to file
         entropy_suffix = attention_entropy_result_suffix(
-            attention_entropy_reg, attention_entropy_reg_start_step,
-            attention_entropy_reg_end_step
+            entropy_reg, entropy_start, entropy_end
         )
         results_filename = f'./results/kepler_cv_blocksize/results_block_size_{block_size}_num_trajectories_{num_traj}_noise_scale_{noise_scale}_loss_mask_{loss_mask}{entropy_suffix}.npz'
         os.makedirs(os.path.dirname(results_filename), exist_ok=True)
@@ -1547,21 +1590,22 @@ def main():
     #block_size_list = [100]
     #noise_scale_list = [0.1]
     #loss_mask_list = ['all']
-    n_steps = 5001
+    n_steps = 2001
     prob_freq = 100
     # Entropy regularization is active on the half-open interval [start, end).
     # Examples:
     #   before step 1000: start=0, end=1000
     #   after step 1000:  start=1000, end=None
     #   steps 500-1500:   start=500, end=1500
-    attention_entropy_reg = 0.0
-    attention_entropy_reg_start_step = 0
-    attention_entropy_reg_end_step = None
+    # Lists are paired by index. This trains a baseline plus one regularized model.
+    attention_entropy_reg_list = [1e-2, 1e-1]
+    attention_entropy_reg_start_step_list = [0, 0]
+    attention_entropy_reg_end_step_list = [None, None]
     sweep_parameters(block_size_list, num_trajectories_list, noise_scale_list, loss_mask_list, 
                      n_steps=n_steps, prob_freq=prob_freq, seed=seed,
-                     attention_entropy_reg=attention_entropy_reg,
-                     attention_entropy_reg_start_step=attention_entropy_reg_start_step,
-                     attention_entropy_reg_end_step=attention_entropy_reg_end_step)
+                     attention_entropy_reg_list=attention_entropy_reg_list,
+                     attention_entropy_reg_start_step_list=attention_entropy_reg_start_step_list,
+                     attention_entropy_reg_end_step_list=attention_entropy_reg_end_step_list)
 
 
 if __name__ == "__main__":
