@@ -43,6 +43,11 @@ class CausalSelfAttention(nn.Module):
         self.n_embd = config.n_embd
         self.dropout = config.dropout
         self.alpha = config.attention_alpha  # Position-dependent scaling parameter
+        # When enabled, keep a differentiable scalar containing the normalized
+        # entropy of the most recent attention distribution.  This is opt-in so
+        # existing users can continue to use the Flash Attention fast path.
+        self.track_attention_entropy = getattr(config, 'track_attention_entropy', False)
+        self.last_attention_entropy = None
         # flash attention make GPU go brrrrr but support is only in PyTorch >= 2.0
         self.flash = hasattr(torch.nn.functional, 'scaled_dot_product_attention')
         if not self.flash:
@@ -66,7 +71,7 @@ class CausalSelfAttention(nn.Module):
             # efficient attention using Flash Attention CUDA kernels
             # Note: Flash attention doesn't support position-dependent scaling easily,
             # so we fall back to manual implementation when alpha != 1.0
-            if self.alpha != 1.0:
+            if self.alpha != 1.0 or self.track_attention_entropy:
                 # manual implementation with position-dependent scaling
                 att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1)))
                 att = att.masked_fill(self.bias[:,:,:T,:T] == 0, float('-inf'))
@@ -79,6 +84,7 @@ class CausalSelfAttention(nn.Module):
                 # att shape is (B, nh, T, T), we want to scale each row (query position)
                 att = att * position_scale.view(1, 1, T, 1)  # Broadcast to (B, nh, T, T)
                 att = F.softmax(att, dim=-1)
+                self._store_attention_entropy(att)
                 att = self.attn_dropout(att)
                 y = att @ v
             else:
@@ -96,6 +102,7 @@ class CausalSelfAttention(nn.Module):
             # att shape is (B, nh, T, T), we want to scale each row (query position)
             att = att * position_scale.view(1, 1, T, 1)  # Broadcast to (B, nh, T, T)
             att = F.softmax(att, dim=-1)
+            self._store_attention_entropy(att)
             att = self.attn_dropout(att)
             y = att @ v # (B, nh, T, T) x (B, nh, T, hs) -> (B, nh, T, hs)
         y = y.transpose(1, 2).contiguous().view(B, T, C) # re-assemble all head outputs side by side
@@ -103,6 +110,28 @@ class CausalSelfAttention(nn.Module):
         # output projection
         y = self.resid_dropout(self.c_proj(y))
         return y
+
+    def _store_attention_entropy(self, att):
+        """Store mean causal-attention entropy normalized to the interval [0, 1]."""
+        if not self.track_attention_entropy:
+            self.last_attention_entropy = None
+            return
+
+        # att has shape (batch, heads, query, key). Query position t can attend
+        # to t + 1 keys, so its maximum entropy is log(t + 1). The first query
+        # has only one valid key and is excluded because its maximum is zero.
+        sequence_length = att.size(-2)
+        if sequence_length <= 1:
+            self.last_attention_entropy = att.sum() * 0.0
+            return
+
+        entropy = -(att.clamp_min(1e-12).log() * att).sum(dim=-1)
+        max_entropy = torch.log(torch.arange(
+            2, sequence_length + 1, device=att.device, dtype=att.dtype
+        ))
+        self.last_attention_entropy = (
+            entropy[..., 1:] / max_entropy.view(1, 1, -1)
+        ).mean()
 
 class MLP(nn.Module):
 
@@ -145,6 +174,7 @@ class GPTConfigCV:
     bias: bool = True # True: bias in Linears and LayerNorms, like GPT-2. False: a bit better and faster
     input_dim: int = 1 # Dimension of input continuous variables (e.g., 1 for 1D, 2 for 2D coordinates)
     attention_alpha: float = 0.0 # Position-dependent scaling parameter: (log N)^alpha applied before softmax
+    track_attention_entropy: bool = False # Expose differentiable normalized attention entropy
 
 class GPTCV(nn.Module):
     """
@@ -377,4 +407,3 @@ class GPTCV(nn.Module):
             x = x.squeeze(-1)  # (b, t, 1) -> (b, t)
         
         return x
-

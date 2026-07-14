@@ -226,7 +226,8 @@ def chop_trajectories_into_sequences(trajectories, block_size, seed=None):
     return inputs, targets
 
 
-def setup_model(block_size, n_layer=2, n_embd=32, device=None):
+def setup_model(block_size, n_layer=2, n_embd=32, device=None,
+                track_attention_entropy=False):
     """Setup and initialize the GPT model for continuous vision."""
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -237,11 +238,34 @@ def setup_model(block_size, n_layer=2, n_embd=32, device=None):
     GPTConfigCV.n_head = 1
     GPTConfigCV.n_embd = n_embd
     GPTConfigCV.attention_alpha = 0.0
+    GPTConfigCV.track_attention_entropy = track_attention_entropy
     GPTConfigCV.bias = True
     
     model = GPTCV(GPTConfigCV)
     model = model.to(device)
     return model
+
+
+def get_attention_entropy(model):
+    """Return mean normalized attention entropy over all transformer blocks."""
+    entropies = [
+        block.attn.last_attention_entropy
+        for block in model.transformer.h
+        if block.attn.last_attention_entropy is not None
+    ]
+    if not entropies:
+        return None
+    return torch.stack(entropies).mean()
+
+
+def attention_entropy_regularization_is_active(step, coefficient,
+                                               start_step=0, end_step=None):
+    """Whether entropy regularization is active in the half-open [start, end) interval."""
+    return (
+        coefficient != 0.0
+        and step >= start_step
+        and (end_step is None or step < end_step)
+    )
 
 
 def compute_loss_with_mask(predictions, targets, loss_mask='all'):
@@ -285,7 +309,9 @@ def compute_loss_with_mask(predictions, targets, loss_mask='all'):
 
 def train_model(model, train_inputs, train_targets, test_inputs, test_targets, train_trajectories, test_trajectories,
                  n_steps=1001, lr=1e-3, weight_decay=0.0, noise_scale=0.1, prob_freq=100, batch_size=128, 
-                 loss_mask='all', seed=1, orbital_params=None):
+                 loss_mask='all', seed=1, orbital_params=None,
+                 attention_entropy_reg=0.0, attention_entropy_reg_start_step=0,
+                 attention_entropy_reg_end_step=None):
     """
     Train the model on the trajectory data with periodic evaluation.
     
@@ -305,6 +331,11 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
         batch_size: Batch size for training (default: 128)
         loss_mask: 'all' to compute loss on all tokens, 'last' to compute only on last token
         seed: Random seed
+        attention_entropy_reg: Coefficient multiplying normalized attention entropy.
+            A positive value penalizes high-entropy (diffuse) attention.
+        attention_entropy_reg_start_step: First 0-based step that uses the regularizer.
+        attention_entropy_reg_end_step: First 0-based step that no longer uses the
+            regularizer. None keeps it active through the end of training.
     Returns:
         Dictionary containing:
             train_losses: list of training losses
@@ -315,6 +346,14 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
     """
     np.random.seed(seed)
     torch.manual_seed(seed)
+
+    if attention_entropy_reg_start_step < 0:
+        raise ValueError("attention_entropy_reg_start_step must be non-negative")
+    if (attention_entropy_reg_end_step is not None
+            and attention_entropy_reg_end_step < attention_entropy_reg_start_step):
+        raise ValueError(
+            "attention_entropy_reg_end_step must be >= attention_entropy_reg_start_step"
+        )
     
     # Reset peak memory stats
     if torch.cuda.is_available():
@@ -322,6 +361,10 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
     
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
     train_losses = []
+    prediction_losses = []
+    attention_entropies = []
+    attention_entropy_reg_losses = []
+    attention_entropy_reg_active = []
     test_losses = []
     eval_results = []
     eval_steps = []
@@ -350,11 +393,34 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
         # Training step
         inputs_noised = batch_inputs + torch.randn_like(batch_inputs) * noise_scale
         predictions, _ = model.forward(inputs_noised, None)  # Get predictions without loss
-        train_loss = compute_loss_with_mask(predictions, batch_targets, loss_mask=loss_mask)
+        prediction_loss = compute_loss_with_mask(predictions, batch_targets, loss_mask=loss_mask)
+
+        attention_entropy = get_attention_entropy(model)
+        reg_is_active = attention_entropy_regularization_is_active(
+            i, attention_entropy_reg, attention_entropy_reg_start_step,
+            attention_entropy_reg_end_step
+        )
+        if reg_is_active:
+            if attention_entropy is None:
+                raise RuntimeError(
+                    "Attention entropy regularization is active, but the model is not "
+                    "tracking attention entropy."
+                )
+            entropy_reg_loss = attention_entropy_reg * attention_entropy
+        else:
+            entropy_reg_loss = prediction_loss.new_zeros(())
+
+        train_loss = prediction_loss + entropy_reg_loss
         train_loss.backward()
         optimizer.step()
         optimizer.zero_grad()
         train_losses.append(train_loss.item())
+        prediction_losses.append(prediction_loss.item())
+        attention_entropies.append(
+            attention_entropy.detach().item() if attention_entropy is not None else np.nan
+        )
+        attention_entropy_reg_losses.append(entropy_reg_loss.detach().item())
+        attention_entropy_reg_active.append(reg_is_active)
         
         # Clear intermediate variables to save memory
         del inputs_noised, predictions, batch_inputs, batch_targets, batch_indices
@@ -371,8 +437,15 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
         
         if i % 100 == 0:
             memory_stats = get_gpu_memory_stats()
-            print(f"Step {i}, Train Loss: {train_loss.item():.6f}, Test Loss: {test_loss.item():.6f}, "
-                    f"GPU Memory: {memory_stats['allocated_gb']:.3f} GB")
+            entropy_text = (
+                f"{attention_entropies[-1]:.4f}"
+                if not np.isnan(attention_entropies[-1]) else "not tracked"
+            )
+            print(f"Step {i}, Total Train Loss: {train_loss.item():.6f}, "
+                  f"Prediction Loss: {prediction_loss.item():.6f}, Test Loss: {test_loss.item():.6f}, "
+                  f"Attention Entropy: {entropy_text}, Entropy Reg Loss: {entropy_reg_loss.item():.6f}, "
+                  f"Entropy Reg Active: {reg_is_active}, "
+                  f"GPU Memory: {memory_stats['allocated_gb']:.3f} GB")
             # Periodically clear GPU cache to prevent memory fragmentation
             if i % 500 == 0 and i > 0:
                 clear_gpu_cache()
@@ -411,12 +484,12 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
             probe_results = run_linear_probes(activation_dict, gravitational_force)
             eval_step_results['probe_results'] = probe_results
             
-            # Run geometry probes if orbital parameters are available
-            if orbital_params is not None:
-                geometry_probe_results = run_geometry_probes(activation_dict, orbital_params, trajectory_indices)
-                eval_step_results['geometry_probe_results'] = geometry_probe_results
-            else:
-                eval_step_results['geometry_probe_results'] = None
+            # # Run geometry probes if orbital parameters are available - TODO: was not commented in original ver
+            # if orbital_params is not None:
+            #     geometry_probe_results = run_geometry_probes(activation_dict, orbital_params, trajectory_indices)
+            #     eval_step_results['geometry_probe_results'] = geometry_probe_results
+            # else:
+            #     eval_step_results['geometry_probe_results'] = None
             
             # Clear activations from GPU after probing to free memory
             for key in list(activation_dict.keys()):
@@ -486,6 +559,10 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
     
     return {
         'train_losses': train_losses,
+        'prediction_losses': prediction_losses,
+        'attention_entropies': attention_entropies,
+        'attention_entropy_reg_losses': attention_entropy_reg_losses,
+        'attention_entropy_reg_active': attention_entropy_reg_active,
         'test_losses': test_losses,
         'eval_results': eval_results,
         'eval_steps': eval_steps,
@@ -1129,8 +1206,10 @@ def generate_trajectory_and_compute_error(model, inputs, trajectories, condition
     return error_stats
 
 
-def train_one_model(block_size=100, noise_scale=0.1, lr=1e-3, n_layer=2, n_embd=16, num_trajectories=10000, 
-                    n_steps=1001, prob_freq=100, loss_mask='all', seed=1, batch_size=128):
+def train_one_model(block_size=100, noise_scale=0.1, lr=1e-3, n_layer=2, n_embd=16, num_trajectories=10000,
+                    n_steps=1001, prob_freq=100, loss_mask='all', seed=1, batch_size=128,
+                    attention_entropy_reg=0.0, attention_entropy_reg_start_step=0,
+                    attention_entropy_reg_end_step=None):
     """
     Train a single model with specified hyperparameters.
     
@@ -1142,12 +1221,19 @@ def train_one_model(block_size=100, noise_scale=0.1, lr=1e-3, n_layer=2, n_embd=
         n_embd: Embedding dimension
         num_trajectories: Number of trajectories to generate
         loss_mask: 'all' to compute loss on all tokens, 'last' to compute only on last token
+        attention_entropy_reg: Positive values penalize high normalized attention entropy
+        attention_entropy_reg_start_step: First step using entropy regularization
+        attention_entropy_reg_end_step: First step after the regularized interval, or None
     
     Returns:
         Dictionary containing model results and statistics
     """
     print(f"\n{'='*80}")
-    print(f"Training model: block_size={block_size}, noise_scale={noise_scale}, lr={lr}, n_layer={n_layer}, n_embd={n_embd}, num_trajectories={num_trajectories}, loss_mask={loss_mask}")
+    print(f"Training model: block_size={block_size}, noise_scale={noise_scale}, lr={lr}, "
+          f"n_layer={n_layer}, n_embd={n_embd}, num_trajectories={num_trajectories}, "
+          f"loss_mask={loss_mask}, attention_entropy_reg={attention_entropy_reg}, "
+          f"entropy_interval=[{attention_entropy_reg_start_step}, "
+          f"{attention_entropy_reg_end_step})")
     print(f"{'='*80}")
     
     # Ensure num_trajectories is an integer
@@ -1228,7 +1314,10 @@ def train_one_model(block_size=100, noise_scale=0.1, lr=1e-3, n_layer=2, n_embd=
     
     # Setup model
     print("\nSetting up model...")
-    model = setup_model(block_size=block_size, n_layer=n_layer, n_embd=n_embd, device=device)
+    model = setup_model(
+        block_size=block_size, n_layer=n_layer, n_embd=n_embd, device=device,
+        track_attention_entropy=(attention_entropy_reg != 0.0)
+    )
     print_gpu_memory_stats("After model setup: ")
     
     # Initial forward pass - use smaller batch to save memory
@@ -1263,10 +1352,17 @@ def train_one_model(block_size=100, noise_scale=0.1, lr=1e-3, n_layer=2, n_embd=
     training_results = train_model(
         model, train_inputs, train_targets, test_inputs, test_targets, train_trajectories, test_trajectories,
         n_steps=n_steps, lr=lr, weight_decay=0.0, noise_scale=noise_scale, prob_freq=prob_freq,
-        loss_mask=loss_mask, batch_size=batch_size, seed=seed, orbital_params=orbital_params_for_probing
+        loss_mask=loss_mask, batch_size=batch_size, seed=seed, orbital_params=orbital_params_for_probing,
+        attention_entropy_reg=attention_entropy_reg,
+        attention_entropy_reg_start_step=attention_entropy_reg_start_step,
+        attention_entropy_reg_end_step=attention_entropy_reg_end_step
     )
     
     train_losses = training_results['train_losses']
+    prediction_losses = training_results['prediction_losses']
+    attention_entropies = training_results['attention_entropies']
+    attention_entropy_reg_losses = training_results['attention_entropy_reg_losses']
+    attention_entropy_reg_active = training_results['attention_entropy_reg_active']
     test_losses = training_results['test_losses']
     eval_results = training_results['eval_results']
     eval_steps = training_results['eval_steps']
@@ -1306,9 +1402,16 @@ def train_one_model(block_size=100, noise_scale=0.1, lr=1e-3, n_layer=2, n_embd=
         'train_size': train_size,
         'test_size': test_size,
         'loss_mask': loss_mask,
+        'attention_entropy_reg': attention_entropy_reg,
+        'attention_entropy_reg_start_step': attention_entropy_reg_start_step,
+        'attention_entropy_reg_end_step': attention_entropy_reg_end_step,
         'final_train_loss': train_losses[-1] if train_losses else None,
         'final_test_loss': test_losses[-1] if test_losses else None,
         'train_losses': train_losses,
+        'prediction_losses': prediction_losses,
+        'attention_entropies': attention_entropies,
+        'attention_entropy_reg_losses': attention_entropy_reg_losses,
+        'attention_entropy_reg_active': attention_entropy_reg_active,
         'test_losses': test_losses,
         'eval_results': eval_results,
         'eval_steps': eval_steps,
@@ -1322,8 +1425,18 @@ def train_one_model(block_size=100, noise_scale=0.1, lr=1e-3, n_layer=2, n_embd=
     return results
 
 
-def sweep_parameters(block_size_list, num_trajectories_list, noise_scale_list, loss_mask_list=['all'], 
-                     lr=1e-3, n_layer=2, n_embd=32, n_steps=1001, prob_freq=100, seed=1):
+def attention_entropy_result_suffix(coefficient, start_step, end_step):
+    """Return a filename suffix for a non-baseline entropy-regularized run."""
+    if coefficient == 0.0:
+        return ""
+    end_label = "none" if end_step is None else str(end_step)
+    return f"_attention_entropy_reg_{coefficient}_start_{start_step}_end_{end_label}"
+
+
+def sweep_parameters(block_size_list, num_trajectories_list, noise_scale_list, loss_mask_list=['all'],
+                     lr=1e-3, n_layer=2, n_embd=32, n_steps=1001, prob_freq=100, seed=1,
+                     attention_entropy_reg=0.0, attention_entropy_reg_start_step=0,
+                     attention_entropy_reg_end_step=None):
     """
     Sweep over block_size, num_trajectories, noise_scale, and loss_mask parameters.
     
@@ -1335,6 +1448,9 @@ def sweep_parameters(block_size_list, num_trajectories_list, noise_scale_list, l
         lr: Learning rate (fixed)
         n_layer: Number of transformer layers (fixed)
         n_embd: Embedding dimension (fixed)
+        attention_entropy_reg: Entropy regularization coefficient (fixed)
+        attention_entropy_reg_start_step: Start of the regularized interval (inclusive)
+        attention_entropy_reg_end_step: End of the regularized interval (exclusive), or None
     
     Returns:
         Dictionary mapping (block_size, num_trajectories, noise_scale, loss_mask) to results
@@ -1349,6 +1465,9 @@ def sweep_parameters(block_size_list, num_trajectories_list, noise_scale_list, l
     print(f"  lr: {lr} (fixed)")
     print(f"  n_layer: {n_layer} (fixed)")
     print(f"  n_embd: {n_embd} (fixed)")
+    print(f"  attention_entropy_reg: {attention_entropy_reg} (fixed)")
+    print(f"  entropy regularization interval: "
+          f"[{attention_entropy_reg_start_step}, {attention_entropy_reg_end_step})")
     print(f"{'='*80}\n")
     
     total_runs = len(block_size_list) * len(num_trajectories_list) * len(noise_scale_list) * len(loss_mask_list)
@@ -1362,7 +1481,11 @@ def sweep_parameters(block_size_list, num_trajectories_list, noise_scale_list, l
         for noise_scale in noise_scale_list:
             for num_traj in num_trajectories_list:
                 for loss_mask in loss_mask_list:
-                    results_filename = f'./results/kepler_cv_blocksize/results_block_size_{block_size}_num_trajectories_{num_traj}_noise_scale_{noise_scale}_loss_mask_{loss_mask}_seed_{seed}.npz'
+                    entropy_suffix = attention_entropy_result_suffix(
+                        attention_entropy_reg, attention_entropy_reg_start_step,
+                        attention_entropy_reg_end_step
+                    )
+                    results_filename = f'./results/kepler_cv_blocksize/results_block_size_{block_size}_num_trajectories_{num_traj}_noise_scale_{noise_scale}_loss_mask_{loss_mask}{entropy_suffix}.npz'
                     if not os.path.exists(results_filename):
                         configs_to_run.append((block_size, num_traj, noise_scale, loss_mask))
                     else:
@@ -1383,11 +1506,18 @@ def sweep_parameters(block_size_list, num_trajectories_list, noise_scale_list, l
             n_steps=n_steps,
             prob_freq=prob_freq,
             loss_mask=loss_mask,
-            seed=seed
+            seed=seed,
+            attention_entropy_reg=attention_entropy_reg,
+            attention_entropy_reg_start_step=attention_entropy_reg_start_step,
+            attention_entropy_reg_end_step=attention_entropy_reg_end_step
         )
 
         # save results to file
-        results_filename = f'./results/kepler_cv_blocksize/results_block_size_{block_size}_num_trajectories_{num_traj}_noise_scale_{noise_scale}_loss_mask_{loss_mask}.npz'
+        entropy_suffix = attention_entropy_result_suffix(
+            attention_entropy_reg, attention_entropy_reg_start_step,
+            attention_entropy_reg_end_step
+        )
+        results_filename = f'./results/kepler_cv_blocksize/results_block_size_{block_size}_num_trajectories_{num_traj}_noise_scale_{noise_scale}_loss_mask_{loss_mask}{entropy_suffix}.npz'
         os.makedirs(os.path.dirname(results_filename), exist_ok=True)
         np.savez(results_filename, **results)
         print(f"Saved results to {results_filename}")
@@ -1408,21 +1538,31 @@ def main():
     torch.manual_seed(seed)
 
     num_trajectories_list = [10000]
-    block_size_list = [1, 2, 5, 10, 20, 50, 100]
+    # block_size_list = [1, 2, 5, 10, 20, 50, 100]
     #block_size_list = [60, 70, 80, 90]
-    #block_size_list = [100]
+    block_size_list = [100]
     noise_scale_list = [0.1]
     loss_mask_list = ['all']
     #loss_mask_list = ['all', 'last']
     #block_size_list = [100]
     #noise_scale_list = [0.1]
     #loss_mask_list = ['all']
-    n_steps = 20001
+    n_steps = 5001
     prob_freq = 100
+    # Entropy regularization is active on the half-open interval [start, end).
+    # Examples:
+    #   before step 1000: start=0, end=1000
+    #   after step 1000:  start=1000, end=None
+    #   steps 500-1500:   start=500, end=1500
+    attention_entropy_reg = 0.0
+    attention_entropy_reg_start_step = 0
+    attention_entropy_reg_end_step = None
     sweep_parameters(block_size_list, num_trajectories_list, noise_scale_list, loss_mask_list, 
-                     n_steps=n_steps, prob_freq=prob_freq, seed=seed)
+                     n_steps=n_steps, prob_freq=prob_freq, seed=seed,
+                     attention_entropy_reg=attention_entropy_reg,
+                     attention_entropy_reg_start_step=attention_entropy_reg_start_step,
+                     attention_entropy_reg_end_step=attention_entropy_reg_end_step)
 
 
 if __name__ == "__main__":
     main()
-
