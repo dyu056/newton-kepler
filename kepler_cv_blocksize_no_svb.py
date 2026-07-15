@@ -283,33 +283,9 @@ def compute_loss_with_mask(predictions, targets, loss_mask='all'):
     return loss
 
 
-def svb_apply(model, epsilon: float = 0.2) -> None:
-    """
-    SVB (Singular Value Bounding): post-process weight matrices via SVD
-    to clamp singular values, preventing representation collapse.
-
-    Clamps singular values to [1/(1+ε), 1+ε].
-    """
-    if epsilon <= 0.0:
-        return
-    lower = 1.0 / (1.0 + epsilon)
-    upper = 1.0 + epsilon
-    for module in model.modules():
-        if not isinstance(module, torch.nn.Linear):
-            continue
-        w = module.weight.data
-        if w.shape[0] >= w.shape[1]:
-            U, S, Vh = torch.linalg.svd(w, full_matrices=False)
-        else:
-            U, S, Vh = torch.linalg.svd(w.T, full_matrices=False)
-            U, S, Vh = Vh.T, S, U.T
-        S = S.clamp(lower, upper)
-        module.weight.data.copy_((U * S.unsqueeze(0)) @ Vh)
-
-
 def train_model(model, train_inputs, train_targets, test_inputs, test_targets, train_trajectories, test_trajectories,
-                 n_steps=1001, lr=1e-3, weight_decay=0.0, noise_scale=0.1, prob_freq=100, batch_size=128,
-                 loss_mask='all', seed=1, orbital_params=None, epsilon=2.0, svb_freq=100):
+                 n_steps=1001, lr=1e-3, weight_decay=0.0, noise_scale=0.1, prob_freq=100, batch_size=128, 
+                 loss_mask='all', seed=1, orbital_params=None):
     """
     Train the model on the trajectory data with periodic evaluation.
     
@@ -378,13 +354,8 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
         train_loss.backward()
         optimizer.step()
         optimizer.zero_grad()
-
-        # SVB: Singular Value Bounding — post-process weights periodically
-        if epsilon > 0 and (i + 1) % svb_freq == 0:
-            svb_apply(model, epsilon)
-
         train_losses.append(train_loss.item())
-
+        
         # Clear intermediate variables to save memory
         del inputs_noised, predictions, batch_inputs, batch_targets, batch_indices
         
@@ -1158,9 +1129,8 @@ def generate_trajectory_and_compute_error(model, inputs, trajectories, condition
     return error_stats
 
 
-def train_one_model(block_size=100, noise_scale=0.1, lr=1e-3, n_layer=2, n_embd=16, num_trajectories=10000,
-                    n_steps=1001, prob_freq=100, loss_mask='all', seed=1, batch_size=128,
-                    epsilon=2.0, svb_freq=100):
+def train_one_model(block_size=100, noise_scale=0.1, lr=1e-3, n_layer=2, n_embd=16, num_trajectories=10000, 
+                    n_steps=1001, prob_freq=100, loss_mask='all', seed=1, batch_size=128):
     """
     Train a single model with specified hyperparameters.
     
@@ -1293,8 +1263,7 @@ def train_one_model(block_size=100, noise_scale=0.1, lr=1e-3, n_layer=2, n_embd=
     training_results = train_model(
         model, train_inputs, train_targets, test_inputs, test_targets, train_trajectories, test_trajectories,
         n_steps=n_steps, lr=lr, weight_decay=0.0, noise_scale=noise_scale, prob_freq=prob_freq,
-        loss_mask=loss_mask, batch_size=batch_size, seed=seed, orbital_params=orbital_params_for_probing,
-        epsilon=epsilon, svb_freq=svb_freq
+        loss_mask=loss_mask, batch_size=batch_size, seed=seed, orbital_params=orbital_params_for_probing
     )
     
     train_losses = training_results['train_losses']
@@ -1414,9 +1383,10 @@ def sweep_parameters(block_size_list, num_trajectories_list, noise_scale_list, l
             n_steps=n_steps,
             prob_freq=prob_freq,
             loss_mask=loss_mask,
-            seed=seed,
-            epsilon=2.0,
+            seed=seed
         )
+
+        # save results to file
         results_filename = f'./results/kepler_cv_blocksize/results_block_size_{block_size}_num_trajectories_{num_traj}_noise_scale_{noise_scale}_loss_mask_{loss_mask}.npz'
         os.makedirs(os.path.dirname(results_filename), exist_ok=True)
         np.savez(results_filename, **results)
@@ -1438,9 +1408,9 @@ def main():
     torch.manual_seed(seed)
 
     num_trajectories_list = [10000]
-    #block_size_list = [1, 2, 5, 10, 20, 50, 100]
+    block_size_list = [1, 2, 5, 10, 20, 50, 100]
     #block_size_list = [60, 70, 80, 90]
-    block_size_list = [100]
+    #block_size_list = [100]
     noise_scale_list = [0.1]
     loss_mask_list = ['all']
     #loss_mask_list = ['all', 'last']
@@ -1448,7 +1418,7 @@ def main():
     #noise_scale_list = [0.1]
     #loss_mask_list = ['all']
     n_steps = 20001
-    prob_freq = 10000
+    prob_freq = 100
     sweep_parameters(block_size_list, num_trajectories_list, noise_scale_list, loss_mask_list, 
                      n_steps=n_steps, prob_freq=prob_freq, seed=seed)
 
