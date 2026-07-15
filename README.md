@@ -37,6 +37,7 @@ Notebooks expect either pretrained checkpoints (Fig 2) or results from the train
 | **kepler_cv.py** | Train regression transformers on Kepler (continuous) data. Saves to `./results/kepler_cv/`. |
 | **kepler_cv_blocksize.py** | Train with varying block size (context length). Saves to `./results/kepler_cv_blocksize/`. |
 | **model.py**, **model_cv.py** | Model definitions (shared by training scripts). |
+| **svb_trick.md** | SVB (Singular Value Bounding) trick: post-process weight matrices via SVD to clamp singular values, preventing representation collapse. |
 
 ## Checkpoint (Fig 2)
 
