@@ -1892,3 +1892,3012 @@ Evaluation at step 7001 completed.
 
 Step 7100, Total Train Loss: 0.003259, Prediction Loss: 0.003259, Test Loss: 0.000788, Attention Entropy: 0.8973, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
 Step 7200, Total Train Loss: 0.003509, Prediction Loss: 0.003509, Test Loss: 0.001009, Attention Entropy: 0.9021, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 7300, Total Train Loss: 0.003840, Prediction Loss: 0.003840, Test Loss: 0.001107, Attention Entropy: 0.9006, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 7400, Total Train Loss: 0.003558, Prediction Loss: 0.003558, Test Loss: 0.001017, Attention Entropy: 0.9014, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 7500, Total Train Loss: 0.003422, Prediction Loss: 0.003422, Test Loss: 0.001259, Attention Entropy: 0.9039, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 7600, Total Train Loss: 0.003010, Prediction Loss: 0.003010, Test Loss: 0.000771, Attention Entropy: 0.9019, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 7700, Total Train Loss: 0.003088, Prediction Loss: 0.003088, Test Loss: 0.000859, Attention Entropy: 0.9026, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 7800, Total Train Loss: 0.003438, Prediction Loss: 0.003438, Test Loss: 0.000976, Attention Entropy: 0.9055, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 7900, Total Train Loss: 0.003521, Prediction Loss: 0.003521, Test Loss: 0.001293, Attention Entropy: 0.9078, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 8000, Total Train Loss: 0.003492, Prediction Loss: 0.003492, Test Loss: 0.000990, Attention Entropy: 0.9070, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+
+Evaluating at step 8001...
+Activations collected:
+  input_embed: torch.Size([1000, 99, 32])
+  after_pos_emb: torch.Size([1000, 99, 32])
+  block_0_attn_output: torch.Size([1000, 99, 32])
+  block_0_after_attn_merge: torch.Size([1000, 99, 32])
+  block_0_mlp_hidden: torch.Size([1000, 99, 128])
+  block_0_mlp_output: torch.Size([1000, 99, 32])
+  block_0_after_mlp_merge: torch.Size([1000, 99, 32])
+  block_1_attn_output: torch.Size([1000, 99, 32])
+  block_1_after_attn_merge: torch.Size([1000, 99, 32])
+  block_1_mlp_hidden: torch.Size([1000, 99, 128])
+  block_1_mlp_output: torch.Size([1000, 99, 32])
+  block_1_after_mlp_merge: torch.Size([1000, 99, 32])
+  after_ln_f: torch.Size([1000, 99, 32])
+
+Linear Probe Results (R² scores):
+================================================================================
+
+input_embed:
+  F_magnitude         : R² (all) = 0.0006, R² (last) = 0.0011
+  F_direction_x       : R² (all) = 0.8263, R² (last) = 0.8274
+  F_direction_y       : R² (all) = 0.8203, R² (last) = 0.8166
+  Fx                  : R² (all) = 0.0646, R² (last) = 0.0738
+  Fy                  : R² (all) = 0.0635, R² (last) = 0.0559
+  r                   : R² (all) = 0.0062, R² (last) = 0.0081
+  inv_r               : R² (all) = 0.0021, R² (last) = 0.0034
+  r_squared           : R² (all) = 0.0072, R² (last) = 0.0090
+  inv_r_squared       : R² (all) = 0.0006, R² (last) = 0.0011
+  inv_r_cubed         : R² (all) = 0.0001, R² (last) = 0.0003
+  x                   : R² (all) = 1.0000, R² (last) = 1.0000
+  y                   : R² (all) = 1.0000, R² (last) = 1.0000
+
+after_pos_emb:
+  F_magnitude         : R² (all) = 0.0433, R² (last) = 0.0011
+  F_direction_x       : R² (all) = 0.8264, R² (last) = 0.8274
+  F_direction_y       : R² (all) = 0.8204, R² (last) = 0.8166
+  Fx                  : R² (all) = 0.0652, R² (last) = 0.0738
+  Fy                  : R² (all) = 0.0638, R² (last) = 0.0559
+  r                   : R² (all) = 0.0764, R² (last) = 0.0082
+  inv_r               : R² (all) = 0.0560, R² (last) = 0.0034
+  r_squared           : R² (all) = 0.0852, R² (last) = 0.0090
+  inv_r_squared       : R² (all) = 0.0433, R² (last) = 0.0011
+  inv_r_cubed         : R² (all) = 0.0299, R² (last) = 0.0003
+  x                   : R² (all) = 1.0000, R² (last) = 1.0000
+  y                   : R² (all) = 1.0000, R² (last) = 1.0000
+
+block_0_attn_output:
+  F_magnitude         : R² (all) = 0.2453, R² (last) = 0.5220
+  F_direction_x       : R² (all) = 0.7189, R² (last) = 0.5012
+  F_direction_y       : R² (all) = 0.7055, R² (last) = 0.8062
+  Fx                  : R² (all) = 0.0374, R² (last) = -0.3089
+  Fy                  : R² (all) = 0.0352, R² (last) = -0.0053
+  r                   : R² (all) = 0.8550, R² (last) = 0.9731
+  inv_r               : R² (all) = 0.5579, R² (last) = 0.8221
+  r_squared           : R² (all) = 0.7804, R² (last) = 0.9455
+  inv_r_squared       : R² (all) = 0.2453, R² (last) = 0.5225
+  inv_r_cubed         : R² (all) = 0.0863, R² (last) = 0.2736
+  x                   : R² (all) = 0.8749, R² (last) = 0.8320
+  y                   : R² (all) = 0.8700, R² (last) = 0.8872
+
+block_0_after_attn_merge:
+  F_magnitude         : R² (all) = 0.3051, R² (last) = 0.5041
+  F_direction_x       : R² (all) = 0.9421, R² (last) = -1.2047
+  F_direction_y       : R² (all) = 0.9413, R² (last) = 0.8249
+  Fx                  : R² (all) = 0.1532, R² (last) = -27.0542
+  Fy                  : R² (all) = 0.1535, R² (last) = -0.4520
+  r                   : R² (all) = 0.9090, R² (last) = 0.7342
+  inv_r               : R² (all) = 0.6568, R² (last) = 0.7544
+  r_squared           : R² (all) = 0.8106, R² (last) = -0.0680
+  inv_r_squared       : R² (all) = 0.3051, R² (last) = 0.5041
+  inv_r_cubed         : R² (all) = 0.1108, R² (last) = 0.3703
+  x                   : R² (all) = 0.9480, R² (last) = 0.8259
+  y                   : R² (all) = 0.9453, R² (last) = 0.9047
+
+block_0_mlp_hidden:
+  F_magnitude         : R² (all) = 0.5813, R² (last) = 0.6870
+  F_direction_x       : R² (all) = 0.9848, R² (last) = 0.9984
+  F_direction_y       : R² (all) = 0.9842, R² (last) = 0.9976
+  Fx                  : R² (all) = 0.3827, R² (last) = 0.5773
+  Fy                  : R² (all) = 0.3804, R² (last) = 0.6036
+  r                   : R² (all) = 0.9901, R² (last) = 0.9996
+  inv_r               : R² (all) = 0.8764, R² (last) = 0.9219
+  r_squared           : R² (all) = 0.9668, R² (last) = 0.9995
+  inv_r_squared       : R² (all) = 0.5813, R² (last) = 0.6875
+  inv_r_cubed         : R² (all) = 0.3011, R² (last) = 0.4155
+  x                   : R² (all) = 0.9951, R² (last) = 0.9999
+  y                   : R² (all) = 0.9955, R² (last) = 0.9998
+
+block_0_mlp_output:
+  F_magnitude         : R² (all) = 0.3784, R² (last) = 0.7066
+  F_direction_x       : R² (all) = 0.9674, R² (last) = 0.9838
+  F_direction_y       : R² (all) = 0.9666, R² (last) = 0.9826
+  Fx                  : R² (all) = 0.2522, R² (last) = 0.4798
+  Fy                  : R² (all) = 0.2599, R² (last) = 0.4518
+  r                   : R² (all) = 0.9191, R² (last) = 0.9985
+  inv_r               : R² (all) = 0.7239, R² (last) = 0.9190
+  r_squared           : R² (all) = 0.8289, R² (last) = 0.9966
+  inv_r_squared       : R² (all) = 0.3784, R² (last) = 0.7067
+  inv_r_cubed         : R² (all) = 0.1540, R² (last) = 0.4757
+  x                   : R² (all) = 0.9719, R² (last) = 0.9992
+  y                   : R² (all) = 0.9778, R² (last) = 0.9989
+
+block_0_after_mlp_merge:
+  F_magnitude         : R² (all) = 0.3018, R² (last) = 0.6860
+  F_direction_x       : R² (all) = 0.9625, R² (last) = 0.9835
+  F_direction_y       : R² (all) = 0.9650, R² (last) = 0.9821
+  Fx                  : R² (all) = 0.2528, R² (last) = 0.4743
+  Fy                  : R² (all) = 0.2542, R² (last) = 0.4425
+  r                   : R² (all) = 0.8774, R² (last) = 0.9985
+  inv_r               : R² (all) = 0.6364, R² (last) = 0.9123
+  r_squared           : R² (all) = 0.8176, R² (last) = 0.9958
+  inv_r_squared       : R² (all) = 0.3018, R² (last) = 0.6860
+  inv_r_cubed         : R² (all) = 0.1067, R² (last) = 0.4449
+  x                   : R² (all) = 0.9994, R² (last) = 1.0000
+  y                   : R² (all) = 0.9996, R² (last) = 1.0000
+
+block_1_attn_output:
+  F_magnitude         : R² (all) = 0.2758, R² (last) = 0.5014
+  F_direction_x       : R² (all) = 0.8977, R² (last) = 0.9401
+  F_direction_y       : R² (all) = 0.8740, R² (last) = 0.9296
+  Fx                  : R² (all) = 0.1861, R² (last) = 0.2873
+  Fy                  : R² (all) = 0.1906, R² (last) = 0.1990
+  r                   : R² (all) = 0.5493, R² (last) = 0.9895
+  inv_r               : R² (all) = 0.4920, R² (last) = 0.8070
+  r_squared           : R² (all) = 0.4860, R² (last) = 0.9804
+  inv_r_squared       : R² (all) = 0.2757, R² (last) = 0.5015
+  inv_r_cubed         : R² (all) = 0.1271, R² (last) = 0.2611
+  x                   : R² (all) = 0.9116, R² (last) = 0.9894
+  y                   : R² (all) = 0.8931, R² (last) = 0.9884
+
+block_1_after_attn_merge:
+  F_magnitude         : R² (all) = 0.3118, R² (last) = 0.6212
+  F_direction_x       : R² (all) = 0.9721, R² (last) = 0.9882
+  F_direction_y       : R² (all) = 0.9734, R² (last) = 0.9882
+  Fx                  : R² (all) = 0.3381, R² (last) = 0.5848
+  Fy                  : R² (all) = 0.3412, R² (last) = 0.5771
+  r                   : R² (all) = 0.8569, R² (last) = 0.9951
+  inv_r               : R² (all) = 0.6373, R² (last) = 0.8749
+  r_squared           : R² (all) = 0.7933, R² (last) = 0.9862
+  inv_r_squared       : R² (all) = 0.3118, R² (last) = 0.6212
+  inv_r_cubed         : R² (all) = 0.1220, R² (last) = 0.3822
+  x                   : R² (all) = 0.9891, R² (last) = 0.9994
+  y                   : R² (all) = 0.9922, R² (last) = 0.9993
+
+block_1_mlp_hidden:
+  F_magnitude         : R² (all) = 0.6608, R² (last) = 0.9066
+  F_direction_x       : R² (all) = 0.9853, R² (last) = 0.9986
+  F_direction_y       : R² (all) = 0.9875, R² (last) = 0.9983
+  Fx                  : R² (all) = 0.4912, R² (last) = 0.8305
+  Fy                  : R² (all) = 0.5068, R² (last) = 0.8598
+  r                   : R² (all) = 0.9833, R² (last) = 0.9998
+  inv_r               : R² (all) = 0.8918, R² (last) = 0.9810
+  r_squared           : R² (all) = 0.9746, R² (last) = 0.9999
+  inv_r_squared       : R² (all) = 0.6608, R² (last) = 0.9066
+  inv_r_cubed         : R² (all) = 0.4169, R² (last) = 0.7910
+  x                   : R² (all) = 0.9968, R² (last) = 1.0000
+  y                   : R² (all) = 0.9981, R² (last) = 1.0000
+
+block_1_mlp_output:
+  F_magnitude         : R² (all) = 0.3644, R² (last) = 0.5233
+  F_direction_x       : R² (all) = 0.9702, R² (last) = 0.9834
+  F_direction_y       : R² (all) = 0.9682, R² (last) = 0.9852
+  Fx                  : R² (all) = 0.3593, R² (last) = 0.5779
+  Fy                  : R² (all) = 0.3513, R² (last) = 0.6180
+  r                   : R² (all) = 0.8794, R² (last) = 0.9859
+  inv_r               : R² (all) = 0.7162, R² (last) = 0.8291
+  r_squared           : R² (all) = 0.7897, R² (last) = 0.9672
+  inv_r_squared       : R² (all) = 0.3644, R² (last) = 0.5233
+  inv_r_cubed         : R² (all) = 0.1362, R² (last) = 0.2756
+  x                   : R² (all) = 0.9887, R² (last) = 0.9978
+  y                   : R² (all) = 0.9871, R² (last) = 0.9970
+
+block_1_after_mlp_merge:
+  F_magnitude         : R² (all) = 0.2896, R² (last) = 0.5219
+  F_direction_x       : R² (all) = 0.9662, R² (last) = 0.9886
+  F_direction_y       : R² (all) = 0.9618, R² (last) = 0.9901
+  Fx                  : R² (all) = 0.3323, R² (last) = 0.5931
+  Fy                  : R² (all) = 0.3234, R² (last) = 0.5754
+  r                   : R² (all) = 0.8538, R² (last) = 0.9879
+  inv_r               : R² (all) = 0.6104, R² (last) = 0.8253
+  r_squared           : R² (all) = 0.8089, R² (last) = 0.9700
+  inv_r_squared       : R² (all) = 0.2896, R² (last) = 0.5219
+  inv_r_cubed         : R² (all) = 0.1043, R² (last) = 0.2763
+  x                   : R² (all) = 0.9937, R² (last) = 0.9997
+  y                   : R² (all) = 0.9943, R² (last) = 0.9994
+
+after_ln_f:
+  F_magnitude         : R² (all) = 0.2657, R² (last) = 0.4745
+  F_direction_x       : R² (all) = 0.9578, R² (last) = 0.9830
+  F_direction_y       : R² (all) = 0.9531, R² (last) = 0.9867
+  Fx                  : R² (all) = 0.3023, R² (last) = 0.5416
+  Fy                  : R² (all) = 0.2909, R² (last) = 0.5311
+  r                   : R² (all) = 0.7870, R² (last) = 0.9930
+  inv_r               : R² (all) = 0.5597, R² (last) = 0.7876
+  r_squared           : R² (all) = 0.7330, R² (last) = 0.9897
+  inv_r_squared       : R² (all) = 0.2657, R² (last) = 0.4745
+  inv_r_cubed         : R² (all) = 0.1059, R² (last) = 0.2370
+  x                   : R² (all) = 0.9980, R² (last) = 0.9995
+  y                   : R² (all) = 0.9982, R² (last) = 0.9996
+Evaluating on 500 trajectories...
+Conditioning length: 50, Generating 50 more steps per trajectory...
+
+Error Statistics (aggregated across all 500 trajectories):
+Mean position error: 0.194983 ± 0.187610
+Max position error: 1.612232
+R² scores:
+  X coordinate: 0.885465 ± 0.216283
+  Y coordinate: 0.884660 ± 0.219760
+Evaluating on 500 trajectories...
+Conditioning length: 50, Generating 50 more steps per trajectory...
+
+Error Statistics (aggregated across all 500 trajectories):
+Mean position error: 0.202879 ± 0.191949
+Max position error: 1.510649
+R² scores:
+  X coordinate: 0.882702 ± 0.227907
+  Y coordinate: 0.883571 ± 0.222055
+Evaluation at step 8001 completed.
+
+Step 8100, Total Train Loss: 0.003015, Prediction Loss: 0.003015, Test Loss: 0.000808, Attention Entropy: 0.9028, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 8200, Total Train Loss: 0.003145, Prediction Loss: 0.003145, Test Loss: 0.001186, Attention Entropy: 0.9038, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 8300, Total Train Loss: 0.003403, Prediction Loss: 0.003403, Test Loss: 0.001222, Attention Entropy: 0.9040, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 8400, Total Train Loss: 0.003322, Prediction Loss: 0.003322, Test Loss: 0.000803, Attention Entropy: 0.9061, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 8500, Total Train Loss: 0.003631, Prediction Loss: 0.003631, Test Loss: 0.001348, Attention Entropy: 0.9087, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 8600, Total Train Loss: 0.003218, Prediction Loss: 0.003218, Test Loss: 0.000744, Attention Entropy: 0.9070, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 8700, Total Train Loss: 0.003664, Prediction Loss: 0.003664, Test Loss: 0.001111, Attention Entropy: 0.9086, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 8800, Total Train Loss: 0.002945, Prediction Loss: 0.002945, Test Loss: 0.000832, Attention Entropy: 0.9084, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 8900, Total Train Loss: 0.003248, Prediction Loss: 0.003248, Test Loss: 0.000789, Attention Entropy: 0.9073, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 9000, Total Train Loss: 0.003439, Prediction Loss: 0.003439, Test Loss: 0.000760, Attention Entropy: 0.9118, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+
+Evaluating at step 9001...
+Activations collected:
+  input_embed: torch.Size([1000, 99, 32])
+  after_pos_emb: torch.Size([1000, 99, 32])
+  block_0_attn_output: torch.Size([1000, 99, 32])
+  block_0_after_attn_merge: torch.Size([1000, 99, 32])
+  block_0_mlp_hidden: torch.Size([1000, 99, 128])
+  block_0_mlp_output: torch.Size([1000, 99, 32])
+  block_0_after_mlp_merge: torch.Size([1000, 99, 32])
+  block_1_attn_output: torch.Size([1000, 99, 32])
+  block_1_after_attn_merge: torch.Size([1000, 99, 32])
+  block_1_mlp_hidden: torch.Size([1000, 99, 128])
+  block_1_mlp_output: torch.Size([1000, 99, 32])
+  block_1_after_mlp_merge: torch.Size([1000, 99, 32])
+  after_ln_f: torch.Size([1000, 99, 32])
+
+Linear Probe Results (R² scores):
+================================================================================
+
+input_embed:
+  F_magnitude         : R² (all) = 0.0000, R² (last) = 0.0018
+  F_direction_x       : R² (all) = 0.8243, R² (last) = 0.8296
+  F_direction_y       : R² (all) = 0.8277, R² (last) = 0.8297
+  Fx                  : R² (all) = 0.0634, R² (last) = 0.1245
+  Fy                  : R² (all) = 0.0635, R² (last) = 0.0881
+  r                   : R² (all) = 0.0002, R² (last) = 0.0041
+  inv_r               : R² (all) = 0.0001, R² (last) = 0.0030
+  r_squared           : R² (all) = 0.0002, R² (last) = 0.0039
+  inv_r_squared       : R² (all) = 0.0000, R² (last) = 0.0018
+  inv_r_cubed         : R² (all) = 0.0000, R² (last) = 0.0010
+  x                   : R² (all) = 1.0000, R² (last) = 1.0000
+  y                   : R² (all) = 1.0000, R² (last) = 1.0000
+
+after_pos_emb:
+  F_magnitude         : R² (all) = 0.0418, R² (last) = 0.0018
+  F_direction_x       : R² (all) = 0.8244, R² (last) = 0.8296
+  F_direction_y       : R² (all) = 0.8277, R² (last) = 0.8297
+  Fx                  : R² (all) = 0.0640, R² (last) = 0.1245
+  Fy                  : R² (all) = 0.0637, R² (last) = 0.0881
+  r                   : R² (all) = 0.0678, R² (last) = 0.0042
+  inv_r               : R² (all) = 0.0524, R² (last) = 0.0030
+  r_squared           : R² (all) = 0.0767, R² (last) = 0.0041
+  inv_r_squared       : R² (all) = 0.0418, R² (last) = 0.0018
+  inv_r_cubed         : R² (all) = 0.0253, R² (last) = 0.0010
+  x                   : R² (all) = 1.0000, R² (last) = 1.0000
+  y                   : R² (all) = 1.0000, R² (last) = 1.0000
+
+block_0_attn_output:
+  F_magnitude         : R² (all) = 0.2530, R² (last) = 0.8018
+  F_direction_x       : R² (all) = 0.6910, R² (last) = 0.7981
+  F_direction_y       : R² (all) = 0.6976, R² (last) = 0.7178
+  Fx                  : R² (all) = -0.0019, R² (last) = 0.2406
+  Fy                  : R² (all) = 0.0333, R² (last) = 0.1336
+  r                   : R² (all) = 0.8523, R² (last) = 0.9680
+  inv_r               : R² (all) = 0.5698, R² (last) = 0.9310
+  r_squared           : R² (all) = 0.7732, R² (last) = 0.9205
+  inv_r_squared       : R² (all) = 0.2530, R² (last) = 0.8017
+  inv_r_cubed         : R² (all) = 0.0753, R² (last) = 0.6379
+  x                   : R² (all) = 0.8663, R² (last) = 0.8904
+  y                   : R² (all) = 0.8631, R² (last) = 0.8707
+
+block_0_after_attn_merge:
+  F_magnitude         : R² (all) = 0.3151, R² (last) = 0.3437
+  F_direction_x       : R² (all) = 0.9405, R² (last) = 0.8599
+  F_direction_y       : R² (all) = 0.9404, R² (last) = 0.7258
+  Fx                  : R² (all) = 0.1518, R² (last) = -0.1768
+  Fy                  : R² (all) = 0.1503, R² (last) = -0.0558
+  r                   : R² (all) = 0.9093, R² (last) = 0.9412
+  inv_r               : R² (all) = 0.6686, R² (last) = 0.7103
+  r_squared           : R² (all) = 0.8111, R² (last) = 0.9300
+  inv_r_squared       : R² (all) = 0.3151, R² (last) = 0.3437
+  inv_r_cubed         : R² (all) = 0.0999, R² (last) = -0.0654
+  x                   : R² (all) = 0.9475, R² (last) = 0.9284
+  y                   : R² (all) = 0.9497, R² (last) = 0.8229
+
+block_0_mlp_hidden:
+  F_magnitude         : R² (all) = 0.5800, R² (last) = 0.9530
+  F_direction_x       : R² (all) = 0.9847, R² (last) = 0.9968
+  F_direction_y       : R² (all) = 0.9839, R² (last) = 0.9977
+  Fx                  : R² (all) = 0.3941, R² (last) = 0.7583
+  Fy                  : R² (all) = 0.3844, R² (last) = 0.8427
+  r                   : R² (all) = 0.9895, R² (last) = 0.9999
+  inv_r               : R² (all) = 0.8833, R² (last) = 0.9896
+  r_squared           : R² (all) = 0.9652, R² (last) = 0.9994
+  inv_r_squared       : R² (all) = 0.5800, R² (last) = 0.9530
+  inv_r_cubed         : R² (all) = 0.2583, R² (last) = 0.8819
+  x                   : R² (all) = 0.9948, R² (last) = 0.9999
+  y                   : R² (all) = 0.9956, R² (last) = 0.9999
+
+block_0_mlp_output:
+  F_magnitude         : R² (all) = 0.4019, R² (last) = 0.8418
+  F_direction_x       : R² (all) = 0.9682, R² (last) = 0.9846
+  F_direction_y       : R² (all) = 0.9671, R² (last) = 0.9838
+  Fx                  : R² (all) = 0.2745, R² (last) = 0.6045
+  Fy                  : R² (all) = 0.2583, R² (last) = 0.5634
+  r                   : R² (all) = 0.9109, R² (last) = 0.9988
+  inv_r               : R² (all) = 0.7484, R² (last) = 0.9532
+  r_squared           : R² (all) = 0.8091, R² (last) = 0.9965
+  inv_r_squared       : R² (all) = 0.4019, R² (last) = 0.8418
+  inv_r_cubed         : R² (all) = 0.1450, R² (last) = 0.6779
+  x                   : R² (all) = 0.9743, R² (last) = 0.9992
+  y                   : R² (all) = 0.9779, R² (last) = 0.9991
+
+block_0_after_mlp_merge:
+  F_magnitude         : R² (all) = 0.3091, R² (last) = 0.8141
+  F_direction_x       : R² (all) = 0.9623, R² (last) = 0.9846
+  F_direction_y       : R² (all) = 0.9655, R² (last) = 0.9834
+  Fx                  : R² (all) = 0.2581, R² (last) = 0.5965
+  Fy                  : R² (all) = 0.2553, R² (last) = 0.5584
+  r                   : R² (all) = 0.8763, R² (last) = 0.9986
+  inv_r               : R² (all) = 0.6399, R² (last) = 0.9399
+  r_squared           : R² (all) = 0.8226, R² (last) = 0.9956
+  inv_r_squared       : R² (all) = 0.3091, R² (last) = 0.8141
+  inv_r_cubed         : R² (all) = 0.0977, R² (last) = 0.6417
+  x                   : R² (all) = 0.9994, R² (last) = 1.0000
+  y                   : R² (all) = 0.9997, R² (last) = 1.0000
+
+block_1_attn_output:
+  F_magnitude         : R² (all) = 0.3147, R² (last) = 0.6658
+  F_direction_x       : R² (all) = 0.8980, R² (last) = 0.9408
+  F_direction_y       : R² (all) = 0.9009, R² (last) = 0.9216
+  Fx                  : R² (all) = 0.1954, R² (last) = 0.3444
+  Fy                  : R² (all) = 0.1943, R² (last) = 0.1780
+  r                   : R² (all) = 0.7552, R² (last) = 0.9902
+  inv_r               : R² (all) = 0.5765, R² (last) = 0.8635
+  r_squared           : R² (all) = 0.7170, R² (last) = 0.9782
+  inv_r_squared       : R² (all) = 0.3147, R² (last) = 0.6654
+  inv_r_cubed         : R² (all) = 0.1247, R² (last) = 0.4534
+  x                   : R² (all) = 0.9216, R² (last) = 0.9881
+  y                   : R² (all) = 0.9233, R² (last) = 0.9859
+
+block_1_after_attn_merge:
+  F_magnitude         : R² (all) = 0.3161, R² (last) = 0.7964
+  F_direction_x       : R² (all) = 0.9740, R² (last) = 0.9871
+  F_direction_y       : R² (all) = 0.9752, R² (last) = 0.9882
+  Fx                  : R² (all) = 0.3493, R² (last) = 0.6518
+  Fy                  : R² (all) = 0.3472, R² (last) = 0.6513
+  r                   : R² (all) = 0.8472, R² (last) = 0.9963
+  inv_r               : R² (all) = 0.6423, R² (last) = 0.9308
+  r_squared           : R² (all) = 0.7820, R² (last) = 0.9875
+  inv_r_squared       : R² (all) = 0.3161, R² (last) = 0.7964
+  inv_r_cubed         : R² (all) = 0.1066, R² (last) = 0.6217
+  x                   : R² (all) = 0.9884, R² (last) = 0.9992
+  y                   : R² (all) = 0.9926, R² (last) = 0.9993
+
+block_1_mlp_hidden:
+  F_magnitude         : R² (all) = 0.6479, R² (last) = 0.9678
+  F_direction_x       : R² (all) = 0.9852, R² (last) = 0.9986
+  F_direction_y       : R² (all) = 0.9867, R² (last) = 0.9985
+  Fx                  : R² (all) = 0.5035, R² (last) = 0.9047
+  Fy                  : R² (all) = 0.5109, R² (last) = 0.8913
+  r                   : R² (all) = 0.9824, R² (last) = 0.9998
+  inv_r               : R² (all) = 0.8955, R² (last) = 0.9922
+  r_squared           : R² (all) = 0.9733, R² (last) = 0.9998
+  inv_r_squared       : R² (all) = 0.6479, R² (last) = 0.9678
+  inv_r_cubed         : R² (all) = 0.3507, R² (last) = 0.9151
+  x                   : R² (all) = 0.9969, R² (last) = 1.0000
+  y                   : R² (all) = 0.9981, R² (last) = 0.9999
+
+block_1_mlp_output:
+  F_magnitude         : R² (all) = 0.3888, R² (last) = 0.7166
+  F_direction_x       : R² (all) = 0.9712, R² (last) = 0.9826
+  F_direction_y       : R² (all) = 0.9688, R² (last) = 0.9855
+  Fx                  : R² (all) = 0.3775, R² (last) = 0.6441
+  Fy                  : R² (all) = 0.3657, R² (last) = 0.6647
+  r                   : R² (all) = 0.8845, R² (last) = 0.9866
+  inv_r               : R² (all) = 0.7456, R² (last) = 0.8930
+  r_squared           : R² (all) = 0.7984, R² (last) = 0.9671
+  inv_r_squared       : R² (all) = 0.3888, R² (last) = 0.7166
+  inv_r_cubed         : R² (all) = 0.1259, R² (last) = 0.5195
+  x                   : R² (all) = 0.9881, R² (last) = 0.9980
+  y                   : R² (all) = 0.9848, R² (last) = 0.9972
+
+block_1_after_mlp_merge:
+  F_magnitude         : R² (all) = 0.2941, R² (last) = 0.7339
+  F_direction_x       : R² (all) = 0.9667, R² (last) = 0.9888
+  F_direction_y       : R² (all) = 0.9640, R² (last) = 0.9894
+  Fx                  : R² (all) = 0.3408, R² (last) = 0.6703
+  Fy                  : R² (all) = 0.3346, R² (last) = 0.6674
+  r                   : R² (all) = 0.8498, R² (last) = 0.9884
+  inv_r               : R² (all) = 0.6158, R² (last) = 0.9009
+  r_squared           : R² (all) = 0.8022, R² (last) = 0.9704
+  inv_r_squared       : R² (all) = 0.2941, R² (last) = 0.7339
+  inv_r_cubed         : R² (all) = 0.0927, R² (last) = 0.5369
+  x                   : R² (all) = 0.9943, R² (last) = 0.9996
+  y                   : R² (all) = 0.9936, R² (last) = 0.9994
+
+after_ln_f:
+  F_magnitude         : R² (all) = 0.2673, R² (last) = 0.6819
+  F_direction_x       : R² (all) = 0.9566, R² (last) = 0.9842
+  F_direction_y       : R² (all) = 0.9547, R² (last) = 0.9836
+  Fx                  : R² (all) = 0.3043, R² (last) = 0.6221
+  Fy                  : R² (all) = 0.2999, R² (last) = 0.6095
+  r                   : R² (all) = 0.7809, R² (last) = 0.9935
+  inv_r               : R² (all) = 0.5623, R² (last) = 0.8660
+  r_squared           : R² (all) = 0.7242, R² (last) = 0.9890
+  inv_r_squared       : R² (all) = 0.2673, R² (last) = 0.6819
+  inv_r_cubed         : R² (all) = 0.0918, R² (last) = 0.4817
+  x                   : R² (all) = 0.9983, R² (last) = 0.9996
+  y                   : R² (all) = 0.9982, R² (last) = 0.9995
+Evaluating on 500 trajectories...
+Conditioning length: 50, Generating 50 more steps per trajectory...
+
+Error Statistics (aggregated across all 500 trajectories):
+Mean position error: 0.143802 ± 0.152004
+Max position error: 1.493789
+R² scores:
+  X coordinate: 0.927506 ± 0.210226
+  Y coordinate: 0.927192 ± 0.196450
+Evaluating on 500 trajectories...
+Conditioning length: 50, Generating 50 more steps per trajectory...
+
+Error Statistics (aggregated across all 500 trajectories):
+Mean position error: 0.146697 ± 0.150256
+Max position error: 1.228719
+R² scores:
+  X coordinate: 0.924040 ± 0.202446
+  Y coordinate: 0.922523 ± 0.208012
+Evaluation at step 9001 completed.
+
+Step 9100, Total Train Loss: 0.003057, Prediction Loss: 0.003057, Test Loss: 0.001765, Attention Entropy: 0.9063, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 9200, Total Train Loss: 0.003038, Prediction Loss: 0.003038, Test Loss: 0.000679, Attention Entropy: 0.9092, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 9300, Total Train Loss: 0.002861, Prediction Loss: 0.002861, Test Loss: 0.000791, Attention Entropy: 0.9098, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 9400, Total Train Loss: 0.003118, Prediction Loss: 0.003118, Test Loss: 0.001068, Attention Entropy: 0.9091, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 9500, Total Train Loss: 0.003361, Prediction Loss: 0.003361, Test Loss: 0.000863, Attention Entropy: 0.9073, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 9600, Total Train Loss: 0.003398, Prediction Loss: 0.003398, Test Loss: 0.000897, Attention Entropy: 0.9121, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 9700, Total Train Loss: 0.003029, Prediction Loss: 0.003029, Test Loss: 0.000691, Attention Entropy: 0.9137, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 9800, Total Train Loss: 0.002848, Prediction Loss: 0.002848, Test Loss: 0.000877, Attention Entropy: 0.9112, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 9900, Total Train Loss: 0.003471, Prediction Loss: 0.003471, Test Loss: 0.001233, Attention Entropy: 0.9108, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 10000, Total Train Loss: 0.002890, Prediction Loss: 0.002890, Test Loss: 0.000676, Attention Entropy: 0.9126, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+
+Evaluating at step 10001...
+Activations collected:
+  input_embed: torch.Size([1000, 99, 32])
+  after_pos_emb: torch.Size([1000, 99, 32])
+  block_0_attn_output: torch.Size([1000, 99, 32])
+  block_0_after_attn_merge: torch.Size([1000, 99, 32])
+  block_0_mlp_hidden: torch.Size([1000, 99, 128])
+  block_0_mlp_output: torch.Size([1000, 99, 32])
+  block_0_after_mlp_merge: torch.Size([1000, 99, 32])
+  block_1_attn_output: torch.Size([1000, 99, 32])
+  block_1_after_attn_merge: torch.Size([1000, 99, 32])
+  block_1_mlp_hidden: torch.Size([1000, 99, 128])
+  block_1_mlp_output: torch.Size([1000, 99, 32])
+  block_1_after_mlp_merge: torch.Size([1000, 99, 32])
+  after_ln_f: torch.Size([1000, 99, 32])
+
+Linear Probe Results (R² scores):
+================================================================================
+
+input_embed:
+  F_magnitude         : R² (all) = 0.0001, R² (last) = 0.0001
+  F_direction_x       : R² (all) = 0.8314, R² (last) = 0.8381
+  F_direction_y       : R² (all) = 0.8341, R² (last) = 0.8374
+  Fx                  : R² (all) = 0.0521, R² (last) = 0.0252
+  Fy                  : R² (all) = 0.0562, R² (last) = 0.0817
+  r                   : R² (all) = 0.0003, R² (last) = 0.0004
+  inv_r               : R² (all) = 0.0002, R² (last) = 0.0001
+  r_squared           : R² (all) = 0.0006, R² (last) = 0.0006
+  inv_r_squared       : R² (all) = 0.0001, R² (last) = 0.0001
+  inv_r_cubed         : R² (all) = 0.0000, R² (last) = 0.0000
+  x                   : R² (all) = 1.0000, R² (last) = 1.0000
+  y                   : R² (all) = 1.0000, R² (last) = 1.0000
+
+after_pos_emb:
+  F_magnitude         : R² (all) = 0.0386, R² (last) = 0.0001
+  F_direction_x       : R² (all) = 0.8316, R² (last) = 0.8381
+  F_direction_y       : R² (all) = 0.8342, R² (last) = 0.8374
+  Fx                  : R² (all) = 0.0526, R² (last) = 0.0252
+  Fy                  : R² (all) = 0.0566, R² (last) = 0.0817
+  r                   : R² (all) = 0.0696, R² (last) = 0.0005
+  inv_r               : R² (all) = 0.0526, R² (last) = 0.0002
+  r_squared           : R² (all) = 0.0763, R² (last) = 0.0007
+  inv_r_squared       : R² (all) = 0.0386, R² (last) = 0.0001
+  inv_r_cubed         : R² (all) = 0.0238, R² (last) = 0.0000
+  x                   : R² (all) = 1.0000, R² (last) = 1.0000
+  y                   : R² (all) = 1.0000, R² (last) = 1.0000
+
+block_0_attn_output:
+  F_magnitude         : R² (all) = 0.2155, R² (last) = 0.2942
+  F_direction_x       : R² (all) = 0.6980, R² (last) = 0.8505
+  F_direction_y       : R² (all) = 0.7045, R² (last) = 0.6814
+  Fx                  : R² (all) = 0.0270, R² (last) = 0.1010
+  Fy                  : R² (all) = 0.0307, R² (last) = 0.1749
+  r                   : R² (all) = 0.8439, R² (last) = 0.9692
+  inv_r               : R² (all) = 0.5447, R² (last) = 0.8233
+  r_squared           : R² (all) = 0.7664, R² (last) = 0.9187
+  inv_r_squared       : R² (all) = 0.2155, R² (last) = 0.2939
+  inv_r_cubed         : R² (all) = 0.0656, R² (last) = -0.1259
+  x                   : R² (all) = 0.8539, R² (last) = 0.9042
+  y                   : R² (all) = 0.8602, R² (last) = 0.9148
+
+block_0_after_attn_merge:
+  F_magnitude         : R² (all) = 0.2631, R² (last) = 0.4403
+  F_direction_x       : R² (all) = 0.9410, R² (last) = 0.9518
+  F_direction_y       : R² (all) = 0.9413, R² (last) = 0.7738
+  Fx                  : R² (all) = 0.1191, R² (last) = 0.1915
+  Fy                  : R² (all) = 0.1276, R² (last) = -0.1029
+  r                   : R² (all) = 0.9106, R² (last) = 0.9650
+  inv_r               : R² (all) = 0.6343, R² (last) = 0.8117
+  r_squared           : R² (all) = 0.8184, R² (last) = 0.9548
+  inv_r_squared       : R² (all) = 0.2631, R² (last) = 0.4437
+  inv_r_cubed         : R² (all) = 0.0831, R² (last) = 0.1908
+  x                   : R² (all) = 0.9506, R² (last) = 0.9809
+  y                   : R² (all) = 0.9529, R² (last) = 0.9415
+
+block_0_mlp_hidden:
+  F_magnitude         : R² (all) = 0.5232, R² (last) = 0.7557
+  F_direction_x       : R² (all) = 0.9844, R² (last) = 0.9966
+  F_direction_y       : R² (all) = 0.9840, R² (last) = 0.9939
+  Fx                  : R² (all) = 0.3167, R² (last) = 0.5820
+  Fy                  : R² (all) = 0.3332, R² (last) = 0.6777
+  r                   : R² (all) = 0.9902, R² (last) = 0.9998
+  inv_r               : R² (all) = 0.8588, R² (last) = 0.9584
+  r_squared           : R² (all) = 0.9677, R² (last) = 0.9995
+  inv_r_squared       : R² (all) = 0.5232, R² (last) = 0.7559
+  inv_r_cubed         : R² (all) = 0.2404, R² (last) = 0.5666
+  x                   : R² (all) = 0.9950, R² (last) = 0.9999
+  y                   : R² (all) = 0.9961, R² (last) = 0.9999
+
+block_0_mlp_output:
+  F_magnitude         : R² (all) = 0.3608, R² (last) = 0.4625
+  F_direction_x       : R² (all) = 0.9684, R² (last) = 0.9824
+  F_direction_y       : R² (all) = 0.9682, R² (last) = 0.9827
+  Fx                  : R² (all) = 0.2191, R² (last) = 0.2442
+  Fy                  : R² (all) = 0.2210, R² (last) = 0.4204
+  r                   : R² (all) = 0.9101, R² (last) = 0.9985
+  inv_r               : R² (all) = 0.7350, R² (last) = 0.8630
+  r_squared           : R² (all) = 0.8048, R² (last) = 0.9962
+  inv_r_squared       : R² (all) = 0.3608, R² (last) = 0.4625
+  inv_r_cubed         : R² (all) = 0.1321, R² (last) = 0.2010
+  x                   : R² (all) = 0.9743, R² (last) = 0.9992
+  y                   : R² (all) = 0.9783, R² (last) = 0.9992
+
+block_0_after_mlp_merge:
+  F_magnitude         : R² (all) = 0.2670, R² (last) = 0.4294
+  F_direction_x       : R² (all) = 0.9630, R² (last) = 0.9813
+  F_direction_y       : R² (all) = 0.9676, R² (last) = 0.9817
+  Fx                  : R² (all) = 0.1996, R² (last) = 0.2227
+  Fy                  : R² (all) = 0.2211, R² (last) = 0.4242
+  r                   : R² (all) = 0.8691, R² (last) = 0.9982
+  inv_r               : R² (all) = 0.6120, R² (last) = 0.8391
+  r_squared           : R² (all) = 0.8259, R² (last) = 0.9959
+  inv_r_squared       : R² (all) = 0.2670, R² (last) = 0.4294
+  inv_r_cubed         : R² (all) = 0.0856, R² (last) = 0.1773
+  x                   : R² (all) = 0.9994, R² (last) = 1.0000
+  y                   : R² (all) = 0.9997, R² (last) = 1.0000
+
+block_1_attn_output:
+  F_magnitude         : R² (all) = 0.2779, R² (last) = 0.2558
+  F_direction_x       : R² (all) = 0.9011, R² (last) = 0.9355
+  F_direction_y       : R² (all) = 0.9130, R² (last) = 0.9415
+  Fx                  : R² (all) = 0.1535, R² (last) = 0.1352
+  Fy                  : R² (all) = 0.1760, R² (last) = 0.2692
+  r                   : R² (all) = 0.7546, R² (last) = 0.9725
+  inv_r               : R² (all) = 0.5542, R² (last) = 0.6684
+  r_squared           : R² (all) = 0.7217, R² (last) = 0.9744
+  inv_r_squared       : R² (all) = 0.2779, R² (last) = 0.2563
+  inv_r_cubed         : R² (all) = 0.1146, R² (last) = 0.0854
+  x                   : R² (all) = 0.9255, R² (last) = 0.9822
+  y                   : R² (all) = 0.9314, R² (last) = 0.9848
+
+block_1_after_attn_merge:
+  F_magnitude         : R² (all) = 0.2729, R² (last) = 0.4416
+  F_direction_x       : R² (all) = 0.9747, R² (last) = 0.9854
+  F_direction_y       : R² (all) = 0.9767, R² (last) = 0.9871
+  Fx                  : R² (all) = 0.2738, R² (last) = 0.2885
+  Fy                  : R² (all) = 0.2992, R² (last) = 0.5026
+  r                   : R² (all) = 0.8292, R² (last) = 0.9969
+  inv_r               : R² (all) = 0.6136, R² (last) = 0.8409
+  r_squared           : R² (all) = 0.7636, R² (last) = 0.9886
+  inv_r_squared       : R² (all) = 0.2729, R² (last) = 0.4416
+  inv_r_cubed         : R² (all) = 0.0947, R² (last) = 0.1930
+  x                   : R² (all) = 0.9880, R² (last) = 0.9992
+  y                   : R² (all) = 0.9929, R² (last) = 0.9993
+
+block_1_mlp_hidden:
+  F_magnitude         : R² (all) = 0.6157, R² (last) = 0.8162
+  F_direction_x       : R² (all) = 0.9844, R² (last) = 0.9981
+  F_direction_y       : R² (all) = 0.9866, R² (last) = 0.9982
+  Fx                  : R² (all) = 0.4190, R² (last) = 0.7127
+  Fy                  : R² (all) = 0.4677, R² (last) = 0.8203
+  r                   : R² (all) = 0.9830, R² (last) = 0.9998
+  inv_r               : R² (all) = 0.8843, R² (last) = 0.9739
+  r_squared           : R² (all) = 0.9747, R² (last) = 0.9999
+  inv_r_squared       : R² (all) = 0.6157, R² (last) = 0.8162
+  inv_r_cubed         : R² (all) = 0.3502, R² (last) = 0.6446
+  x                   : R² (all) = 0.9967, R² (last) = 1.0000
+  y                   : R² (all) = 0.9980, R² (last) = 1.0000
+
+block_1_mlp_output:
+  F_magnitude         : R² (all) = 0.3434, R² (last) = 0.4309
+  F_direction_x       : R² (all) = 0.9705, R² (last) = 0.9829
+  F_direction_y       : R² (all) = 0.9689, R² (last) = 0.9857
+  Fx                  : R² (all) = 0.3088, R² (last) = 0.3352
+  Fy                  : R² (all) = 0.3169, R² (last) = 0.5216
+  r                   : R² (all) = 0.8809, R² (last) = 0.9873
+  inv_r               : R² (all) = 0.7288, R² (last) = 0.8237
+  r_squared           : R² (all) = 0.7955, R² (last) = 0.9664
+  inv_r_squared       : R² (all) = 0.3434, R² (last) = 0.4309
+  inv_r_cubed         : R² (all) = 0.1109, R² (last) = 0.2032
+  x                   : R² (all) = 0.9873, R² (last) = 0.9980
+  y                   : R² (all) = 0.9821, R² (last) = 0.9973
+
+block_1_after_mlp_merge:
+  F_magnitude         : R² (all) = 0.2508, R² (last) = 0.3941
+  F_direction_x       : R² (all) = 0.9666, R² (last) = 0.9868
+  F_direction_y       : R² (all) = 0.9672, R² (last) = 0.9877
+  Fx                  : R² (all) = 0.2717, R² (last) = 0.2893
+  Fy                  : R² (all) = 0.2955, R² (last) = 0.5005
+  r                   : R² (all) = 0.8356, R² (last) = 0.9869
+  inv_r               : R² (all) = 0.5848, R² (last) = 0.8107
+  r_squared           : R² (all) = 0.7904, R² (last) = 0.9706
+  inv_r_squared       : R² (all) = 0.2508, R² (last) = 0.3941
+  inv_r_cubed         : R² (all) = 0.0812, R² (last) = 0.1583
+  x                   : R² (all) = 0.9939, R² (last) = 0.9996
+  y                   : R² (all) = 0.9934, R² (last) = 0.9995
+
+after_ln_f:
+  F_magnitude         : R² (all) = 0.2326, R² (last) = 0.3526
+  F_direction_x       : R² (all) = 0.9563, R² (last) = 0.9822
+  F_direction_y       : R² (all) = 0.9574, R² (last) = 0.9820
+  Fx                  : R² (all) = 0.2391, R² (last) = 0.2484
+  Fy                  : R² (all) = 0.2670, R² (last) = 0.4682
+  r                   : R² (all) = 0.7555, R² (last) = 0.9927
+  inv_r               : R² (all) = 0.5356, R² (last) = 0.7774
+  r_squared           : R² (all) = 0.6936, R² (last) = 0.9873
+  inv_r_squared       : R² (all) = 0.2326, R² (last) = 0.3526
+  inv_r_cubed         : R² (all) = 0.0857, R² (last) = 0.1265
+  x                   : R² (all) = 0.9979, R² (last) = 0.9995
+  y                   : R² (all) = 0.9982, R² (last) = 0.9995
+Evaluating on 500 trajectories...
+Conditioning length: 50, Generating 50 more steps per trajectory...
+
+Error Statistics (aggregated across all 500 trajectories):
+Mean position error: 0.126465 ± 0.137141
+Max position error: 1.670722
+R² scores:
+  X coordinate: 0.940801 ± 0.208107
+  Y coordinate: 0.938926 ± 0.228280
+Evaluating on 500 trajectories...
+Conditioning length: 50, Generating 50 more steps per trajectory...
+
+Error Statistics (aggregated across all 500 trajectories):
+Mean position error: 0.122533 ± 0.122478
+Max position error: 1.068195
+R² scores:
+  X coordinate: 0.945437 ± 0.184849
+  Y coordinate: 0.945405 ± 0.180302
+Evaluation at step 10001 completed.
+
+Step 10100, Total Train Loss: 0.002538, Prediction Loss: 0.002538, Test Loss: 0.000447, Attention Entropy: 0.9126, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 10200, Total Train Loss: 0.002557, Prediction Loss: 0.002557, Test Loss: 0.000504, Attention Entropy: 0.9103, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 10300, Total Train Loss: 0.002443, Prediction Loss: 0.002443, Test Loss: 0.000524, Attention Entropy: 0.9172, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 10400, Total Train Loss: 0.002626, Prediction Loss: 0.002626, Test Loss: 0.000442, Attention Entropy: 0.9089, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 10500, Total Train Loss: 0.002535, Prediction Loss: 0.002535, Test Loss: 0.000374, Attention Entropy: 0.9125, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 10600, Total Train Loss: 0.002483, Prediction Loss: 0.002483, Test Loss: 0.000389, Attention Entropy: 0.9141, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 10700, Total Train Loss: 0.002588, Prediction Loss: 0.002588, Test Loss: 0.000471, Attention Entropy: 0.9115, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 10800, Total Train Loss: 0.002604, Prediction Loss: 0.002604, Test Loss: 0.000430, Attention Entropy: 0.9142, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 10900, Total Train Loss: 0.002480, Prediction Loss: 0.002480, Test Loss: 0.000398, Attention Entropy: 0.9178, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 11000, Total Train Loss: 0.002412, Prediction Loss: 0.002412, Test Loss: 0.000527, Attention Entropy: 0.9137, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+
+Evaluating at step 11001...
+Activations collected:
+  input_embed: torch.Size([1000, 99, 32])
+  after_pos_emb: torch.Size([1000, 99, 32])
+  block_0_attn_output: torch.Size([1000, 99, 32])
+  block_0_after_attn_merge: torch.Size([1000, 99, 32])
+  block_0_mlp_hidden: torch.Size([1000, 99, 128])
+  block_0_mlp_output: torch.Size([1000, 99, 32])
+  block_0_after_mlp_merge: torch.Size([1000, 99, 32])
+  block_1_attn_output: torch.Size([1000, 99, 32])
+  block_1_after_attn_merge: torch.Size([1000, 99, 32])
+  block_1_mlp_hidden: torch.Size([1000, 99, 128])
+  block_1_mlp_output: torch.Size([1000, 99, 32])
+  block_1_after_mlp_merge: torch.Size([1000, 99, 32])
+  after_ln_f: torch.Size([1000, 99, 32])
+
+Linear Probe Results (R² scores):
+================================================================================
+
+input_embed:
+  F_magnitude         : R² (all) = 0.0001, R² (last) = 0.0010
+  F_direction_x       : R² (all) = 0.8299, R² (last) = 0.8263
+  F_direction_y       : R² (all) = 0.8241, R² (last) = 0.8276
+  Fx                  : R² (all) = 0.0629, R² (last) = 0.0749
+  Fy                  : R² (all) = 0.0633, R² (last) = 0.0943
+  r                   : R² (all) = 0.0008, R² (last) = 0.0056
+  inv_r               : R² (all) = 0.0003, R² (last) = 0.0025
+  r_squared           : R² (all) = 0.0010, R² (last) = 0.0059
+  inv_r_squared       : R² (all) = 0.0001, R² (last) = 0.0010
+  inv_r_cubed         : R² (all) = 0.0000, R² (last) = 0.0003
+  x                   : R² (all) = 1.0000, R² (last) = 1.0000
+  y                   : R² (all) = 1.0000, R² (last) = 1.0000
+
+after_pos_emb:
+  F_magnitude         : R² (all) = 0.0426, R² (last) = 0.0011
+  F_direction_x       : R² (all) = 0.8299, R² (last) = 0.8263
+  F_direction_y       : R² (all) = 0.8241, R² (last) = 0.8276
+  Fx                  : R² (all) = 0.0631, R² (last) = 0.0749
+  Fy                  : R² (all) = 0.0634, R² (last) = 0.0943
+  r                   : R² (all) = 0.0735, R² (last) = 0.0055
+  inv_r               : R² (all) = 0.0553, R² (last) = 0.0026
+  r_squared           : R² (all) = 0.0823, R² (last) = 0.0056
+  inv_r_squared       : R² (all) = 0.0426, R² (last) = 0.0011
+  inv_r_cubed         : R² (all) = 0.0252, R² (last) = 0.0003
+  x                   : R² (all) = 1.0000, R² (last) = 1.0000
+  y                   : R² (all) = 1.0000, R² (last) = 1.0000
+
+block_0_attn_output:
+  F_magnitude         : R² (all) = 0.2426, R² (last) = -0.3495
+  F_direction_x       : R² (all) = 0.6977, R² (last) = 0.8673
+  F_direction_y       : R² (all) = 0.6883, R² (last) = 0.2841
+  Fx                  : R² (all) = 0.0330, R² (last) = 0.1247
+  Fy                  : R² (all) = 0.0325, R² (last) = 0.1078
+  r                   : R² (all) = 0.8453, R² (last) = 0.8837
+  inv_r               : R² (all) = 0.5650, R² (last) = 0.4198
+  r_squared           : R² (all) = 0.7672, R² (last) = 0.8192
+  inv_r_squared       : R² (all) = 0.2426, R² (last) = -0.3514
+  inv_r_cubed         : R² (all) = 0.0717, R² (last) = -1.0444
+  x                   : R² (all) = 0.8561, R² (last) = 0.8875
+  y                   : R² (all) = 0.8534, R² (last) = 0.8770
+
+block_0_after_attn_merge:
+  F_magnitude         : R² (all) = 0.2989, R² (last) = 0.2951
+  F_direction_x       : R² (all) = 0.9410, R² (last) = 0.9325
+  F_direction_y       : R² (all) = 0.9399, R² (last) = 0.8447
+  Fx                  : R² (all) = 0.1446, R² (last) = 0.2641
+  Fy                  : R² (all) = 0.1465, R² (last) = 0.3315
+  r                   : R² (all) = 0.9127, R² (last) = 0.9681
+  inv_r               : R² (all) = 0.6617, R² (last) = 0.7642
+  r_squared           : R² (all) = 0.8207, R² (last) = 0.9476
+  inv_r_squared       : R² (all) = 0.2989, R² (last) = 0.2956
+  inv_r_cubed         : R² (all) = 0.0913, R² (last) = -0.2430
+  x                   : R² (all) = 0.9507, R² (last) = 0.9578
+  y                   : R² (all) = 0.9481, R² (last) = 0.9336
+
+block_0_mlp_hidden:
+  F_magnitude         : R² (all) = 0.5716, R² (last) = 0.9445
+  F_direction_x       : R² (all) = 0.9847, R² (last) = 0.9953
+  F_direction_y       : R² (all) = 0.9841, R² (last) = 0.9929
+  Fx                  : R² (all) = 0.3752, R² (last) = 0.5727
+  Fy                  : R² (all) = 0.3750, R² (last) = 0.5285
+  r                   : R² (all) = 0.9908, R² (last) = 0.9999
+  inv_r               : R² (all) = 0.8827, R² (last) = 0.9877
+  r_squared           : R² (all) = 0.9682, R² (last) = 0.9996
+  inv_r_squared       : R² (all) = 0.5716, R² (last) = 0.9446
+  inv_r_cubed         : R² (all) = 0.2552, R² (last) = 0.8579
+  x                   : R² (all) = 0.9955, R² (last) = 0.9999
+  y                   : R² (all) = 0.9956, R² (last) = 0.9999
+
+block_0_mlp_output:
+  F_magnitude         : R² (all) = 0.4073, R² (last) = 0.8165
+  F_direction_x       : R² (all) = 0.9692, R² (last) = 0.9820
+  F_direction_y       : R² (all) = 0.9673, R² (last) = 0.9851
+  Fx                  : R² (all) = 0.2669, R² (last) = 0.4747
+  Fy                  : R² (all) = 0.2518, R² (last) = 0.5488
+  r                   : R² (all) = 0.9102, R² (last) = 0.9988
+  inv_r               : R² (all) = 0.7641, R² (last) = 0.9462
+  r_squared           : R² (all) = 0.8042, R² (last) = 0.9964
+  inv_r_squared       : R² (all) = 0.4073, R² (last) = 0.8165
+  inv_r_cubed         : R² (all) = 0.1459, R² (last) = 0.6443
+  x                   : R² (all) = 0.9726, R² (last) = 0.9991
+  y                   : R² (all) = 0.9761, R² (last) = 0.9990
+
+block_0_after_mlp_merge:
+  F_magnitude         : R² (all) = 0.3020, R² (last) = 0.7377
+  F_direction_x       : R² (all) = 0.9638, R² (last) = 0.9805
+  F_direction_y       : R² (all) = 0.9667, R² (last) = 0.9843
+  Fx                  : R² (all) = 0.2481, R² (last) = 0.4353
+  Fy                  : R² (all) = 0.2515, R² (last) = 0.5509
+  r                   : R² (all) = 0.8775, R² (last) = 0.9985
+  inv_r               : R² (all) = 0.6375, R² (last) = 0.9083
+  r_squared           : R² (all) = 0.8365, R² (last) = 0.9968
+  inv_r_squared       : R² (all) = 0.3020, R² (last) = 0.7377
+  inv_r_cubed         : R² (all) = 0.0950, R² (last) = 0.5440
+  x                   : R² (all) = 0.9993, R² (last) = 1.0000
+  y                   : R² (all) = 0.9997, R² (last) = 1.0000
+
+block_1_attn_output:
+  F_magnitude         : R² (all) = 0.1487, R² (last) = 0.5984
+  F_direction_x       : R² (all) = 0.8733, R² (last) = 0.9354
+  F_direction_y       : R² (all) = 0.6325, R² (last) = 0.9436
+  Fx                  : R² (all) = 0.1280, R² (last) = 0.2868
+  Fy                  : R² (all) = 0.1900, R² (last) = 0.3480
+  r                   : R² (all) = 0.7249, R² (last) = 0.9888
+  inv_r               : R² (all) = 0.4422, R² (last) = 0.8263
+  r_squared           : R² (all) = 0.5857, R² (last) = 0.9791
+  inv_r_squared       : R² (all) = 0.1488, R² (last) = 0.5982
+  inv_r_cubed         : R² (all) = 0.0624, R² (last) = 0.3908
+  x                   : R² (all) = 0.8697, R² (last) = 0.9878
+  y                   : R² (all) = 0.6574, R² (last) = 0.9871
+
+block_1_after_attn_merge:
+  F_magnitude         : R² (all) = 0.3062, R² (last) = 0.7387
+  F_direction_x       : R² (all) = 0.9745, R² (last) = 0.9851
+  F_direction_y       : R² (all) = 0.9754, R² (last) = 0.9895
+  Fx                  : R² (all) = 0.3279, R² (last) = 0.5483
+  Fy                  : R² (all) = 0.3352, R² (last) = 0.6383
+  r                   : R² (all) = 0.8317, R² (last) = 0.9965
+  inv_r               : R² (all) = 0.6394, R² (last) = 0.9108
+  r_squared           : R² (all) = 0.7633, R² (last) = 0.9875
+  inv_r_squared       : R² (all) = 0.3062, R² (last) = 0.7387
+  inv_r_cubed         : R² (all) = 0.1020, R² (last) = 0.5393
+  x                   : R² (all) = 0.9872, R² (last) = 0.9992
+  y                   : R² (all) = 0.9923, R² (last) = 0.9993
+
+block_1_mlp_hidden:
+  F_magnitude         : R² (all) = 0.6339, R² (last) = 0.9673
+  F_direction_x       : R² (all) = 0.9839, R² (last) = 0.9982
+  F_direction_y       : R² (all) = 0.9857, R² (last) = 0.9985
+  Fx                  : R² (all) = 0.4722, R² (last) = 0.8436
+  Fy                  : R² (all) = 0.4977, R² (last) = 0.8764
+  r                   : R² (all) = 0.9825, R² (last) = 0.9998
+  inv_r               : R² (all) = 0.8932, R² (last) = 0.9923
+  r_squared           : R² (all) = 0.9751, R² (last) = 0.9998
+  inv_r_squared       : R² (all) = 0.6339, R² (last) = 0.9673
+  inv_r_cubed         : R² (all) = 0.3400, R² (last) = 0.9165
+  x                   : R² (all) = 0.9968, R² (last) = 0.9999
+  y                   : R² (all) = 0.9977, R² (last) = 1.0000
+
+block_1_mlp_output:
+  F_magnitude         : R² (all) = 0.3916, R² (last) = 0.6638
+  F_direction_x       : R² (all) = 0.9703, R² (last) = 0.9815
+  F_direction_y       : R² (all) = 0.9673, R² (last) = 0.9873
+  Fx                  : R² (all) = 0.3609, R² (last) = 0.5169
+  Fy                  : R² (all) = 0.3527, R² (last) = 0.6399
+  r                   : R² (all) = 0.8738, R² (last) = 0.9878
+  inv_r               : R² (all) = 0.7561, R² (last) = 0.8748
+  r_squared           : R² (all) = 0.7870, R² (last) = 0.9693
+  inv_r_squared       : R² (all) = 0.3916, R² (last) = 0.6638
+  inv_r_cubed         : R² (all) = 0.1265, R² (last) = 0.4537
+  x                   : R² (all) = 0.9857, R² (last) = 0.9978
+  y                   : R² (all) = 0.9807, R² (last) = 0.9970
+
+block_1_after_mlp_merge:
+  F_magnitude         : R² (all) = 0.2796, R² (last) = 0.6899
+  F_direction_x       : R² (all) = 0.9675, R² (last) = 0.9875
+  F_direction_y       : R² (all) = 0.9643, R² (last) = 0.9900
+  Fx                  : R² (all) = 0.3246, R² (last) = 0.5805
+  Fy                  : R² (all) = 0.3152, R² (last) = 0.6517
+  r                   : R² (all) = 0.8378, R² (last) = 0.9876
+  inv_r               : R² (all) = 0.6062, R² (last) = 0.8818
+  r_squared           : R² (all) = 0.7933, R² (last) = 0.9709
+  inv_r_squared       : R² (all) = 0.2796, R² (last) = 0.6899
+  inv_r_cubed         : R² (all) = 0.0864, R² (last) = 0.4898
+  x                   : R² (all) = 0.9937, R² (last) = 0.9995
+  y                   : R² (all) = 0.9930, R² (last) = 0.9994
+
+after_ln_f:
+  F_magnitude         : R² (all) = 0.2579, R² (last) = 0.6488
+  F_direction_x       : R² (all) = 0.9558, R² (last) = 0.9830
+  F_direction_y       : R² (all) = 0.9518, R² (last) = 0.9851
+  Fx                  : R² (all) = 0.2864, R² (last) = 0.5368
+  Fy                  : R² (all) = 0.2791, R² (last) = 0.6118
+  r                   : R² (all) = 0.7608, R² (last) = 0.9936
+  inv_r               : R² (all) = 0.5578, R² (last) = 0.8509
+  r_squared           : R² (all) = 0.6991, R² (last) = 0.9890
+  inv_r_squared       : R² (all) = 0.2579, R² (last) = 0.6488
+  inv_r_cubed         : R² (all) = 0.0878, R² (last) = 0.4500
+  x                   : R² (all) = 0.9981, R² (last) = 0.9996
+  y                   : R² (all) = 0.9983, R² (last) = 0.9995
+Evaluating on 500 trajectories...
+Conditioning length: 50, Generating 50 more steps per trajectory...
+
+Error Statistics (aggregated across all 500 trajectories):
+Mean position error: 0.098651 ± 0.100778
+Max position error: 1.212781
+R² scores:
+  X coordinate: 0.968542 ± 0.106418
+  Y coordinate: 0.968722 ± 0.100050
+Evaluating on 500 trajectories...
+Conditioning length: 50, Generating 50 more steps per trajectory...
+
+Error Statistics (aggregated across all 500 trajectories):
+Mean position error: 0.096280 ± 0.102148
+Max position error: 1.145200
+R² scores:
+  X coordinate: 0.961245 ± 0.137579
+  Y coordinate: 0.960375 ± 0.149490
+Evaluation at step 11001 completed.
+
+Step 11100, Total Train Loss: 0.002430, Prediction Loss: 0.002430, Test Loss: 0.000394, Attention Entropy: 0.9136, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 11200, Total Train Loss: 0.002513, Prediction Loss: 0.002513, Test Loss: 0.000527, Attention Entropy: 0.9107, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 11300, Total Train Loss: 0.002450, Prediction Loss: 0.002450, Test Loss: 0.000450, Attention Entropy: 0.9140, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 11400, Total Train Loss: 0.002373, Prediction Loss: 0.002373, Test Loss: 0.000415, Attention Entropy: 0.9156, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 11500, Total Train Loss: 0.002505, Prediction Loss: 0.002505, Test Loss: 0.000375, Attention Entropy: 0.9116, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 11600, Total Train Loss: 0.002444, Prediction Loss: 0.002444, Test Loss: 0.000432, Attention Entropy: 0.9139, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 11700, Total Train Loss: 0.002561, Prediction Loss: 0.002561, Test Loss: 0.000408, Attention Entropy: 0.9124, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 11800, Total Train Loss: 0.002459, Prediction Loss: 0.002459, Test Loss: 0.000487, Attention Entropy: 0.9173, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 11900, Total Train Loss: 0.002472, Prediction Loss: 0.002472, Test Loss: 0.000443, Attention Entropy: 0.9151, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 12000, Total Train Loss: 0.002812, Prediction Loss: 0.002812, Test Loss: 0.000454, Attention Entropy: 0.9134, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+
+Evaluating at step 12001...
+Activations collected:
+  input_embed: torch.Size([1000, 99, 32])
+  after_pos_emb: torch.Size([1000, 99, 32])
+  block_0_attn_output: torch.Size([1000, 99, 32])
+  block_0_after_attn_merge: torch.Size([1000, 99, 32])
+  block_0_mlp_hidden: torch.Size([1000, 99, 128])
+  block_0_mlp_output: torch.Size([1000, 99, 32])
+  block_0_after_mlp_merge: torch.Size([1000, 99, 32])
+  block_1_attn_output: torch.Size([1000, 99, 32])
+  block_1_after_attn_merge: torch.Size([1000, 99, 32])
+  block_1_mlp_hidden: torch.Size([1000, 99, 128])
+  block_1_mlp_output: torch.Size([1000, 99, 32])
+  block_1_after_mlp_merge: torch.Size([1000, 99, 32])
+  after_ln_f: torch.Size([1000, 99, 32])
+
+Linear Probe Results (R² scores):
+================================================================================
+
+input_embed:
+  F_magnitude         : R² (all) = 0.0002, R² (last) = 0.0003
+  F_direction_x       : R² (all) = 0.8272, R² (last) = 0.8248
+  F_direction_y       : R² (all) = 0.8274, R² (last) = 0.8326
+  Fx                  : R² (all) = 0.0513, R² (last) = 0.0209
+  Fy                  : R² (all) = 0.0596, R² (last) = 0.0545
+  r                   : R² (all) = 0.0014, R² (last) = 0.0023
+  inv_r               : R² (all) = 0.0005, R² (last) = 0.0008
+  r_squared           : R² (all) = 0.0021, R² (last) = 0.0028
+  inv_r_squared       : R² (all) = 0.0002, R² (last) = 0.0002
+  inv_r_cubed         : R² (all) = 0.0001, R² (last) = 0.0001
+  x                   : R² (all) = 1.0000, R² (last) = 1.0000
+  y                   : R² (all) = 1.0000, R² (last) = 1.0000
+
+after_pos_emb:
+  F_magnitude         : R² (all) = 0.0373, R² (last) = 0.0002
+  F_direction_x       : R² (all) = 0.8274, R² (last) = 0.8248
+  F_direction_y       : R² (all) = 0.8276, R² (last) = 0.8326
+  Fx                  : R² (all) = 0.0521, R² (last) = 0.0209
+  Fy                  : R² (all) = 0.0600, R² (last) = 0.0545
+  r                   : R² (all) = 0.0658, R² (last) = 0.0023
+  inv_r               : R² (all) = 0.0498, R² (last) = 0.0008
+  r_squared           : R² (all) = 0.0735, R² (last) = 0.0029
+  inv_r_squared       : R² (all) = 0.0373, R² (last) = 0.0002
+  inv_r_cubed         : R² (all) = 0.0221, R² (last) = 0.0001
+  x                   : R² (all) = 1.0000, R² (last) = 1.0000
+  y                   : R² (all) = 1.0000, R² (last) = 1.0000
+
+block_0_attn_output:
+  F_magnitude         : R² (all) = 0.2118, R² (last) = -2.5452
+  F_direction_x       : R² (all) = 0.6866, R² (last) = 0.6199
+  F_direction_y       : R² (all) = 0.6827, R² (last) = 0.5894
+  Fx                  : R² (all) = 0.0268, R² (last) = -0.2878
+  Fy                  : R² (all) = 0.0292, R² (last) = -0.1667
+  r                   : R² (all) = 0.8441, R² (last) = 0.9512
+  inv_r               : R² (all) = 0.5348, R² (last) = -0.5152
+  r_squared           : R² (all) = 0.7678, R² (last) = 0.9189
+  inv_r_squared       : R² (all) = 0.2118, R² (last) = -2.5423
+  inv_r_cubed         : R² (all) = 0.0623, R² (last) = -2.7176
+  x                   : R² (all) = 0.8487, R² (last) = 0.9009
+  y                   : R² (all) = 0.8477, R² (last) = 0.9103
+
+block_0_after_attn_merge:
+  F_magnitude         : R² (all) = 0.2591, R² (last) = -0.2141
+  F_direction_x       : R² (all) = 0.9378, R² (last) = 0.9447
+  F_direction_y       : R² (all) = 0.9384, R² (last) = 0.8897
+  Fx                  : R² (all) = 0.1211, R² (last) = -0.4408
+  Fy                  : R² (all) = 0.1369, R² (last) = 0.1337
+  r                   : R² (all) = 0.9165, R² (last) = 0.9812
+  inv_r               : R² (all) = 0.6268, R² (last) = 0.6588
+  r_squared           : R² (all) = 0.8268, R² (last) = 0.9607
+  inv_r_squared       : R² (all) = 0.2591, R² (last) = -0.2042
+  inv_r_cubed         : R² (all) = 0.0776, R² (last) = -0.8101
+  x                   : R² (all) = 0.9512, R² (last) = 0.9814
+  y                   : R² (all) = 0.9505, R² (last) = 0.9564
+
+block_0_mlp_hidden:
+  F_magnitude         : R² (all) = 0.5269, R² (last) = 0.7810
+  F_direction_x       : R² (all) = 0.9833, R² (last) = 0.9960
+  F_direction_y       : R² (all) = 0.9825, R² (last) = 0.9918
+  Fx                  : R² (all) = 0.3142, R² (last) = 0.6128
+  Fy                  : R² (all) = 0.3462, R² (last) = 0.0306
+  r                   : R² (all) = 0.9911, R² (last) = 0.9996
+  inv_r               : R² (all) = 0.8618, R² (last) = 0.9552
+  r_squared           : R² (all) = 0.9696, R² (last) = 0.9996
+  inv_r_squared       : R² (all) = 0.5269, R² (last) = 0.7802
+  inv_r_cubed         : R² (all) = 0.2317, R² (last) = 0.5725
+  x                   : R² (all) = 0.9956, R² (last) = 0.9999
+  y                   : R² (all) = 0.9957, R² (last) = 0.9999
+
+block_0_mlp_output:
+  F_magnitude         : R² (all) = 0.3694, R² (last) = 0.5201
+  F_direction_x       : R² (all) = 0.9667, R² (last) = 0.9789
+  F_direction_y       : R² (all) = 0.9656, R² (last) = 0.9833
+  Fx                  : R² (all) = 0.2187, R² (last) = 0.2749
+  Fy                  : R² (all) = 0.2326, R² (last) = 0.3707
+  r                   : R² (all) = 0.9107, R² (last) = 0.9988
+  inv_r               : R² (all) = 0.7417, R² (last) = 0.8583
+  r_squared           : R² (all) = 0.7998, R² (last) = 0.9969
+  inv_r_squared       : R² (all) = 0.3694, R² (last) = 0.5201
+  inv_r_cubed         : R² (all) = 0.1306, R² (last) = 0.2930
+  x                   : R² (all) = 0.9723, R² (last) = 0.9992
+  y                   : R² (all) = 0.9764, R² (last) = 0.9990
+
+block_0_after_mlp_merge:
+  F_magnitude         : R² (all) = 0.2701, R² (last) = 0.4246
+  F_direction_x       : R² (all) = 0.9615, R² (last) = 0.9790
+  F_direction_y       : R² (all) = 0.9646, R² (last) = 0.9823
+  Fx                  : R² (all) = 0.2007, R² (last) = 0.2557
+  Fy                  : R² (all) = 0.2290, R² (last) = 0.3453
+  r                   : R² (all) = 0.8742, R² (last) = 0.9979
+  inv_r               : R² (all) = 0.6108, R² (last) = 0.7919
+  r_squared           : R² (all) = 0.8336, R² (last) = 0.9971
+  inv_r_squared       : R² (all) = 0.2701, R² (last) = 0.4246
+  inv_r_cubed         : R² (all) = 0.0839, R² (last) = 0.2244
+  x                   : R² (all) = 0.9993, R² (last) = 1.0000
+  y                   : R² (all) = 0.9997, R² (last) = 1.0000
+
+block_1_attn_output:
+  F_magnitude         : R² (all) = 0.2663, R² (last) = 0.1730
+  F_direction_x       : R² (all) = 0.8998, R² (last) = 0.9269
+  F_direction_y       : R² (all) = 0.9082, R² (last) = 0.9360
+  Fx                  : R² (all) = 0.1491, R² (last) = 0.1304
+  Fy                  : R² (all) = 0.1764, R² (last) = 0.1393
+  r                   : R² (all) = 0.7548, R² (last) = 0.9682
+  inv_r               : R² (all) = 0.5423, R² (last) = 0.5593
+  r_squared           : R² (all) = 0.7237, R² (last) = 0.9766
+  inv_r_squared       : R² (all) = 0.2663, R² (last) = 0.1751
+  inv_r_cubed         : R² (all) = 0.1017, R² (last) = 0.0551
+  x                   : R² (all) = 0.9292, R² (last) = 0.9836
+  y                   : R² (all) = 0.9313, R² (last) = 0.9839
+
+block_1_after_attn_merge:
+  F_magnitude         : R² (all) = 0.2779, R² (last) = 0.4809
+  F_direction_x       : R² (all) = 0.9737, R² (last) = 0.9850
+  F_direction_y       : R² (all) = 0.9742, R² (last) = 0.9881
+  Fx                  : R² (all) = 0.2753, R² (last) = 0.3680
+  Fy                  : R² (all) = 0.3186, R² (last) = 0.4486
+  r                   : R² (all) = 0.8295, R² (last) = 0.9963
+  inv_r               : R² (all) = 0.6173, R² (last) = 0.8201
+  r_squared           : R² (all) = 0.7571, R² (last) = 0.9884
+  inv_r_squared       : R² (all) = 0.2779, R² (last) = 0.4809
+  inv_r_cubed         : R² (all) = 0.0933, R² (last) = 0.2805
+  x                   : R² (all) = 0.9859, R² (last) = 0.9991
+  y                   : R² (all) = 0.9915, R² (last) = 0.9992
+
+block_1_mlp_hidden:
+  F_magnitude         : R² (all) = 0.6123, R² (last) = 0.8614
+  F_direction_x       : R² (all) = 0.9837, R² (last) = 0.9979
+  F_direction_y       : R² (all) = 0.9853, R² (last) = 0.9981
+  Fx                  : R² (all) = 0.4237, R² (last) = 0.7342
+  Fy                  : R² (all) = 0.4878, R² (last) = 0.7376
+  r                   : R² (all) = 0.9827, R² (last) = 0.9998
+  inv_r               : R² (all) = 0.8881, R² (last) = 0.9749
+  r_squared           : R² (all) = 0.9749, R² (last) = 0.9998
+  inv_r_squared       : R² (all) = 0.6123, R² (last) = 0.8614
+  inv_r_cubed         : R² (all) = 0.3269, R² (last) = 0.7151
+  x                   : R² (all) = 0.9968, R² (last) = 0.9999
+  y                   : R² (all) = 0.9976, R² (last) = 1.0000
+
+block_1_mlp_output:
+  F_magnitude         : R² (all) = 0.3520, R² (last) = 0.4360
+  F_direction_x       : R² (all) = 0.9685, R² (last) = 0.9821
+  F_direction_y       : R² (all) = 0.9655, R² (last) = 0.9860
+  Fx                  : R² (all) = 0.3090, R² (last) = 0.3814
+  Fy                  : R² (all) = 0.3322, R² (last) = 0.4689
+  r                   : R² (all) = 0.8697, R² (last) = 0.9861
+  inv_r               : R² (all) = 0.7286, R² (last) = 0.7871
+  r_squared           : R² (all) = 0.7849, R² (last) = 0.9672
+  inv_r_squared       : R² (all) = 0.3520, R² (last) = 0.4360
+  inv_r_cubed         : R² (all) = 0.1132, R² (last) = 0.2559
+  x                   : R² (all) = 0.9847, R² (last) = 0.9980
+  y                   : R² (all) = 0.9794, R² (last) = 0.9966
+
+block_1_after_mlp_merge:
+  F_magnitude         : R² (all) = 0.2520, R² (last) = 0.4168
+  F_direction_x       : R² (all) = 0.9647, R² (last) = 0.9858
+  F_direction_y       : R² (all) = 0.9620, R² (last) = 0.9886
+  Fx                  : R² (all) = 0.2720, R² (last) = 0.3383
+  Fy                  : R² (all) = 0.3009, R² (last) = 0.4717
+  r                   : R² (all) = 0.8335, R² (last) = 0.9870
+  inv_r               : R² (all) = 0.5834, R² (last) = 0.7775
+  r_squared           : R² (all) = 0.7854, R² (last) = 0.9705
+  inv_r_squared       : R² (all) = 0.2520, R² (last) = 0.4168
+  inv_r_cubed         : R² (all) = 0.0777, R² (last) = 0.2288
+  x                   : R² (all) = 0.9932, R² (last) = 0.9995
+  y                   : R² (all) = 0.9927, R² (last) = 0.9994
+
+after_ln_f:
+  F_magnitude         : R² (all) = 0.2318, R² (last) = 0.3713
+  F_direction_x       : R² (all) = 0.9526, R² (last) = 0.9808
+  F_direction_y       : R² (all) = 0.9485, R² (last) = 0.9831
+  Fx                  : R² (all) = 0.2403, R² (last) = 0.2872
+  Fy                  : R² (all) = 0.2645, R² (last) = 0.4213
+  r                   : R² (all) = 0.7613, R² (last) = 0.9928
+  inv_r               : R² (all) = 0.5347, R² (last) = 0.7438
+  r_squared           : R² (all) = 0.6989, R² (last) = 0.9886
+  inv_r_squared       : R² (all) = 0.2318, R² (last) = 0.3713
+  inv_r_cubed         : R² (all) = 0.0791, R² (last) = 0.1855
+  x                   : R² (all) = 0.9978, R² (last) = 0.9995
+  y                   : R² (all) = 0.9979, R² (last) = 0.9994
+Evaluating on 500 trajectories...
+Conditioning length: 50, Generating 50 more steps per trajectory...
+
+Error Statistics (aggregated across all 500 trajectories):
+Mean position error: 0.090080 ± 0.090162
+Max position error: 0.938345
+R² scores:
+  X coordinate: 0.965864 ± 0.129553
+  Y coordinate: 0.966066 ± 0.134740
+Evaluating on 500 trajectories...
+Conditioning length: 50, Generating 50 more steps per trajectory...
+
+Error Statistics (aggregated across all 500 trajectories):
+Mean position error: 0.088903 ± 0.092553
+Max position error: 0.992652
+R² scores:
+  X coordinate: 0.967797 ± 0.126530
+  Y coordinate: 0.967213 ± 0.125434
+Evaluation at step 12001 completed.
+
+Step 12100, Total Train Loss: 0.002539, Prediction Loss: 0.002539, Test Loss: 0.000390, Attention Entropy: 0.9138, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 12200, Total Train Loss: 0.002581, Prediction Loss: 0.002581, Test Loss: 0.000439, Attention Entropy: 0.9163, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 12300, Total Train Loss: 0.002464, Prediction Loss: 0.002464, Test Loss: 0.000446, Attention Entropy: 0.9164, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 12400, Total Train Loss: 0.002553, Prediction Loss: 0.002553, Test Loss: 0.000413, Attention Entropy: 0.9154, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 12500, Total Train Loss: 0.002333, Prediction Loss: 0.002333, Test Loss: 0.000432, Attention Entropy: 0.9154, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 12600, Total Train Loss: 0.002513, Prediction Loss: 0.002513, Test Loss: 0.000517, Attention Entropy: 0.9161, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 12700, Total Train Loss: 0.002208, Prediction Loss: 0.002208, Test Loss: 0.000455, Attention Entropy: 0.9198, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 12800, Total Train Loss: 0.002469, Prediction Loss: 0.002469, Test Loss: 0.000435, Attention Entropy: 0.9153, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 12900, Total Train Loss: 0.002338, Prediction Loss: 0.002338, Test Loss: 0.000429, Attention Entropy: 0.9189, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 13000, Total Train Loss: 0.002430, Prediction Loss: 0.002430, Test Loss: 0.000402, Attention Entropy: 0.9143, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+
+Evaluating at step 13001...
+Activations collected:
+  input_embed: torch.Size([1000, 99, 32])
+  after_pos_emb: torch.Size([1000, 99, 32])
+  block_0_attn_output: torch.Size([1000, 99, 32])
+  block_0_after_attn_merge: torch.Size([1000, 99, 32])
+  block_0_mlp_hidden: torch.Size([1000, 99, 128])
+  block_0_mlp_output: torch.Size([1000, 99, 32])
+  block_0_after_mlp_merge: torch.Size([1000, 99, 32])
+  block_1_attn_output: torch.Size([1000, 99, 32])
+  block_1_after_attn_merge: torch.Size([1000, 99, 32])
+  block_1_mlp_hidden: torch.Size([1000, 99, 128])
+  block_1_mlp_output: torch.Size([1000, 99, 32])
+  block_1_after_mlp_merge: torch.Size([1000, 99, 32])
+  after_ln_f: torch.Size([1000, 99, 32])
+
+Linear Probe Results (R² scores):
+================================================================================
+
+input_embed:
+  F_magnitude         : R² (all) = 0.0000, R² (last) = 0.0001
+  F_direction_x       : R² (all) = 0.8342, R² (last) = 0.8405
+  F_direction_y       : R² (all) = 0.8316, R² (last) = 0.8206
+  Fx                  : R² (all) = 0.0608, R² (last) = 0.0386
+  Fy                  : R² (all) = 0.0573, R² (last) = 0.0676
+  r                   : R² (all) = 0.0008, R² (last) = 0.0010
+  inv_r               : R² (all) = 0.0000, R² (last) = 0.0007
+  r_squared           : R² (all) = 0.0018, R² (last) = 0.0008
+  inv_r_squared       : R² (all) = 0.0000, R² (last) = 0.0001
+  inv_r_cubed         : R² (all) = 0.0000, R² (last) = -0.0000
+  x                   : R² (all) = 1.0000, R² (last) = 1.0000
+  y                   : R² (all) = 1.0000, R² (last) = 1.0000
+
+after_pos_emb:
+  F_magnitude         : R² (all) = 0.0394, R² (last) = 0.0001
+  F_direction_x       : R² (all) = 0.8343, R² (last) = 0.8405
+  F_direction_y       : R² (all) = 0.8317, R² (last) = 0.8206
+  Fx                  : R² (all) = 0.0612, R² (last) = 0.0386
+  Fy                  : R² (all) = 0.0575, R² (last) = 0.0676
+  r                   : R² (all) = 0.0706, R² (last) = 0.0011
+  inv_r               : R² (all) = 0.0521, R² (last) = 0.0007
+  r_squared           : R² (all) = 0.0787, R² (last) = 0.0009
+  inv_r_squared       : R² (all) = 0.0394, R² (last) = 0.0001
+  inv_r_cubed         : R² (all) = 0.0255, R² (last) = 0.0000
+  x                   : R² (all) = 1.0000, R² (last) = 1.0000
+  y                   : R² (all) = 1.0000, R² (last) = 1.0000
+
+block_0_attn_output:
+  F_magnitude         : R² (all) = 0.2257, R² (last) = -4.2021
+  F_direction_x       : R² (all) = 0.6876, R² (last) = 0.8715
+  F_direction_y       : R² (all) = 0.6878, R² (last) = 0.2941
+  Fx                  : R² (all) = 0.0316, R² (last) = -1.0833
+  Fy                  : R² (all) = 0.0296, R² (last) = -0.4018
+  r                   : R² (all) = 0.8417, R² (last) = 0.9740
+  inv_r               : R² (all) = 0.5427, R² (last) = -1.1892
+  r_squared           : R² (all) = 0.7672, R² (last) = 0.9332
+  inv_r_squared       : R² (all) = 0.2258, R² (last) = -4.2067
+  inv_r_cubed         : R² (all) = 0.0730, R² (last) = -5.0372
+  x                   : R² (all) = 0.8454, R² (last) = 0.8890
+  y                   : R² (all) = 0.8487, R² (last) = 0.7125
+
+block_0_after_attn_merge:
+  F_magnitude         : R² (all) = 0.2739, R² (last) = 0.2953
+  F_direction_x       : R² (all) = 0.9409, R² (last) = 0.8836
+  F_direction_y       : R² (all) = 0.9400, R² (last) = 0.8612
+  Fx                  : R² (all) = 0.1360, R² (last) = -1.2708
+  Fy                  : R² (all) = 0.1285, R² (last) = 0.2946
+  r                   : R² (all) = 0.9180, R² (last) = 0.9767
+  inv_r               : R² (all) = 0.6340, R² (last) = 0.6666
+  r_squared           : R² (all) = 0.8314, R² (last) = 0.9575
+  inv_r_squared       : R² (all) = 0.2739, R² (last) = 0.2912
+  inv_r_cubed         : R² (all) = 0.0899, R² (last) = 0.2408
+  x                   : R² (all) = 0.9526, R² (last) = 0.9545
+  y                   : R² (all) = 0.9521, R² (last) = 0.9448
+
+block_0_mlp_hidden:
+  F_magnitude         : R² (all) = 0.5486, R² (last) = 0.8309
+  F_direction_x       : R² (all) = 0.9840, R² (last) = 0.9942
+  F_direction_y       : R² (all) = 0.9828, R² (last) = 0.9968
+  Fx                  : R² (all) = 0.3543, R² (last) = 0.2511
+  Fy                  : R² (all) = 0.3275, R² (last) = 0.8168
+  r                   : R² (all) = 0.9916, R² (last) = 0.9996
+  inv_r               : R² (all) = 0.8677, R² (last) = 0.9625
+  r_squared           : R² (all) = 0.9709, R² (last) = 0.9995
+  inv_r_squared       : R² (all) = 0.5486, R² (last) = 0.8309
+  inv_r_cubed         : R² (all) = 0.2603, R² (last) = 0.6278
+  x                   : R² (all) = 0.9959, R² (last) = 0.9999
+  y                   : R² (all) = 0.9958, R² (last) = 0.9999
+
+block_0_mlp_output:
+  F_magnitude         : R² (all) = 0.3917, R² (last) = 0.6711
+  F_direction_x       : R² (all) = 0.9677, R² (last) = 0.9810
+  F_direction_y       : R² (all) = 0.9664, R² (last) = 0.9812
+  Fx                  : R² (all) = 0.2450, R² (last) = 0.2985
+  Fy                  : R² (all) = 0.2241, R² (last) = 0.5544
+  r                   : R² (all) = 0.9143, R² (last) = 0.9989
+  inv_r               : R² (all) = 0.7555, R² (last) = 0.9079
+  r_squared           : R² (all) = 0.8043, R² (last) = 0.9970
+  inv_r_squared       : R² (all) = 0.3917, R² (last) = 0.6711
+  inv_r_cubed         : R² (all) = 0.1495, R² (last) = 0.4168
+  x                   : R² (all) = 0.9726, R² (last) = 0.9991
+  y                   : R² (all) = 0.9769, R² (last) = 0.9990
+
+block_0_after_mlp_merge:
+  F_magnitude         : R² (all) = 0.2878, R² (last) = 0.5849
+  F_direction_x       : R² (all) = 0.9626, R² (last) = 0.9816
+  F_direction_y       : R² (all) = 0.9654, R² (last) = 0.9810
+  Fx                  : R² (all) = 0.2283, R² (last) = 0.2972
+  Fy                  : R² (all) = 0.2161, R² (last) = 0.5411
+  r                   : R² (all) = 0.8742, R² (last) = 0.9978
+  inv_r               : R² (all) = 0.6173, R² (last) = 0.8572
+  r_squared           : R² (all) = 0.8381, R² (last) = 0.9973
+  inv_r_squared       : R² (all) = 0.2878, R² (last) = 0.5849
+  inv_r_cubed         : R² (all) = 0.1003, R² (last) = 0.3409
+  x                   : R² (all) = 0.9993, R² (last) = 1.0000
+  y                   : R² (all) = 0.9997, R² (last) = 1.0000
+
+block_1_attn_output:
+  F_magnitude         : R² (all) = 0.2785, R² (last) = 0.4074
+  F_direction_x       : R² (all) = 0.9025, R² (last) = 0.9387
+  F_direction_y       : R² (all) = 0.8940, R² (last) = 0.9269
+  Fx                  : R² (all) = 0.1687, R² (last) = 0.1572
+  Fy                  : R² (all) = 0.1705, R² (last) = 0.1318
+  r                   : R² (all) = 0.7536, R² (last) = 0.9845
+  inv_r               : R² (all) = 0.5482, R² (last) = 0.7331
+  r_squared           : R² (all) = 0.7186, R² (last) = 0.9760
+  inv_r_squared       : R² (all) = 0.2785, R² (last) = 0.4072
+  inv_r_cubed         : R² (all) = 0.1164, R² (last) = 0.1901
+  x                   : R² (all) = 0.9280, R² (last) = 0.9842
+  y                   : R² (all) = 0.9163, R² (last) = 0.9865
+
+block_1_after_attn_merge:
+  F_magnitude         : R² (all) = 0.2967, R² (last) = 0.6041
+  F_direction_x       : R² (all) = 0.9745, R² (last) = 0.9850
+  F_direction_y       : R² (all) = 0.9744, R² (last) = 0.9887
+  Fx                  : R² (all) = 0.3065, R² (last) = 0.3854
+  Fy                  : R² (all) = 0.2999, R² (last) = 0.6885
+  r                   : R² (all) = 0.8263, R² (last) = 0.9966
+  inv_r               : R² (all) = 0.6248, R² (last) = 0.8667
+  r_squared           : R² (all) = 0.7556, R² (last) = 0.9889
+  inv_r_squared       : R² (all) = 0.2967, R² (last) = 0.6041
+  inv_r_cubed         : R² (all) = 0.1116, R² (last) = 0.3673
+  x                   : R² (all) = 0.9858, R² (last) = 0.9992
+  y                   : R² (all) = 0.9918, R² (last) = 0.9992
+
+block_1_mlp_hidden:
+  F_magnitude         : R² (all) = 0.6453, R² (last) = 0.9337
+  F_direction_x       : R² (all) = 0.9847, R² (last) = 0.9979
+  F_direction_y       : R² (all) = 0.9859, R² (last) = 0.9984
+  Fx                  : R² (all) = 0.4643, R² (last) = 0.7592
+  Fy                  : R² (all) = 0.4635, R² (last) = 0.9087
+  r                   : R² (all) = 0.9838, R² (last) = 0.9998
+  inv_r               : R² (all) = 0.8964, R² (last) = 0.9883
+  r_squared           : R² (all) = 0.9767, R² (last) = 0.9998
+  inv_r_squared       : R² (all) = 0.6453, R² (last) = 0.9337
+  inv_r_cubed         : R² (all) = 0.3771, R² (last) = 0.8263
+  x                   : R² (all) = 0.9970, R² (last) = 0.9999
+  y                   : R² (all) = 0.9977, R² (last) = 0.9999
+
+block_1_mlp_output:
+  F_magnitude         : R² (all) = 0.3717, R² (last) = 0.5597
+  F_direction_x       : R² (all) = 0.9698, R² (last) = 0.9832
+  F_direction_y       : R² (all) = 0.9667, R² (last) = 0.9864
+  Fx                  : R² (all) = 0.3443, R² (last) = 0.3965
+  Fy                  : R² (all) = 0.3153, R² (last) = 0.6804
+  r                   : R² (all) = 0.8643, R² (last) = 0.9847
+  inv_r               : R² (all) = 0.7324, R² (last) = 0.8408
+  r_squared           : R² (all) = 0.7843, R² (last) = 0.9637
+  inv_r_squared       : R² (all) = 0.3717, R² (last) = 0.5597
+  inv_r_cubed         : R² (all) = 0.1306, R² (last) = 0.3346
+  x                   : R² (all) = 0.9848, R² (last) = 0.9980
+  y                   : R² (all) = 0.9804, R² (last) = 0.9969
+
+block_1_after_mlp_merge:
+  F_magnitude         : R² (all) = 0.2685, R² (last) = 0.5509
+  F_direction_x       : R² (all) = 0.9661, R² (last) = 0.9860
+  F_direction_y       : R² (all) = 0.9620, R² (last) = 0.9894
+  Fx                  : R² (all) = 0.2990, R² (last) = 0.4153
+  Fy                  : R² (all) = 0.2780, R² (last) = 0.6879
+  r                   : R² (all) = 0.8268, R² (last) = 0.9883
+  inv_r               : R² (all) = 0.5908, R² (last) = 0.8340
+  r_squared           : R² (all) = 0.7776, R² (last) = 0.9739
+  inv_r_squared       : R² (all) = 0.2685, R² (last) = 0.5509
+  inv_r_cubed         : R² (all) = 0.0918, R² (last) = 0.3173
+  x                   : R² (all) = 0.9934, R² (last) = 0.9995
+  y                   : R² (all) = 0.9927, R² (last) = 0.9993
+
+after_ln_f:
+  F_magnitude         : R² (all) = 0.2462, R² (last) = 0.5350
+  F_direction_x       : R² (all) = 0.9539, R² (last) = 0.9814
+  F_direction_y       : R² (all) = 0.9486, R² (last) = 0.9828
+  Fx                  : R² (all) = 0.2643, R² (last) = 0.3606
+  Fy                  : R² (all) = 0.2442, R² (last) = 0.6276
+  r                   : R² (all) = 0.7447, R² (last) = 0.9936
+  inv_r               : R² (all) = 0.5403, R² (last) = 0.8125
+  r_squared           : R² (all) = 0.6744, R² (last) = 0.9894
+  inv_r_squared       : R² (all) = 0.2462, R² (last) = 0.5350
+  inv_r_cubed         : R² (all) = 0.0925, R² (last) = 0.3079
+  x                   : R² (all) = 0.9979, R² (last) = 0.9996
+  y                   : R² (all) = 0.9980, R² (last) = 0.9995
+Evaluating on 500 trajectories...
+Conditioning length: 50, Generating 50 more steps per trajectory...
+
+Error Statistics (aggregated across all 500 trajectories):
+Mean position error: 0.084737 ± 0.090672
+Max position error: 1.035498
+R² scores:
+  X coordinate: 0.969437 ± 0.086096
+  Y coordinate: 0.971036 ± 0.082399
+Evaluating on 500 trajectories...
+Conditioning length: 50, Generating 50 more steps per trajectory...
+
+Error Statistics (aggregated across all 500 trajectories):
+Mean position error: 0.085285 ± 0.087617
+Max position error: 0.828085
+R² scores:
+  X coordinate: 0.971799 ± 0.073540
+  Y coordinate: 0.972940 ± 0.070249
+Evaluation at step 13001 completed.
+
+Step 13100, Total Train Loss: 0.002393, Prediction Loss: 0.002393, Test Loss: 0.000521, Attention Entropy: 0.9187, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 13200, Total Train Loss: 0.002347, Prediction Loss: 0.002347, Test Loss: 0.000477, Attention Entropy: 0.9181, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 13300, Total Train Loss: 0.002468, Prediction Loss: 0.002468, Test Loss: 0.000367, Attention Entropy: 0.9192, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 13400, Total Train Loss: 0.002671, Prediction Loss: 0.002671, Test Loss: 0.000424, Attention Entropy: 0.9159, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 13500, Total Train Loss: 0.002538, Prediction Loss: 0.002538, Test Loss: 0.000399, Attention Entropy: 0.9143, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 13600, Total Train Loss: 0.002394, Prediction Loss: 0.002394, Test Loss: 0.000441, Attention Entropy: 0.9190, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 13700, Total Train Loss: 0.002524, Prediction Loss: 0.002524, Test Loss: 0.000417, Attention Entropy: 0.9146, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 13800, Total Train Loss: 0.002485, Prediction Loss: 0.002485, Test Loss: 0.000378, Attention Entropy: 0.9163, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 13900, Total Train Loss: 0.002712, Prediction Loss: 0.002712, Test Loss: 0.000403, Attention Entropy: 0.9156, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 14000, Total Train Loss: 0.002552, Prediction Loss: 0.002552, Test Loss: 0.000361, Attention Entropy: 0.9173, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+
+Evaluating at step 14001...
+Activations collected:
+  input_embed: torch.Size([1000, 99, 32])
+  after_pos_emb: torch.Size([1000, 99, 32])
+  block_0_attn_output: torch.Size([1000, 99, 32])
+  block_0_after_attn_merge: torch.Size([1000, 99, 32])
+  block_0_mlp_hidden: torch.Size([1000, 99, 128])
+  block_0_mlp_output: torch.Size([1000, 99, 32])
+  block_0_after_mlp_merge: torch.Size([1000, 99, 32])
+  block_1_attn_output: torch.Size([1000, 99, 32])
+  block_1_after_attn_merge: torch.Size([1000, 99, 32])
+  block_1_mlp_hidden: torch.Size([1000, 99, 128])
+  block_1_mlp_output: torch.Size([1000, 99, 32])
+  block_1_after_mlp_merge: torch.Size([1000, 99, 32])
+  after_ln_f: torch.Size([1000, 99, 32])
+
+Linear Probe Results (R² scores):
+================================================================================
+
+input_embed:
+  F_magnitude         : R² (all) = 0.0000, R² (last) = 0.0004
+  F_direction_x       : R² (all) = 0.8326, R² (last) = 0.8367
+  F_direction_y       : R² (all) = 0.8321, R² (last) = 0.8415
+  Fx                  : R² (all) = 0.0517, R² (last) = 0.0767
+  Fy                  : R² (all) = 0.0568, R² (last) = 0.1194
+  r                   : R² (all) = 0.0004, R² (last) = 0.0024
+  inv_r               : R² (all) = 0.0001, R² (last) = 0.0010
+  r_squared           : R² (all) = 0.0005, R² (last) = 0.0024
+  inv_r_squared       : R² (all) = 0.0000, R² (last) = 0.0004
+  inv_r_cubed         : R² (all) = 0.0000, R² (last) = 0.0001
+  x                   : R² (all) = 1.0000, R² (last) = 1.0000
+  y                   : R² (all) = 1.0000, R² (last) = 1.0000
+
+after_pos_emb:
+  F_magnitude         : R² (all) = 0.0356, R² (last) = 0.0004
+  F_direction_x       : R² (all) = 0.8327, R² (last) = 0.8368
+  F_direction_y       : R² (all) = 0.8322, R² (last) = 0.8415
+  Fx                  : R² (all) = 0.0522, R² (last) = 0.0768
+  Fy                  : R² (all) = 0.0571, R² (last) = 0.1194
+  r                   : R² (all) = 0.0668, R² (last) = 0.0024
+  inv_r               : R² (all) = 0.0501, R² (last) = 0.0010
+  r_squared           : R² (all) = 0.0742, R² (last) = 0.0025
+  inv_r_squared       : R² (all) = 0.0356, R² (last) = 0.0004
+  inv_r_cubed         : R² (all) = 0.0186, R² (last) = 0.0001
+  x                   : R² (all) = 1.0000, R² (last) = 1.0000
+  y                   : R² (all) = 1.0000, R² (last) = 1.0000
+
+block_0_attn_output:
+  F_magnitude         : R² (all) = 0.2043, R² (last) = 0.1698
+  F_direction_x       : R² (all) = 0.6846, R² (last) = 0.8429
+  F_direction_y       : R² (all) = 0.6806, R² (last) = -0.4478
+  Fx                  : R² (all) = 0.0225, R² (last) = 0.2638
+  Fy                  : R² (all) = 0.0286, R² (last) = -0.3605
+  r                   : R² (all) = 0.8395, R² (last) = 0.9735
+  inv_r               : R² (all) = 0.5413, R² (last) = 0.7087
+  r_squared           : R² (all) = 0.7619, R² (last) = 0.9162
+  inv_r_squared       : R² (all) = 0.2043, R² (last) = 0.1733
+  inv_r_cubed         : R² (all) = 0.0516, R² (last) = -0.3507
+  x                   : R² (all) = 0.8468, R² (last) = 0.9030
+  y                   : R² (all) = 0.8433, R² (last) = -0.1474
+
+block_0_after_attn_merge:
+  F_magnitude         : R² (all) = 0.2531, R² (last) = 0.7657
+  F_direction_x       : R² (all) = 0.9392, R² (last) = 0.9513
+  F_direction_y       : R² (all) = 0.9392, R² (last) = 0.9357
+  Fx                  : R² (all) = 0.1232, R² (last) = 0.3406
+  Fy                  : R² (all) = 0.1284, R² (last) = 0.2959
+  r                   : R² (all) = 0.9219, R² (last) = 0.9812
+  inv_r               : R² (all) = 0.6378, R² (last) = 0.9227
+  r_squared           : R² (all) = 0.8355, R² (last) = 0.9650
+  inv_r_squared       : R² (all) = 0.2531, R² (last) = 0.7663
+  inv_r_cubed         : R² (all) = 0.0663, R² (last) = 0.5682
+  x                   : R² (all) = 0.9534, R² (last) = 0.9795
+  y                   : R² (all) = 0.9529, R² (last) = 0.9675
+
+block_0_mlp_hidden:
+  F_magnitude         : R² (all) = 0.5043, R² (last) = 0.9513
+  F_direction_x       : R² (all) = 0.9841, R² (last) = 0.9960
+  F_direction_y       : R² (all) = 0.9830, R² (last) = 0.9953
+  Fx                  : R² (all) = 0.3217, R² (last) = 0.6153
+  Fy                  : R² (all) = 0.3278, R² (last) = 0.7242
+  r                   : R² (all) = 0.9916, R² (last) = 0.9999
+  inv_r               : R² (all) = 0.8652, R² (last) = 0.9892
+  r_squared           : R² (all) = 0.9699, R² (last) = 0.9997
+  inv_r_squared       : R² (all) = 0.5043, R² (last) = 0.9513
+  inv_r_cubed         : R² (all) = 0.1979, R² (last) = 0.8799
+  x                   : R² (all) = 0.9957, R² (last) = 0.9999
+  y                   : R² (all) = 0.9958, R² (last) = 0.9999
+
+block_0_mlp_output:
+  F_magnitude         : R² (all) = 0.3688, R² (last) = 0.8340
+  F_direction_x       : R² (all) = 0.9670, R² (last) = 0.9842
+  F_direction_y       : R² (all) = 0.9662, R² (last) = 0.9845
+  Fx                  : R² (all) = 0.2256, R² (last) = 0.4952
+  Fy                  : R² (all) = 0.2236, R² (last) = 0.5693
+  r                   : R² (all) = 0.9150, R² (last) = 0.9991
+  inv_r               : R² (all) = 0.7623, R² (last) = 0.9527
+  r_squared           : R² (all) = 0.7998, R² (last) = 0.9972
+  inv_r_squared       : R² (all) = 0.3688, R² (last) = 0.8340
+  inv_r_cubed         : R² (all) = 0.1172, R² (last) = 0.6636
+  x                   : R² (all) = 0.9721, R² (last) = 0.9992
+  y                   : R² (all) = 0.9771, R² (last) = 0.9990
+
+block_0_after_mlp_merge:
+  F_magnitude         : R² (all) = 0.2703, R² (last) = 0.7280
+  F_direction_x       : R² (all) = 0.9627, R² (last) = 0.9846
+  F_direction_y       : R² (all) = 0.9649, R² (last) = 0.9850
+  Fx                  : R² (all) = 0.2117, R² (last) = 0.4882
+  Fy                  : R² (all) = 0.2182, R² (last) = 0.5743
+  r                   : R² (all) = 0.8759, R² (last) = 0.9975
+  inv_r               : R² (all) = 0.6235, R² (last) = 0.9038
+  r_squared           : R² (all) = 0.8384, R² (last) = 0.9970
+  inv_r_squared       : R² (all) = 0.2703, R² (last) = 0.7280
+  inv_r_cubed         : R² (all) = 0.0778, R² (last) = 0.5267
+  x                   : R² (all) = 0.9993, R² (last) = 1.0000
+  y                   : R² (all) = 0.9997, R² (last) = 1.0000
+
+block_1_attn_output:
+  F_magnitude         : R² (all) = 0.2399, R² (last) = 0.6196
+  F_direction_x       : R² (all) = 0.8816, R² (last) = 0.9443
+  F_direction_y       : R² (all) = 0.8421, R² (last) = 0.9219
+  Fx                  : R² (all) = 0.1409, R² (last) = 0.2961
+  Fy                  : R² (all) = 0.1731, R² (last) = -0.0273
+  r                   : R² (all) = 0.7597, R² (last) = 0.9831
+  inv_r               : R² (all) = 0.5394, R² (last) = 0.8359
+  r_squared           : R² (all) = 0.7201, R² (last) = 0.9660
+  inv_r_squared       : R² (all) = 0.2399, R² (last) = 0.6195
+  inv_r_cubed         : R² (all) = 0.0801, R² (last) = 0.4134
+  x                   : R² (all) = 0.9001, R² (last) = 0.9847
+  y                   : R² (all) = 0.8775, R² (last) = 0.9843
+
+block_1_after_attn_merge:
+  F_magnitude         : R² (all) = 0.2762, R² (last) = 0.7495
+  F_direction_x       : R² (all) = 0.9750, R² (last) = 0.9894
+  F_direction_y       : R² (all) = 0.9747, R² (last) = 0.9904
+  Fx                  : R² (all) = 0.2836, R² (last) = 0.6039
+  Fy                  : R² (all) = 0.3007, R² (last) = 0.6659
+  r                   : R² (all) = 0.8260, R² (last) = 0.9966
+  inv_r               : R² (all) = 0.6278, R² (last) = 0.9134
+  r_squared           : R² (all) = 0.7535, R² (last) = 0.9893
+  inv_r_squared       : R² (all) = 0.2762, R² (last) = 0.7495
+  inv_r_cubed         : R² (all) = 0.0848, R² (last) = 0.5609
+  x                   : R² (all) = 0.9856, R² (last) = 0.9992
+  y                   : R² (all) = 0.9915, R² (last) = 0.9992
+
+block_1_mlp_hidden:
+  F_magnitude         : R² (all) = 0.5988, R² (last) = 0.9688
+  F_direction_x       : R² (all) = 0.9852, R² (last) = 0.9986
+  F_direction_y       : R² (all) = 0.9860, R² (last) = 0.9988
+  Fx                  : R² (all) = 0.4326, R² (last) = 0.8783
+  Fy                  : R² (all) = 0.4509, R² (last) = 0.9031
+  r                   : R² (all) = 0.9849, R² (last) = 0.9998
+  inv_r               : R² (all) = 0.8951, R² (last) = 0.9929
+  r_squared           : R² (all) = 0.9782, R² (last) = 0.9998
+  inv_r_squared       : R² (all) = 0.5988, R² (last) = 0.9688
+  inv_r_cubed         : R² (all) = 0.2951, R² (last) = 0.9188
+  x                   : R² (all) = 0.9969, R² (last) = 0.9999
+  y                   : R² (all) = 0.9978, R² (last) = 0.9999
+
+block_1_mlp_output:
+  F_magnitude         : R² (all) = 0.3459, R² (last) = 0.6925
+  F_direction_x       : R² (all) = 0.9699, R² (last) = 0.9882
+  F_direction_y       : R² (all) = 0.9667, R² (last) = 0.9889
+  Fx                  : R² (all) = 0.3196, R² (last) = 0.5829
+  Fy                  : R² (all) = 0.3141, R² (last) = 0.6729
+  r                   : R² (all) = 0.8589, R² (last) = 0.9860
+  inv_r               : R² (all) = 0.7296, R² (last) = 0.8887
+  r_squared           : R² (all) = 0.7809, R² (last) = 0.9644
+  inv_r_squared       : R² (all) = 0.3459, R² (last) = 0.6925
+  inv_r_cubed         : R² (all) = 0.1023, R² (last) = 0.4856
+  x                   : R² (all) = 0.9851, R² (last) = 0.9981
+  y                   : R² (all) = 0.9804, R² (last) = 0.9969
+
+block_1_after_mlp_merge:
+  F_magnitude         : R² (all) = 0.2509, R² (last) = 0.6986
+  F_direction_x       : R² (all) = 0.9660, R² (last) = 0.9904
+  F_direction_y       : R² (all) = 0.9612, R² (last) = 0.9913
+  Fx                  : R² (all) = 0.2771, R² (last) = 0.6223
+  Fy                  : R² (all) = 0.2740, R² (last) = 0.7127
+  r                   : R² (all) = 0.8334, R² (last) = 0.9876
+  inv_r               : R² (all) = 0.5975, R² (last) = 0.8861
+  r_squared           : R² (all) = 0.7817, R² (last) = 0.9726
+  inv_r_squared       : R² (all) = 0.2509, R² (last) = 0.6986
+  inv_r_cubed         : R² (all) = 0.0700, R² (last) = 0.4965
+  x                   : R² (all) = 0.9932, R² (last) = 0.9995
+  y                   : R² (all) = 0.9925, R² (last) = 0.9993
+
+after_ln_f:
+  F_magnitude         : R² (all) = 0.2295, R² (last) = 0.6829
+  F_direction_x       : R² (all) = 0.9531, R² (last) = 0.9852
+  F_direction_y       : R² (all) = 0.9464, R² (last) = 0.9848
+  Fx                  : R² (all) = 0.2416, R² (last) = 0.5710
+  Fy                  : R² (all) = 0.2389, R² (last) = 0.6658
+  r                   : R² (all) = 0.7556, R² (last) = 0.9936
+  inv_r               : R² (all) = 0.5468, R² (last) = 0.8671
+  r_squared           : R² (all) = 0.6848, R² (last) = 0.9884
+  inv_r_squared       : R² (all) = 0.2295, R² (last) = 0.6829
+  inv_r_cubed         : R² (all) = 0.0695, R² (last) = 0.4885
+  x                   : R² (all) = 0.9978, R² (last) = 0.9996
+  y                   : R² (all) = 0.9980, R² (last) = 0.9995
+Evaluating on 500 trajectories...
+Conditioning length: 50, Generating 50 more steps per trajectory...
+
+Error Statistics (aggregated across all 500 trajectories):
+Mean position error: 0.075094 ± 0.082802
+Max position error: 0.948765
+R² scores:
+  X coordinate: 0.980453 ± 0.046055
+  Y coordinate: 0.981643 ± 0.042715
+Evaluating on 500 trajectories...
+Conditioning length: 50, Generating 50 more steps per trajectory...
+
+Error Statistics (aggregated across all 500 trajectories):
+Mean position error: 0.077782 ± 0.085157
+Max position error: 0.838252
+R² scores:
+  X coordinate: 0.973203 ± 0.084954
+  Y coordinate: 0.973458 ± 0.082653
+Evaluation at step 14001 completed.
+
+Step 14100, Total Train Loss: 0.002547, Prediction Loss: 0.002547, Test Loss: 0.000537, Attention Entropy: 0.9190, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 14200, Total Train Loss: 0.002506, Prediction Loss: 0.002506, Test Loss: 0.000401, Attention Entropy: 0.9163, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 14300, Total Train Loss: 0.002287, Prediction Loss: 0.002287, Test Loss: 0.000391, Attention Entropy: 0.9202, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 14400, Total Train Loss: 0.002297, Prediction Loss: 0.002297, Test Loss: 0.000435, Attention Entropy: 0.9173, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 14500, Total Train Loss: 0.002421, Prediction Loss: 0.002421, Test Loss: 0.000516, Attention Entropy: 0.9191, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 14600, Total Train Loss: 0.002517, Prediction Loss: 0.002517, Test Loss: 0.000430, Attention Entropy: 0.9194, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 14700, Total Train Loss: 0.002599, Prediction Loss: 0.002599, Test Loss: 0.000393, Attention Entropy: 0.9157, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 14800, Total Train Loss: 0.002589, Prediction Loss: 0.002589, Test Loss: 0.000388, Attention Entropy: 0.9189, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 14900, Total Train Loss: 0.002421, Prediction Loss: 0.002421, Test Loss: 0.000513, Attention Entropy: 0.9232, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 15000, Total Train Loss: 0.002556, Prediction Loss: 0.002556, Test Loss: 0.000436, Attention Entropy: 0.9157, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+
+Evaluating at step 15001...
+Activations collected:
+  input_embed: torch.Size([1000, 99, 32])
+  after_pos_emb: torch.Size([1000, 99, 32])
+  block_0_attn_output: torch.Size([1000, 99, 32])
+  block_0_after_attn_merge: torch.Size([1000, 99, 32])
+  block_0_mlp_hidden: torch.Size([1000, 99, 128])
+  block_0_mlp_output: torch.Size([1000, 99, 32])
+  block_0_after_mlp_merge: torch.Size([1000, 99, 32])
+  block_1_attn_output: torch.Size([1000, 99, 32])
+  block_1_after_attn_merge: torch.Size([1000, 99, 32])
+  block_1_mlp_hidden: torch.Size([1000, 99, 128])
+  block_1_mlp_output: torch.Size([1000, 99, 32])
+  block_1_after_mlp_merge: torch.Size([1000, 99, 32])
+  after_ln_f: torch.Size([1000, 99, 32])
+
+Linear Probe Results (R² scores):
+================================================================================
+
+input_embed:
+  F_magnitude         : R² (all) = 0.0002, R² (last) = 0.0007
+  F_direction_x       : R² (all) = 0.8259, R² (last) = 0.8148
+  F_direction_y       : R² (all) = 0.8298, R² (last) = 0.8376
+  Fx                  : R² (all) = 0.0670, R² (last) = 0.0724
+  Fy                  : R² (all) = 0.0646, R² (last) = 0.0934
+  r                   : R² (all) = 0.0045, R² (last) = 0.0104
+  inv_r               : R² (all) = 0.0009, R² (last) = 0.0022
+  r_squared           : R² (all) = 0.0067, R² (last) = 0.0140
+  inv_r_squared       : R² (all) = 0.0002, R² (last) = 0.0008
+  inv_r_cubed         : R² (all) = 0.0000, R² (last) = 0.0003
+  x                   : R² (all) = 1.0000, R² (last) = 1.0000
+  y                   : R² (all) = 1.0000, R² (last) = 1.0000
+
+after_pos_emb:
+  F_magnitude         : R² (all) = 0.0390, R² (last) = 0.0008
+  F_direction_x       : R² (all) = 0.8261, R² (last) = 0.8148
+  F_direction_y       : R² (all) = 0.8299, R² (last) = 0.8376
+  Fx                  : R² (all) = 0.0672, R² (last) = 0.0724
+  Fy                  : R² (all) = 0.0649, R² (last) = 0.0934
+  r                   : R² (all) = 0.0646, R² (last) = 0.0103
+  inv_r               : R² (all) = 0.0486, R² (last) = 0.0023
+  r_squared           : R² (all) = 0.0734, R² (last) = 0.0137
+  inv_r_squared       : R² (all) = 0.0390, R² (last) = 0.0008
+  inv_r_cubed         : R² (all) = 0.0268, R² (last) = 0.0003
+  x                   : R² (all) = 1.0000, R² (last) = 1.0000
+  y                   : R² (all) = 1.0000, R² (last) = 1.0000
+
+block_0_attn_output:
+  F_magnitude         : R² (all) = 0.2460, R² (last) = 0.6006
+  F_direction_x       : R² (all) = 0.6654, R² (last) = 0.6043
+  F_direction_y       : R² (all) = 0.6733, R² (last) = 0.5305
+  Fx                  : R² (all) = 0.0327, R² (last) = 0.0488
+  Fy                  : R² (all) = 0.0313, R² (last) = -0.1274
+  r                   : R² (all) = 0.8421, R² (last) = 0.9760
+  inv_r               : R² (all) = 0.5584, R² (last) = 0.8265
+  r_squared           : R² (all) = 0.7666, R² (last) = 0.9173
+  inv_r_squared       : R² (all) = 0.2460, R² (last) = 0.5994
+  inv_r_cubed         : R² (all) = 0.0819, R² (last) = 0.4384
+  x                   : R² (all) = 0.8378, R² (last) = 0.7478
+  y                   : R² (all) = 0.8414, R² (last) = 0.8015
+
+block_0_after_attn_merge:
+  F_magnitude         : R² (all) = 0.2968, R² (last) = 0.7865
+  F_direction_x       : R² (all) = 0.9369, R² (last) = 0.9230
+  F_direction_y       : R² (all) = 0.9377, R² (last) = 0.8857
+  Fx                  : R² (all) = 0.1529, R² (last) = 0.2688
+  Fy                  : R² (all) = 0.1459, R² (last) = 0.2271
+  r                   : R² (all) = 0.9227, R² (last) = 0.9755
+  inv_r               : R² (all) = 0.6513, R² (last) = 0.9248
+  r_squared           : R² (all) = 0.8374, R² (last) = 0.9616
+  inv_r_squared       : R² (all) = 0.2968, R² (last) = 0.7881
+  inv_r_cubed         : R² (all) = 0.1002, R² (last) = 0.5914
+  x                   : R² (all) = 0.9525, R² (last) = 0.9753
+  y                   : R² (all) = 0.9533, R² (last) = 0.9479
+
+block_0_mlp_hidden:
+  F_magnitude         : R² (all) = 0.5746, R² (last) = 0.9185
+  F_direction_x       : R² (all) = 0.9836, R² (last) = 0.9939
+  F_direction_y       : R² (all) = 0.9827, R² (last) = 0.9970
+  Fx                  : R² (all) = 0.3850, R² (last) = 0.4724
+  Fy                  : R² (all) = 0.3624, R² (last) = 0.8200
+  r                   : R² (all) = 0.9918, R² (last) = 0.9998
+  inv_r               : R² (all) = 0.8765, R² (last) = 0.9821
+  r_squared           : R² (all) = 0.9710, R² (last) = 0.9997
+  inv_r_squared       : R² (all) = 0.5746, R² (last) = 0.9186
+  inv_r_cubed         : R² (all) = 0.2849, R² (last) = 0.8030
+  x                   : R² (all) = 0.9957, R² (last) = 0.9999
+  y                   : R² (all) = 0.9957, R² (last) = 0.9999
+
+block_0_mlp_output:
+  F_magnitude         : R² (all) = 0.4265, R² (last) = 0.7932
+  F_direction_x       : R² (all) = 0.9652, R² (last) = 0.9796
+  F_direction_y       : R² (all) = 0.9656, R² (last) = 0.9829
+  Fx                  : R² (all) = 0.2736, R² (last) = 0.4503
+  Fy                  : R² (all) = 0.2550, R² (last) = 0.5181
+  r                   : R² (all) = 0.9147, R² (last) = 0.9990
+  inv_r               : R² (all) = 0.7758, R² (last) = 0.9438
+  r_squared           : R² (all) = 0.8000, R² (last) = 0.9972
+  inv_r_squared       : R² (all) = 0.4265, R² (last) = 0.7932
+  inv_r_cubed         : R² (all) = 0.1725, R² (last) = 0.5776
+  x                   : R² (all) = 0.9737, R² (last) = 0.9992
+  y                   : R² (all) = 0.9778, R² (last) = 0.9990
+
+block_0_after_mlp_merge:
+  F_magnitude         : R² (all) = 0.3185, R² (last) = 0.7098
+  F_direction_x       : R² (all) = 0.9616, R² (last) = 0.9799
+  F_direction_y       : R² (all) = 0.9642, R² (last) = 0.9823
+  Fx                  : R² (all) = 0.2593, R² (last) = 0.4405
+  Fy                  : R² (all) = 0.2461, R² (last) = 0.5064
+  r                   : R² (all) = 0.8744, R² (last) = 0.9970
+  inv_r               : R² (all) = 0.6367, R² (last) = 0.9006
+  r_squared           : R² (all) = 0.8409, R² (last) = 0.9964
+  inv_r_squared       : R² (all) = 0.3185, R² (last) = 0.7098
+  inv_r_cubed         : R² (all) = 0.1183, R² (last) = 0.4862
+  x                   : R² (all) = 0.9993, R² (last) = 1.0000
+  y                   : R² (all) = 0.9996, R² (last) = 1.0000
+
+block_1_attn_output:
+  F_magnitude         : R² (all) = 0.3117, R² (last) = 0.6150
+  F_direction_x       : R² (all) = 0.9042, R² (last) = 0.9295
+  F_direction_y       : R² (all) = 0.9163, R² (last) = 0.9321
+  Fx                  : R² (all) = 0.1940, R² (last) = 0.2777
+  Fy                  : R² (all) = 0.1978, R² (last) = -0.0026
+  r                   : R² (all) = 0.7650, R² (last) = 0.9874
+  inv_r               : R² (all) = 0.5773, R² (last) = 0.8420
+  r_squared           : R² (all) = 0.7302, R² (last) = 0.9563
+  inv_r_squared       : R² (all) = 0.3117, R² (last) = 0.6150
+  inv_r_cubed         : R² (all) = 0.1345, R² (last) = 0.3896
+  x                   : R² (all) = 0.9324, R² (last) = 0.9827
+  y                   : R² (all) = 0.9323, R² (last) = 0.9815
+
+block_1_after_attn_merge:
+  F_magnitude         : R² (all) = 0.3241, R² (last) = 0.7366
+  F_direction_x       : R² (all) = 0.9750, R² (last) = 0.9855
+  F_direction_y       : R² (all) = 0.9747, R² (last) = 0.9884
+  Fx                  : R² (all) = 0.3413, R² (last) = 0.5488
+  Fy                  : R² (all) = 0.3407, R² (last) = 0.6275
+  r                   : R² (all) = 0.8267, R² (last) = 0.9971
+  inv_r               : R² (all) = 0.6421, R² (last) = 0.9136
+  r_squared           : R² (all) = 0.7558, R² (last) = 0.9897
+  inv_r_squared       : R² (all) = 0.3241, R² (last) = 0.7366
+  inv_r_cubed         : R² (all) = 0.1266, R² (last) = 0.5232
+  x                   : R² (all) = 0.9852, R² (last) = 0.9991
+  y                   : R² (all) = 0.9912, R² (last) = 0.9991
+
+block_1_mlp_hidden:
+  F_magnitude         : R² (all) = 0.6890, R² (last) = 0.9701
+  F_direction_x       : R² (all) = 0.9858, R² (last) = 0.9977
+  F_direction_y       : R² (all) = 0.9863, R² (last) = 0.9983
+  Fx                  : R² (all) = 0.5129, R² (last) = 0.8137
+  Fy                  : R² (all) = 0.5052, R² (last) = 0.8746
+  r                   : R² (all) = 0.9848, R² (last) = 0.9998
+  inv_r               : R² (all) = 0.9119, R² (last) = 0.9928
+  r_squared           : R² (all) = 0.9781, R² (last) = 0.9999
+  inv_r_squared       : R² (all) = 0.6890, R² (last) = 0.9701
+  inv_r_cubed         : R² (all) = 0.4270, R² (last) = 0.9262
+  x                   : R² (all) = 0.9968, R² (last) = 0.9999
+  y                   : R² (all) = 0.9978, R² (last) = 0.9999
+
+block_1_mlp_output:
+  F_magnitude         : R² (all) = 0.4003, R² (last) = 0.7023
+  F_direction_x       : R² (all) = 0.9694, R² (last) = 0.9853
+  F_direction_y       : R² (all) = 0.9669, R² (last) = 0.9868
+  Fx                  : R² (all) = 0.3820, R² (last) = 0.5581
+  Fy                  : R² (all) = 0.3560, R² (last) = 0.6289
+  r                   : R² (all) = 0.8494, R² (last) = 0.9863
+  inv_r               : R² (all) = 0.7384, R² (last) = 0.8979
+  r_squared           : R² (all) = 0.7725, R² (last) = 0.9654
+  inv_r_squared       : R² (all) = 0.4003, R² (last) = 0.7023
+  inv_r_cubed         : R² (all) = 0.1500, R² (last) = 0.4792
+  x                   : R² (all) = 0.9846, R² (last) = 0.9978
+  y                   : R² (all) = 0.9799, R² (last) = 0.9965
+
+block_1_after_mlp_merge:
+  F_magnitude         : R² (all) = 0.2944, R² (last) = 0.7018
+  F_direction_x       : R² (all) = 0.9644, R² (last) = 0.9865
+  F_direction_y       : R² (all) = 0.9613, R² (last) = 0.9898
+  Fx                  : R² (all) = 0.3299, R² (last) = 0.5631
+  Fy                  : R² (all) = 0.3105, R² (last) = 0.6586
+  r                   : R² (all) = 0.8300, R² (last) = 0.9885
+  inv_r               : R² (all) = 0.6091, R² (last) = 0.8942
+  r_squared           : R² (all) = 0.7792, R² (last) = 0.9738
+  inv_r_squared       : R² (all) = 0.2944, R² (last) = 0.7018
+  inv_r_cubed         : R² (all) = 0.1058, R² (last) = 0.4769
+  x                   : R² (all) = 0.9928, R² (last) = 0.9994
+  y                   : R² (all) = 0.9921, R² (last) = 0.9992
+
+after_ln_f:
+  F_magnitude         : R² (all) = 0.2703, R² (last) = 0.7004
+  F_direction_x       : R² (all) = 0.9517, R² (last) = 0.9796
+  F_direction_y       : R² (all) = 0.9463, R² (last) = 0.9826
+  Fx                  : R² (all) = 0.2910, R² (last) = 0.5160
+  Fy                  : R² (all) = 0.2722, R² (last) = 0.6037
+  r                   : R² (all) = 0.7527, R² (last) = 0.9939
+  inv_r               : R² (all) = 0.5608, R² (last) = 0.8832
+  r_squared           : R² (all) = 0.6816, R² (last) = 0.9881
+  inv_r_squared       : R² (all) = 0.2703, R² (last) = 0.7004
+  inv_r_cubed         : R² (all) = 0.1036, R² (last) = 0.4852
+  x                   : R² (all) = 0.9976, R² (last) = 0.9995
+  y                   : R² (all) = 0.9978, R² (last) = 0.9994
+Evaluating on 500 trajectories...
+Conditioning length: 50, Generating 50 more steps per trajectory...
+
+Error Statistics (aggregated across all 500 trajectories):
+Mean position error: 0.094292 ± 0.090454
+Max position error: 0.795515
+R² scores:
+  X coordinate: 0.971971 ± 0.066544
+  Y coordinate: 0.972092 ± 0.068190
+Evaluating on 500 trajectories...
+Conditioning length: 50, Generating 50 more steps per trajectory...
+
+Error Statistics (aggregated across all 500 trajectories):
+Mean position error: 0.090130 ± 0.085744
+Max position error: 0.798583
+R² scores:
+  X coordinate: 0.974919 ± 0.060827
+  Y coordinate: 0.972974 ± 0.067163
+Evaluation at step 15001 completed.
+
+Step 15100, Total Train Loss: 0.002366, Prediction Loss: 0.002366, Test Loss: 0.000479, Attention Entropy: 0.9208, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 15200, Total Train Loss: 0.002491, Prediction Loss: 0.002491, Test Loss: 0.000422, Attention Entropy: 0.9224, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 15300, Total Train Loss: 0.002552, Prediction Loss: 0.002552, Test Loss: 0.000400, Attention Entropy: 0.9173, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 15400, Total Train Loss: 0.002419, Prediction Loss: 0.002419, Test Loss: 0.000345, Attention Entropy: 0.9208, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 15500, Total Train Loss: 0.002484, Prediction Loss: 0.002484, Test Loss: 0.000517, Attention Entropy: 0.9167, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 15600, Total Train Loss: 0.002458, Prediction Loss: 0.002458, Test Loss: 0.000441, Attention Entropy: 0.9190, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 15700, Total Train Loss: 0.002400, Prediction Loss: 0.002400, Test Loss: 0.000428, Attention Entropy: 0.9190, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 15800, Total Train Loss: 0.002481, Prediction Loss: 0.002481, Test Loss: 0.000496, Attention Entropy: 0.9225, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 15900, Total Train Loss: 0.002550, Prediction Loss: 0.002550, Test Loss: 0.000424, Attention Entropy: 0.9184, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 16000, Total Train Loss: 0.002245, Prediction Loss: 0.002245, Test Loss: 0.000458, Attention Entropy: 0.9259, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+
+Evaluating at step 16001...
+Activations collected:
+  input_embed: torch.Size([1000, 99, 32])
+  after_pos_emb: torch.Size([1000, 99, 32])
+  block_0_attn_output: torch.Size([1000, 99, 32])
+  block_0_after_attn_merge: torch.Size([1000, 99, 32])
+  block_0_mlp_hidden: torch.Size([1000, 99, 128])
+  block_0_mlp_output: torch.Size([1000, 99, 32])
+  block_0_after_mlp_merge: torch.Size([1000, 99, 32])
+  block_1_attn_output: torch.Size([1000, 99, 32])
+  block_1_after_attn_merge: torch.Size([1000, 99, 32])
+  block_1_mlp_hidden: torch.Size([1000, 99, 128])
+  block_1_mlp_output: torch.Size([1000, 99, 32])
+  block_1_after_mlp_merge: torch.Size([1000, 99, 32])
+  after_ln_f: torch.Size([1000, 99, 32])
+
+Linear Probe Results (R² scores):
+================================================================================
+
+input_embed:
+  F_magnitude         : R² (all) = 0.0002, R² (last) = 0.0000
+  F_direction_x       : R² (all) = 0.8290, R² (last) = 0.8323
+  F_direction_y       : R² (all) = 0.8297, R² (last) = 0.8379
+  Fx                  : R² (all) = 0.0694, R² (last) = 0.0625
+  Fy                  : R² (all) = 0.0712, R² (last) = 0.0727
+  r                   : R² (all) = 0.0029, R² (last) = 0.0004
+  inv_r               : R² (all) = 0.0008, R² (last) = 0.0000
+  r_squared           : R² (all) = 0.0037, R² (last) = 0.0009
+  inv_r_squared       : R² (all) = 0.0002, R² (last) = 0.0000
+  inv_r_cubed         : R² (all) = 0.0000, R² (last) = 0.0000
+  x                   : R² (all) = 1.0000, R² (last) = 1.0000
+  y                   : R² (all) = 1.0000, R² (last) = 1.0000
+
+after_pos_emb:
+  F_magnitude         : R² (all) = 0.0401, R² (last) = 0.0000
+  F_direction_x       : R² (all) = 0.8291, R² (last) = 0.8323
+  F_direction_y       : R² (all) = 0.8297, R² (last) = 0.8379
+  Fx                  : R² (all) = 0.0703, R² (last) = 0.0625
+  Fy                  : R² (all) = 0.0715, R² (last) = 0.0727
+  r                   : R² (all) = 0.0743, R² (last) = 0.0004
+  inv_r               : R² (all) = 0.0522, R² (last) = 0.0000
+  r_squared           : R² (all) = 0.0829, R² (last) = 0.0009
+  inv_r_squared       : R² (all) = 0.0401, R² (last) = 0.0000
+  inv_r_cubed         : R² (all) = 0.0264, R² (last) = 0.0000
+  x                   : R² (all) = 1.0000, R² (last) = 1.0000
+  y                   : R² (all) = 1.0000, R² (last) = 1.0000
+
+block_0_attn_output:
+  F_magnitude         : R² (all) = 0.2692, R² (last) = -3.1649
+  F_direction_x       : R² (all) = 0.6704, R² (last) = 0.7030
+  F_direction_y       : R² (all) = 0.6823, R² (last) = -1.3993
+  Fx                  : R² (all) = 0.0352, R² (last) = 0.0925
+  Fy                  : R² (all) = 0.0363, R² (last) = -0.2906
+  r                   : R² (all) = 0.8379, R² (last) = 0.9635
+  inv_r               : R² (all) = 0.5725, R² (last) = -0.6401
+  r_squared           : R² (all) = 0.7582, R² (last) = 0.9225
+  inv_r_squared       : R² (all) = 0.2692, R² (last) = -3.1648
+  inv_r_cubed         : R² (all) = 0.0926, R² (last) = -4.8299
+  x                   : R² (all) = 0.8369, R² (last) = 0.6397
+  y                   : R² (all) = 0.8497, R² (last) = -0.4926
+
+block_0_after_attn_merge:
+  F_magnitude         : R² (all) = 0.3280, R² (last) = -0.0216
+  F_direction_x       : R² (all) = 0.9401, R² (last) = 0.9355
+  F_direction_y       : R² (all) = 0.9406, R² (last) = 0.9387
+  Fx                  : R² (all) = 0.1594, R² (last) = 0.1963
+  Fy                  : R² (all) = 0.1643, R² (last) = 0.2525
+  r                   : R² (all) = 0.9257, R² (last) = 0.9775
+  inv_r               : R² (all) = 0.6693, R² (last) = 0.6575
+  r_squared           : R² (all) = 0.8423, R² (last) = 0.9612
+  inv_r_squared       : R² (all) = 0.3280, R² (last) = -0.0200
+  inv_r_cubed         : R² (all) = 0.1163, R² (last) = -0.5213
+  x                   : R² (all) = 0.9506, R² (last) = 0.9729
+  y                   : R² (all) = 0.9515, R² (last) = 0.9748
+
+block_0_mlp_hidden:
+  F_magnitude         : R² (all) = 0.6205, R² (last) = 0.8239
+  F_direction_x       : R² (all) = 0.9845, R² (last) = 0.9972
+  F_direction_y       : R² (all) = 0.9836, R² (last) = 0.9938
+  Fx                  : R² (all) = 0.4128, R² (last) = 0.6941
+  Fy                  : R² (all) = 0.4154, R² (last) = 0.4256
+  r                   : R² (all) = 0.9921, R² (last) = 0.9997
+  inv_r               : R² (all) = 0.8913, R² (last) = 0.9616
+  r_squared           : R² (all) = 0.9719, R² (last) = 0.9989
+  inv_r_squared       : R² (all) = 0.6205, R² (last) = 0.8233
+  inv_r_cubed         : R² (all) = 0.3241, R² (last) = 0.6412
+  x                   : R² (all) = 0.9955, R² (last) = 0.9999
+  y                   : R² (all) = 0.9958, R² (last) = 0.9999
+
+block_0_mlp_output:
+  F_magnitude         : R² (all) = 0.4756, R² (last) = 0.7347
+  F_direction_x       : R² (all) = 0.9666, R² (last) = 0.9822
+  F_direction_y       : R² (all) = 0.9672, R² (last) = 0.9829
+  Fx                  : R² (all) = 0.2900, R² (last) = 0.4115
+  Fy                  : R² (all) = 0.2883, R² (last) = 0.4697
+  r                   : R² (all) = 0.9156, R² (last) = 0.9990
+  inv_r               : R² (all) = 0.8005, R² (last) = 0.9296
+  r_squared           : R² (all) = 0.8015, R² (last) = 0.9967
+  inv_r_squared       : R² (all) = 0.4756, R² (last) = 0.7347
+  inv_r_cubed         : R² (all) = 0.2064, R² (last) = 0.5052
+  x                   : R² (all) = 0.9722, R² (last) = 0.9992
+  y                   : R² (all) = 0.9773, R² (last) = 0.9991
+
+block_0_after_mlp_merge:
+  F_magnitude         : R² (all) = 0.3564, R² (last) = 0.6225
+  F_direction_x       : R² (all) = 0.9637, R² (last) = 0.9831
+  F_direction_y       : R² (all) = 0.9661, R² (last) = 0.9818
+  Fx                  : R² (all) = 0.2765, R² (last) = 0.4022
+  Fy                  : R² (all) = 0.2820, R² (last) = 0.4609
+  r                   : R² (all) = 0.8794, R² (last) = 0.9968
+  inv_r               : R² (all) = 0.6565, R² (last) = 0.8740
+  r_squared           : R² (all) = 0.8478, R² (last) = 0.9960
+  inv_r_squared       : R² (all) = 0.3564, R² (last) = 0.6225
+  inv_r_cubed         : R² (all) = 0.1428, R² (last) = 0.3871
+  x                   : R² (all) = 0.9993, R² (last) = 1.0000
+  y                   : R² (all) = 0.9996, R² (last) = 1.0000
+
+block_1_attn_output:
+  F_magnitude         : R² (all) = 0.3429, R² (last) = 0.0806
+  F_direction_x       : R² (all) = 0.9091, R² (last) = 0.8698
+  F_direction_y       : R² (all) = 0.9174, R² (last) = 0.9350
+  Fx                  : R² (all) = 0.2071, R² (last) = 0.1899
+  Fy                  : R² (all) = 0.2295, R² (last) = 0.0483
+  r                   : R² (all) = 0.7681, R² (last) = 0.9612
+  inv_r               : R² (all) = 0.5949, R² (last) = 0.5117
+  r_squared           : R² (all) = 0.7349, R² (last) = 0.9676
+  inv_r_squared       : R² (all) = 0.3429, R² (last) = 0.0768
+  inv_r_cubed         : R² (all) = 0.1519, R² (last) = -0.1284
+  x                   : R² (all) = 0.9351, R² (last) = 0.9616
+  y                   : R² (all) = 0.9373, R² (last) = 0.9580
+
+block_1_after_attn_merge:
+  F_magnitude         : R² (all) = 0.3585, R² (last) = 0.6137
+  F_direction_x       : R² (all) = 0.9756, R² (last) = 0.9864
+  F_direction_y       : R² (all) = 0.9752, R² (last) = 0.9880
+  Fx                  : R² (all) = 0.3597, R² (last) = 0.5037
+  Fy                  : R² (all) = 0.3818, R² (last) = 0.6116
+  r                   : R² (all) = 0.8289, R² (last) = 0.9968
+  inv_r               : R² (all) = 0.6591, R² (last) = 0.8709
+  r_squared           : R² (all) = 0.7625, R² (last) = 0.9901
+  inv_r_squared       : R² (all) = 0.3585, R² (last) = 0.6137
+  inv_r_cubed         : R² (all) = 0.1488, R² (last) = 0.3765
+  x                   : R² (all) = 0.9856, R² (last) = 0.9991
+  y                   : R² (all) = 0.9919, R² (last) = 0.9992
+
+block_1_mlp_hidden:
+  F_magnitude         : R² (all) = 0.7176, R² (last) = 0.9476
+  F_direction_x       : R² (all) = 0.9864, R² (last) = 0.9981
+  F_direction_y       : R² (all) = 0.9866, R² (last) = 0.9982
+  Fx                  : R² (all) = 0.5420, R² (last) = 0.8043
+  Fy                  : R² (all) = 0.5572, R² (last) = 0.8565
+  r                   : R² (all) = 0.9864, R² (last) = 0.9998
+  inv_r               : R² (all) = 0.9201, R² (last) = 0.9896
+  r_squared           : R² (all) = 0.9813, R² (last) = 0.9998
+  inv_r_squared       : R² (all) = 0.7176, R² (last) = 0.9476
+  inv_r_cubed         : R² (all) = 0.4515, R² (last) = 0.8745
+  x                   : R² (all) = 0.9969, R² (last) = 0.9999
+  y                   : R² (all) = 0.9979, R² (last) = 0.9999
+
+block_1_mlp_output:
+  F_magnitude         : R² (all) = 0.4469, R² (last) = 0.5682
+  F_direction_x       : R² (all) = 0.9704, R² (last) = 0.9854
+  F_direction_y       : R² (all) = 0.9676, R² (last) = 0.9879
+  Fx                  : R² (all) = 0.4059, R² (last) = 0.4916
+  Fy                  : R² (all) = 0.3993, R² (last) = 0.5960
+  r                   : R² (all) = 0.8436, R² (last) = 0.9863
+  inv_r               : R² (all) = 0.7537, R² (last) = 0.8498
+  r_squared           : R² (all) = 0.7756, R² (last) = 0.9639
+  inv_r_squared       : R² (all) = 0.4469, R² (last) = 0.5682
+  inv_r_cubed         : R² (all) = 0.1851, R² (last) = 0.3254
+  x                   : R² (all) = 0.9849, R² (last) = 0.9978
+  y                   : R² (all) = 0.9821, R² (last) = 0.9968
+
+block_1_after_mlp_merge:
+  F_magnitude         : R² (all) = 0.3328, R² (last) = 0.5770
+  F_direction_x       : R² (all) = 0.9663, R² (last) = 0.9862
+  F_direction_y       : R² (all) = 0.9616, R² (last) = 0.9894
+  Fx                  : R² (all) = 0.3465, R² (last) = 0.4994
+  Fy                  : R² (all) = 0.3439, R² (last) = 0.6297
+  r                   : R² (all) = 0.8319, R² (last) = 0.9887
+  inv_r               : R² (all) = 0.6298, R² (last) = 0.8504
+  r_squared           : R² (all) = 0.7843, R² (last) = 0.9752
+  inv_r_squared       : R² (all) = 0.3328, R² (last) = 0.5770
+  inv_r_cubed         : R² (all) = 0.1303, R² (last) = 0.3325
+  x                   : R² (all) = 0.9930, R² (last) = 0.9994
+  y                   : R² (all) = 0.9925, R² (last) = 0.9992
+
+after_ln_f:
+  F_magnitude         : R² (all) = 0.3005, R² (last) = 0.5997
+  F_direction_x       : R² (all) = 0.9531, R² (last) = 0.9806
+  F_direction_y       : R² (all) = 0.9460, R² (last) = 0.9818
+  Fx                  : R² (all) = 0.3021, R² (last) = 0.4582
+  Fy                  : R² (all) = 0.2971, R² (last) = 0.5688
+  r                   : R² (all) = 0.7392, R² (last) = 0.9941
+  inv_r               : R² (all) = 0.5767, R² (last) = 0.8499
+  r_squared           : R² (all) = 0.6655, R² (last) = 0.9897
+  inv_r_squared       : R² (all) = 0.3005, R² (last) = 0.5997
+  inv_r_cubed         : R² (all) = 0.1195, R² (last) = 0.3657
+  x                   : R² (all) = 0.9978, R² (last) = 0.9995
+  y                   : R² (all) = 0.9981, R² (last) = 0.9995
+Evaluating on 500 trajectories...
+Conditioning length: 50, Generating 50 more steps per trajectory...
+
+Error Statistics (aggregated across all 500 trajectories):
+Mean position error: 0.101243 ± 0.088289
+Max position error: 1.064764
+R² scores:
+  X coordinate: 0.967663 ± 0.118353
+  Y coordinate: 0.969285 ± 0.105158
+Evaluating on 500 trajectories...
+Conditioning length: 50, Generating 50 more steps per trajectory...
+
+Error Statistics (aggregated across all 500 trajectories):
+Mean position error: 0.099654 ± 0.088845
+Max position error: 0.863148
+R² scores:
+  X coordinate: 0.974136 ± 0.079611
+  Y coordinate: 0.974894 ± 0.080151
+Evaluation at step 16001 completed.
+
+Step 16100, Total Train Loss: 0.002490, Prediction Loss: 0.002490, Test Loss: 0.000477, Attention Entropy: 0.9206, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 16200, Total Train Loss: 0.002339, Prediction Loss: 0.002339, Test Loss: 0.000439, Attention Entropy: 0.9190, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 16300, Total Train Loss: 0.002521, Prediction Loss: 0.002521, Test Loss: 0.000404, Attention Entropy: 0.9233, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 16400, Total Train Loss: 0.002283, Prediction Loss: 0.002283, Test Loss: 0.000382, Attention Entropy: 0.9204, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 16500, Total Train Loss: 0.002444, Prediction Loss: 0.002444, Test Loss: 0.000401, Attention Entropy: 0.9182, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 16600, Total Train Loss: 0.002609, Prediction Loss: 0.002609, Test Loss: 0.000438, Attention Entropy: 0.9185, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 16700, Total Train Loss: 0.002377, Prediction Loss: 0.002377, Test Loss: 0.000463, Attention Entropy: 0.9202, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 16800, Total Train Loss: 0.002392, Prediction Loss: 0.002392, Test Loss: 0.000360, Attention Entropy: 0.9194, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 16900, Total Train Loss: 0.002660, Prediction Loss: 0.002660, Test Loss: 0.000514, Attention Entropy: 0.9143, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 17000, Total Train Loss: 0.002341, Prediction Loss: 0.002341, Test Loss: 0.000423, Attention Entropy: 0.9224, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+
+Evaluating at step 17001...
+Activations collected:
+  input_embed: torch.Size([1000, 99, 32])
+  after_pos_emb: torch.Size([1000, 99, 32])
+  block_0_attn_output: torch.Size([1000, 99, 32])
+  block_0_after_attn_merge: torch.Size([1000, 99, 32])
+  block_0_mlp_hidden: torch.Size([1000, 99, 128])
+  block_0_mlp_output: torch.Size([1000, 99, 32])
+  block_0_after_mlp_merge: torch.Size([1000, 99, 32])
+  block_1_attn_output: torch.Size([1000, 99, 32])
+  block_1_after_attn_merge: torch.Size([1000, 99, 32])
+  block_1_mlp_hidden: torch.Size([1000, 99, 128])
+  block_1_mlp_output: torch.Size([1000, 99, 32])
+  block_1_after_mlp_merge: torch.Size([1000, 99, 32])
+  after_ln_f: torch.Size([1000, 99, 32])
+
+Linear Probe Results (R² scores):
+================================================================================
+
+input_embed:
+  F_magnitude         : R² (all) = 0.0000, R² (last) = 0.0000
+  F_direction_x       : R² (all) = 0.8278, R² (last) = 0.8280
+  F_direction_y       : R² (all) = 0.8292, R² (last) = 0.8308
+  Fx                  : R² (all) = 0.0716, R² (last) = 0.0934
+  Fy                  : R² (all) = 0.0752, R² (last) = 0.0783
+  r                   : R² (all) = 0.0008, R² (last) = 0.0003
+  inv_r               : R² (all) = 0.0001, R² (last) = 0.0001
+  r_squared           : R² (all) = 0.0010, R² (last) = 0.0003
+  inv_r_squared       : R² (all) = 0.0000, R² (last) = 0.0000
+  inv_r_cubed         : R² (all) = 0.0000, R² (last) = -0.0000
+  x                   : R² (all) = 1.0000, R² (last) = 1.0000
+  y                   : R² (all) = 1.0000, R² (last) = 1.0000
+
+after_pos_emb:
+  F_magnitude         : R² (all) = 0.0428, R² (last) = 0.0000
+  F_direction_x       : R² (all) = 0.8279, R² (last) = 0.8280
+  F_direction_y       : R² (all) = 0.8293, R² (last) = 0.8308
+  Fx                  : R² (all) = 0.0720, R² (last) = 0.0934
+  Fy                  : R² (all) = 0.0757, R² (last) = 0.0783
+  r                   : R² (all) = 0.0659, R² (last) = 0.0003
+  inv_r               : R² (all) = 0.0514, R² (last) = 0.0001
+  r_squared           : R² (all) = 0.0734, R² (last) = 0.0004
+  inv_r_squared       : R² (all) = 0.0428, R² (last) = 0.0000
+  inv_r_cubed         : R² (all) = 0.0305, R² (last) = 0.0000
+  x                   : R² (all) = 1.0000, R² (last) = 1.0000
+  y                   : R² (all) = 1.0000, R² (last) = 1.0000
+
+block_0_attn_output:
+  F_magnitude         : R² (all) = 0.2571, R² (last) = 0.5604
+  F_direction_x       : R² (all) = 0.6705, R² (last) = 0.3037
+  F_direction_y       : R² (all) = 0.6583, R² (last) = 0.3116
+  Fx                  : R² (all) = 0.0353, R² (last) = 0.3353
+  Fy                  : R² (all) = 0.0353, R² (last) = -1.1353
+  r                   : R² (all) = 0.8378, R² (last) = 0.9007
+  inv_r               : R² (all) = 0.5560, R² (last) = 0.8145
+  r_squared           : R² (all) = 0.7635, R² (last) = 0.8508
+  inv_r_squared       : R² (all) = 0.2571, R² (last) = 0.5600
+  inv_r_cubed         : R² (all) = 0.0922, R² (last) = 0.3490
+  x                   : R² (all) = 0.8421, R² (last) = 0.7572
+  y                   : R² (all) = 0.8274, R² (last) = 0.6168
+
+block_0_after_attn_merge:
+  F_magnitude         : R² (all) = 0.3157, R² (last) = 0.4338
+  F_direction_x       : R² (all) = 0.9399, R² (last) = 0.8874
+  F_direction_y       : R² (all) = 0.9391, R² (last) = 0.8349
+  Fx                  : R² (all) = 0.1640, R² (last) = -0.1689
+  Fy                  : R² (all) = 0.1662, R² (last) = 0.2807
+  r                   : R² (all) = 0.9244, R² (last) = 0.9672
+  inv_r               : R² (all) = 0.6536, R² (last) = 0.8313
+  r_squared           : R² (all) = 0.8414, R² (last) = 0.9301
+  inv_r_squared       : R² (all) = 0.3157, R² (last) = 0.4322
+  inv_r_cubed         : R² (all) = 0.1168, R² (last) = -0.0539
+  x                   : R² (all) = 0.9512, R² (last) = 0.9719
+  y                   : R² (all) = 0.9519, R² (last) = 0.9011
+
+block_0_mlp_hidden:
+  F_magnitude         : R² (all) = 0.6200, R² (last) = 0.9160
+  F_direction_x       : R² (all) = 0.9842, R² (last) = 0.9974
+  F_direction_y       : R² (all) = 0.9826, R² (last) = 0.9925
+  Fx                  : R² (all) = 0.4063, R² (last) = 0.7055
+  Fy                  : R² (all) = 0.3990, R² (last) = 0.6737
+  r                   : R² (all) = 0.9920, R² (last) = 0.9999
+  inv_r               : R² (all) = 0.8882, R² (last) = 0.9843
+  r_squared           : R² (all) = 0.9709, R² (last) = 0.9991
+  inv_r_squared       : R² (all) = 0.6200, R² (last) = 0.9161
+  inv_r_cubed         : R² (all) = 0.3339, R² (last) = 0.7872
+  x                   : R² (all) = 0.9956, R² (last) = 0.9999
+  y                   : R² (all) = 0.9956, R² (last) = 0.9999
+
+block_0_mlp_output:
+  F_magnitude         : R² (all) = 0.4697, R² (last) = 0.7511
+  F_direction_x       : R² (all) = 0.9660, R² (last) = 0.9851
+  F_direction_y       : R² (all) = 0.9654, R² (last) = 0.9815
+  Fx                  : R² (all) = 0.2838, R² (last) = 0.5114
+  Fy                  : R² (all) = 0.2824, R² (last) = 0.4368
+  r                   : R² (all) = 0.9159, R² (last) = 0.9991
+  inv_r               : R² (all) = 0.7940, R² (last) = 0.9364
+  r_squared           : R² (all) = 0.7996, R² (last) = 0.9973
+  inv_r_squared       : R² (all) = 0.4697, R² (last) = 0.7511
+  inv_r_cubed         : R² (all) = 0.2103, R² (last) = 0.5078
+  x                   : R² (all) = 0.9730, R² (last) = 0.9992
+  y                   : R² (all) = 0.9768, R² (last) = 0.9991
+
+block_0_after_mlp_merge:
+  F_magnitude         : R² (all) = 0.3442, R² (last) = 0.6641
+  F_direction_x       : R² (all) = 0.9637, R² (last) = 0.9859
+  F_direction_y       : R² (all) = 0.9639, R² (last) = 0.9817
+  Fx                  : R² (all) = 0.2732, R² (last) = 0.5128
+  Fy                  : R² (all) = 0.2748, R² (last) = 0.4465
+  r                   : R² (all) = 0.8791, R² (last) = 0.9969
+  inv_r               : R² (all) = 0.6446, R² (last) = 0.8935
+  r_squared           : R² (all) = 0.8482, R² (last) = 0.9958
+  inv_r_squared       : R² (all) = 0.3442, R² (last) = 0.6641
+  inv_r_cubed         : R² (all) = 0.1401, R² (last) = 0.4189
+  x                   : R² (all) = 0.9993, R² (last) = 1.0000
+  y                   : R² (all) = 0.9996, R² (last) = 1.0000
+
+block_1_attn_output:
+  F_magnitude         : R² (all) = 0.3317, R² (last) = 0.5511
+  F_direction_x       : R² (all) = 0.9121, R² (last) = 0.9492
+  F_direction_y       : R² (all) = 0.9151, R² (last) = 0.9309
+  Fx                  : R² (all) = 0.2126, R² (last) = 0.2416
+  Fy                  : R² (all) = 0.2243, R² (last) = 0.1215
+  r                   : R² (all) = 0.7753, R² (last) = 0.9900
+  inv_r               : R² (all) = 0.5820, R² (last) = 0.8380
+  r_squared           : R² (all) = 0.7427, R² (last) = 0.9738
+  inv_r_squared       : R² (all) = 0.3317, R² (last) = 0.5513
+  inv_r_cubed         : R² (all) = 0.1544, R² (last) = 0.2918
+  x                   : R² (all) = 0.9375, R² (last) = 0.9786
+  y                   : R² (all) = 0.9316, R² (last) = 0.9793
+
+block_1_after_attn_merge:
+  F_magnitude         : R² (all) = 0.3472, R² (last) = 0.6479
+  F_direction_x       : R² (all) = 0.9758, R² (last) = 0.9894
+  F_direction_y       : R² (all) = 0.9747, R² (last) = 0.9900
+  Fx                  : R² (all) = 0.3612, R² (last) = 0.6105
+  Fy                  : R² (all) = 0.3753, R² (last) = 0.5947
+  r                   : R² (all) = 0.8302, R² (last) = 0.9971
+  inv_r               : R² (all) = 0.6475, R² (last) = 0.8898
+  r_squared           : R² (all) = 0.7624, R² (last) = 0.9907
+  inv_r_squared       : R² (all) = 0.3472, R² (last) = 0.6479
+  inv_r_cubed         : R² (all) = 0.1472, R² (last) = 0.3993
+  x                   : R² (all) = 0.9855, R² (last) = 0.9991
+  y                   : R² (all) = 0.9912, R² (last) = 0.9990
+
+block_1_mlp_hidden:
+  F_magnitude         : R² (all) = 0.7183, R² (last) = 0.9572
+  F_direction_x       : R² (all) = 0.9864, R² (last) = 0.9987
+  F_direction_y       : R² (all) = 0.9866, R² (last) = 0.9985
+  Fx                  : R² (all) = 0.5408, R² (last) = 0.8651
+  Fy                  : R² (all) = 0.5500, R² (last) = 0.8877
+  r                   : R² (all) = 0.9855, R² (last) = 0.9998
+  inv_r               : R² (all) = 0.9183, R² (last) = 0.9912
+  r_squared           : R² (all) = 0.9798, R² (last) = 0.9998
+  inv_r_squared       : R² (all) = 0.7183, R² (last) = 0.9572
+  inv_r_cubed         : R² (all) = 0.4621, R² (last) = 0.8942
+  x                   : R² (all) = 0.9969, R² (last) = 0.9999
+  y                   : R² (all) = 0.9978, R² (last) = 0.9999
+
+block_1_mlp_output:
+  F_magnitude         : R² (all) = 0.4300, R² (last) = 0.6164
+  F_direction_x       : R² (all) = 0.9703, R² (last) = 0.9905
+  F_direction_y       : R² (all) = 0.9672, R² (last) = 0.9885
+  Fx                  : R² (all) = 0.4041, R² (last) = 0.6334
+  Fy                  : R² (all) = 0.3901, R² (last) = 0.5821
+  r                   : R² (all) = 0.8319, R² (last) = 0.9879
+  inv_r               : R² (all) = 0.7374, R² (last) = 0.8798
+  r_squared           : R² (all) = 0.7588, R² (last) = 0.9706
+  inv_r_squared       : R² (all) = 0.4300, R² (last) = 0.6164
+  inv_r_cubed         : R² (all) = 0.1798, R² (last) = 0.3503
+  x                   : R² (all) = 0.9848, R² (last) = 0.9981
+  y                   : R² (all) = 0.9811, R² (last) = 0.9969
+
+block_1_after_mlp_merge:
+  F_magnitude         : R² (all) = 0.3237, R² (last) = 0.6249
+  F_direction_x       : R² (all) = 0.9660, R² (last) = 0.9900
+  F_direction_y       : R² (all) = 0.9602, R² (last) = 0.9907
+  Fx                  : R² (all) = 0.3467, R² (last) = 0.6410
+  Fy                  : R² (all) = 0.3356, R² (last) = 0.5722
+  r                   : R² (all) = 0.8331, R² (last) = 0.9893
+  inv_r               : R² (all) = 0.6235, R² (last) = 0.8752
+  r_squared           : R² (all) = 0.7820, R² (last) = 0.9793
+  inv_r_squared       : R² (all) = 0.3237, R² (last) = 0.6249
+  inv_r_cubed         : R² (all) = 0.1272, R² (last) = 0.3690
+  x                   : R² (all) = 0.9931, R² (last) = 0.9993
+  y                   : R² (all) = 0.9922, R² (last) = 0.9990
+
+after_ln_f:
+  F_magnitude         : R² (all) = 0.2918, R² (last) = 0.6453
+  F_direction_x       : R² (all) = 0.9529, R² (last) = 0.9838
+  F_direction_y       : R² (all) = 0.9437, R² (last) = 0.9836
+  Fx                  : R² (all) = 0.3043, R² (last) = 0.5894
+  Fy                  : R² (all) = 0.2894, R² (last) = 0.5232
+  r                   : R² (all) = 0.7556, R² (last) = 0.9944
+  inv_r               : R² (all) = 0.5714, R² (last) = 0.8767
+  r_squared           : R² (all) = 0.6830, R² (last) = 0.9897
+  inv_r_squared       : R² (all) = 0.2918, R² (last) = 0.6453
+  inv_r_cubed         : R² (all) = 0.1179, R² (last) = 0.4000
+  x                   : R² (all) = 0.9977, R² (last) = 0.9996
+  y                   : R² (all) = 0.9979, R² (last) = 0.9994
+Evaluating on 500 trajectories...
+Conditioning length: 50, Generating 50 more steps per trajectory...
+
+Error Statistics (aggregated across all 500 trajectories):
+Mean position error: 0.116675 ± 0.106334
+Max position error: 1.073465
+R² scores:
+  X coordinate: 0.949357 ± 0.131821
+  Y coordinate: 0.951203 ± 0.132275
+Evaluating on 500 trajectories...
+Conditioning length: 50, Generating 50 more steps per trajectory...
+
+Error Statistics (aggregated across all 500 trajectories):
+Mean position error: 0.113228 ± 0.099106
+Max position error: 0.967670
+R² scores:
+  X coordinate: 0.957814 ± 0.125756
+  Y coordinate: 0.960596 ± 0.125455
+Evaluation at step 17001 completed.
+
+Step 17100, Total Train Loss: 0.002467, Prediction Loss: 0.002467, Test Loss: 0.000449, Attention Entropy: 0.9187, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 17200, Total Train Loss: 0.002517, Prediction Loss: 0.002517, Test Loss: 0.000413, Attention Entropy: 0.9223, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 17300, Total Train Loss: 0.002574, Prediction Loss: 0.002574, Test Loss: 0.000368, Attention Entropy: 0.9194, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 17400, Total Train Loss: 0.002518, Prediction Loss: 0.002518, Test Loss: 0.000432, Attention Entropy: 0.9227, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 17500, Total Train Loss: 0.002433, Prediction Loss: 0.002433, Test Loss: 0.000415, Attention Entropy: 0.9235, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 17600, Total Train Loss: 0.002712, Prediction Loss: 0.002712, Test Loss: 0.000384, Attention Entropy: 0.9135, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 17700, Total Train Loss: 0.002509, Prediction Loss: 0.002509, Test Loss: 0.000462, Attention Entropy: 0.9227, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 17800, Total Train Loss: 0.002416, Prediction Loss: 0.002416, Test Loss: 0.000416, Attention Entropy: 0.9203, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 17900, Total Train Loss: 0.002430, Prediction Loss: 0.002430, Test Loss: 0.000393, Attention Entropy: 0.9229, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 18000, Total Train Loss: 0.002421, Prediction Loss: 0.002421, Test Loss: 0.000372, Attention Entropy: 0.9237, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+
+Evaluating at step 18001...
+Activations collected:
+  input_embed: torch.Size([1000, 99, 32])
+  after_pos_emb: torch.Size([1000, 99, 32])
+  block_0_attn_output: torch.Size([1000, 99, 32])
+  block_0_after_attn_merge: torch.Size([1000, 99, 32])
+  block_0_mlp_hidden: torch.Size([1000, 99, 128])
+  block_0_mlp_output: torch.Size([1000, 99, 32])
+  block_0_after_mlp_merge: torch.Size([1000, 99, 32])
+  block_1_attn_output: torch.Size([1000, 99, 32])
+  block_1_after_attn_merge: torch.Size([1000, 99, 32])
+  block_1_mlp_hidden: torch.Size([1000, 99, 128])
+  block_1_mlp_output: torch.Size([1000, 99, 32])
+  block_1_after_mlp_merge: torch.Size([1000, 99, 32])
+  after_ln_f: torch.Size([1000, 99, 32])
+
+Linear Probe Results (R² scores):
+================================================================================
+
+input_embed:
+  F_magnitude         : R² (all) = 0.0003, R² (last) = 0.0010
+  F_direction_x       : R² (all) = 0.8318, R² (last) = 0.8330
+  F_direction_y       : R² (all) = 0.8319, R² (last) = 0.8284
+  Fx                  : R² (all) = 0.0656, R² (last) = 0.0826
+  Fy                  : R² (all) = 0.0624, R² (last) = 0.0778
+  r                   : R² (all) = 0.0034, R² (last) = 0.0069
+  inv_r               : R² (all) = 0.0010, R² (last) = 0.0028
+  r_squared           : R² (all) = 0.0050, R² (last) = 0.0091
+  inv_r_squared       : R² (all) = 0.0003, R² (last) = 0.0011
+  inv_r_cubed         : R² (all) = 0.0001, R² (last) = 0.0003
+  x                   : R² (all) = 1.0000, R² (last) = 1.0000
+  y                   : R² (all) = 1.0000, R² (last) = 1.0000
+
+after_pos_emb:
+  F_magnitude         : R² (all) = 0.0429, R² (last) = 0.0011
+  F_direction_x       : R² (all) = 0.8319, R² (last) = 0.8330
+  F_direction_y       : R² (all) = 0.8320, R² (last) = 0.8284
+  Fx                  : R² (all) = 0.0659, R² (last) = 0.0827
+  Fy                  : R² (all) = 0.0627, R² (last) = 0.0778
+  r                   : R² (all) = 0.0660, R² (last) = 0.0073
+  inv_r               : R² (all) = 0.0530, R² (last) = 0.0028
+  r_squared           : R² (all) = 0.0733, R² (last) = 0.0093
+  inv_r_squared       : R² (all) = 0.0429, R² (last) = 0.0011
+  inv_r_cubed         : R² (all) = 0.0287, R² (last) = 0.0003
+  x                   : R² (all) = 1.0000, R² (last) = 1.0000
+  y                   : R² (all) = 1.0000, R² (last) = 1.0000
+
+block_0_attn_output:
+  F_magnitude         : R² (all) = 0.2285, R² (last) = 0.1204
+  F_direction_x       : R² (all) = 0.6630, R² (last) = 0.5242
+  F_direction_y       : R² (all) = 0.6679, R² (last) = 0.4492
+  Fx                  : R² (all) = 0.0312, R² (last) = 0.3272
+  Fy                  : R² (all) = 0.0290, R² (last) = -0.2093
+  r                   : R² (all) = 0.8314, R² (last) = 0.9398
+  inv_r               : R² (all) = 0.5339, R² (last) = 0.5565
+  r_squared           : R² (all) = 0.7589, R² (last) = 0.9457
+  inv_r_squared       : R² (all) = 0.2285, R² (last) = 0.1206
+  inv_r_cubed         : R² (all) = 0.0749, R² (last) = -0.1392
+  x                   : R² (all) = 0.8270, R² (last) = 0.8822
+  y                   : R² (all) = 0.8345, R² (last) = 0.7386
+
+block_0_after_attn_merge:
+  F_magnitude         : R² (all) = 0.2844, R² (last) = -0.7817
+  F_direction_x       : R² (all) = 0.9390, R² (last) = 0.9309
+  F_direction_y       : R² (all) = 0.9392, R² (last) = 0.4884
+  Fx                  : R² (all) = 0.1463, R² (last) = 0.2271
+  Fy                  : R² (all) = 0.1403, R² (last) = -0.9780
+  r                   : R² (all) = 0.9225, R² (last) = 0.9675
+  inv_r               : R² (all) = 0.6352, R² (last) = 0.3478
+  r_squared           : R² (all) = 0.8406, R² (last) = 0.8515
+  inv_r_squared       : R² (all) = 0.2844, R² (last) = -0.7774
+  inv_r_cubed         : R² (all) = 0.0950, R² (last) = -1.9188
+  x                   : R² (all) = 0.9533, R² (last) = 0.9803
+  y                   : R² (all) = 0.9533, R² (last) = 0.6327
+
+block_0_mlp_hidden:
+  F_magnitude         : R² (all) = 0.5756, R² (last) = 0.8947
+  F_direction_x       : R² (all) = 0.9828, R² (last) = 0.9943
+  F_direction_y       : R² (all) = 0.9821, R² (last) = 0.9925
+  Fx                  : R² (all) = 0.3671, R² (last) = 0.4513
+  Fy                  : R² (all) = 0.3481, R² (last) = 0.3869
+  r                   : R² (all) = 0.9921, R² (last) = 0.9998
+  inv_r               : R² (all) = 0.8772, R² (last) = 0.9732
+  r_squared           : R² (all) = 0.9719, R² (last) = 0.9994
+  inv_r_squared       : R² (all) = 0.5756, R² (last) = 0.8947
+  inv_r_cubed         : R² (all) = 0.2790, R² (last) = 0.7896
+  x                   : R² (all) = 0.9955, R² (last) = 0.9999
+  y                   : R² (all) = 0.9957, R² (last) = 1.0000
+
+block_0_mlp_output:
+  F_magnitude         : R² (all) = 0.4333, R² (last) = 0.8131
+  F_direction_x       : R² (all) = 0.9632, R² (last) = 0.9816
+  F_direction_y       : R² (all) = 0.9651, R² (last) = 0.9802
+  Fx                  : R² (all) = 0.2508, R² (last) = 0.4335
+  Fy                  : R² (all) = 0.2453, R² (last) = 0.5001
+  r                   : R² (all) = 0.9140, R² (last) = 0.9990
+  inv_r               : R² (all) = 0.7811, R² (last) = 0.9480
+  r_squared           : R² (all) = 0.7982, R² (last) = 0.9970
+  inv_r_squared       : R² (all) = 0.4333, R² (last) = 0.8131
+  inv_r_cubed         : R² (all) = 0.1737, R² (last) = 0.6238
+  x                   : R² (all) = 0.9734, R² (last) = 0.9992
+  y                   : R² (all) = 0.9775, R² (last) = 0.9990
+
+block_0_after_mlp_merge:
+  F_magnitude         : R² (all) = 0.3130, R² (last) = 0.7384
+  F_direction_x       : R² (all) = 0.9618, R² (last) = 0.9828
+  F_direction_y       : R² (all) = 0.9635, R² (last) = 0.9801
+  Fx                  : R² (all) = 0.2447, R² (last) = 0.4239
+  Fy                  : R² (all) = 0.2329, R² (last) = 0.5037
+  r                   : R² (all) = 0.8725, R² (last) = 0.9967
+  inv_r               : R² (all) = 0.6268, R² (last) = 0.9105
+  r_squared           : R² (all) = 0.8451, R² (last) = 0.9955
+  inv_r_squared       : R² (all) = 0.3130, R² (last) = 0.7384
+  inv_r_cubed         : R² (all) = 0.1155, R² (last) = 0.5392
+  x                   : R² (all) = 0.9993, R² (last) = 1.0000
+  y                   : R² (all) = 0.9996, R² (last) = 1.0000
+
+block_1_attn_output:
+  F_magnitude         : R² (all) = 0.3053, R² (last) = 0.6183
+  F_direction_x       : R² (all) = 0.9102, R² (last) = 0.9496
+  F_direction_y       : R² (all) = 0.9170, R² (last) = 0.9447
+  Fx                  : R² (all) = 0.1888, R² (last) = 0.2932
+  Fy                  : R² (all) = 0.1924, R² (last) = 0.2365
+  r                   : R² (all) = 0.7706, R² (last) = 0.9893
+  inv_r               : R² (all) = 0.5671, R² (last) = 0.8491
+  r_squared           : R² (all) = 0.7410, R² (last) = 0.9720
+  inv_r_squared       : R² (all) = 0.3053, R² (last) = 0.6185
+  inv_r_cubed         : R² (all) = 0.1324, R² (last) = 0.3932
+  x                   : R² (all) = 0.9347, R² (last) = 0.9850
+  y                   : R² (all) = 0.9347, R² (last) = 0.9816
+
+block_1_after_attn_merge:
+  F_magnitude         : R² (all) = 0.3163, R² (last) = 0.7084
+  F_direction_x       : R² (all) = 0.9749, R² (last) = 0.9881
+  F_direction_y       : R² (all) = 0.9744, R² (last) = 0.9889
+  Fx                  : R² (all) = 0.3256, R² (last) = 0.5253
+  Fy                  : R² (all) = 0.3233, R² (last) = 0.6441
+  r                   : R² (all) = 0.8252, R² (last) = 0.9966
+  inv_r               : R² (all) = 0.6312, R² (last) = 0.8988
+  r_squared           : R² (all) = 0.7586, R² (last) = 0.9903
+  inv_r_squared       : R² (all) = 0.3163, R² (last) = 0.7084
+  inv_r_cubed         : R² (all) = 0.1231, R² (last) = 0.4996
+  x                   : R² (all) = 0.9846, R² (last) = 0.9991
+  y                   : R² (all) = 0.9913, R² (last) = 0.9990
+
+block_1_mlp_hidden:
+  F_magnitude         : R² (all) = 0.6769, R² (last) = 0.9508
+  F_direction_x       : R² (all) = 0.9859, R² (last) = 0.9981
+  F_direction_y       : R² (all) = 0.9866, R² (last) = 0.9986
+  Fx                  : R² (all) = 0.4963, R² (last) = 0.8092
+  Fy                  : R² (all) = 0.4849, R² (last) = 0.8938
+  r                   : R² (all) = 0.9848, R² (last) = 0.9998
+  inv_r               : R² (all) = 0.9098, R² (last) = 0.9895
+  r_squared           : R² (all) = 0.9785, R² (last) = 0.9998
+  inv_r_squared       : R² (all) = 0.6769, R² (last) = 0.9508
+  inv_r_cubed         : R² (all) = 0.4016, R² (last) = 0.8738
+  x                   : R² (all) = 0.9967, R² (last) = 0.9999
+  y                   : R² (all) = 0.9978, R² (last) = 0.9999
+
+block_1_mlp_output:
+  F_magnitude         : R² (all) = 0.3930, R² (last) = 0.6738
+  F_direction_x       : R² (all) = 0.9688, R² (last) = 0.9878
+  F_direction_y       : R² (all) = 0.9672, R² (last) = 0.9864
+  Fx                  : R² (all) = 0.3684, R² (last) = 0.5158
+  Fy                  : R² (all) = 0.3384, R² (last) = 0.6365
+  r                   : R² (all) = 0.8208, R² (last) = 0.9859
+  inv_r               : R² (all) = 0.7242, R² (last) = 0.8846
+  r_squared           : R² (all) = 0.7428, R² (last) = 0.9661
+  inv_r_squared       : R² (all) = 0.3930, R² (last) = 0.6738
+  inv_r_cubed         : R² (all) = 0.1460, R² (last) = 0.4492
+  x                   : R² (all) = 0.9839, R² (last) = 0.9979
+  y                   : R² (all) = 0.9816, R² (last) = 0.9965
+
+block_1_after_mlp_merge:
+  F_magnitude         : R² (all) = 0.2912, R² (last) = 0.6639
+  F_direction_x       : R² (all) = 0.9648, R² (last) = 0.9881
+  F_direction_y       : R² (all) = 0.9599, R² (last) = 0.9902
+  Fx                  : R² (all) = 0.3141, R² (last) = 0.5430
+  Fy                  : R² (all) = 0.2893, R² (last) = 0.6940
+  r                   : R² (all) = 0.8233, R² (last) = 0.9888
+  inv_r               : R² (all) = 0.6021, R² (last) = 0.8727
+  r_squared           : R² (all) = 0.7727, R² (last) = 0.9796
+  inv_r_squared       : R² (all) = 0.2912, R² (last) = 0.6639
+  inv_r_cubed         : R² (all) = 0.1044, R² (last) = 0.4443
+  x                   : R² (all) = 0.9926, R² (last) = 0.9993
+  y                   : R² (all) = 0.9923, R² (last) = 0.9991
+
+after_ln_f:
+  F_magnitude         : R² (all) = 0.2648, R² (last) = 0.6871
+  F_direction_x       : R² (all) = 0.9512, R² (last) = 0.9819
+  F_direction_y       : R² (all) = 0.9440, R² (last) = 0.9812
+  Fx                  : R² (all) = 0.2719, R² (last) = 0.4942
+  Fy                  : R² (all) = 0.2488, R² (last) = 0.6208
+  r                   : R² (all) = 0.7400, R² (last) = 0.9940
+  inv_r               : R² (all) = 0.5511, R² (last) = 0.8782
+  r_squared           : R² (all) = 0.6657, R² (last) = 0.9902
+  inv_r_squared       : R² (all) = 0.2648, R² (last) = 0.6871
+  inv_r_cubed         : R² (all) = 0.1002, R² (last) = 0.4741
+  x                   : R² (all) = 0.9976, R² (last) = 0.9995
+  y                   : R² (all) = 0.9979, R² (last) = 0.9995
+Evaluating on 500 trajectories...
+Conditioning length: 50, Generating 50 more steps per trajectory...
+
+Error Statistics (aggregated across all 500 trajectories):
+Mean position error: 0.081523 ± 0.081848
+Max position error: 1.152655
+R² scores:
+  X coordinate: 0.980163 ± 0.053505
+  Y coordinate: 0.979913 ± 0.049587
+Evaluating on 500 trajectories...
+Conditioning length: 50, Generating 50 more steps per trajectory...
+
+Error Statistics (aggregated across all 500 trajectories):
+Mean position error: 0.082834 ± 0.092719
+Max position error: 1.096095
+R² scores:
+  X coordinate: 0.978841 ± 0.053714
+  Y coordinate: 0.977592 ± 0.056737
+Evaluation at step 18001 completed.
+
+Step 18100, Total Train Loss: 0.002357, Prediction Loss: 0.002357, Test Loss: 0.000361, Attention Entropy: 0.9201, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 18200, Total Train Loss: 0.002276, Prediction Loss: 0.002276, Test Loss: 0.000369, Attention Entropy: 0.9258, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 18300, Total Train Loss: 0.002441, Prediction Loss: 0.002441, Test Loss: 0.000466, Attention Entropy: 0.9211, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 18400, Total Train Loss: 0.002528, Prediction Loss: 0.002528, Test Loss: 0.000393, Attention Entropy: 0.9206, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 18500, Total Train Loss: 0.002362, Prediction Loss: 0.002362, Test Loss: 0.000474, Attention Entropy: 0.9199, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 18600, Total Train Loss: 0.002493, Prediction Loss: 0.002493, Test Loss: 0.000423, Attention Entropy: 0.9189, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 18700, Total Train Loss: 0.002447, Prediction Loss: 0.002447, Test Loss: 0.000347, Attention Entropy: 0.9161, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 18800, Total Train Loss: 0.002678, Prediction Loss: 0.002678, Test Loss: 0.000378, Attention Entropy: 0.9186, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 18900, Total Train Loss: 0.002438, Prediction Loss: 0.002438, Test Loss: 0.000366, Attention Entropy: 0.9183, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 19000, Total Train Loss: 0.002238, Prediction Loss: 0.002238, Test Loss: 0.000383, Attention Entropy: 0.9224, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+
+Evaluating at step 19001...
+Activations collected:
+  input_embed: torch.Size([1000, 99, 32])
+  after_pos_emb: torch.Size([1000, 99, 32])
+  block_0_attn_output: torch.Size([1000, 99, 32])
+  block_0_after_attn_merge: torch.Size([1000, 99, 32])
+  block_0_mlp_hidden: torch.Size([1000, 99, 128])
+  block_0_mlp_output: torch.Size([1000, 99, 32])
+  block_0_after_mlp_merge: torch.Size([1000, 99, 32])
+  block_1_attn_output: torch.Size([1000, 99, 32])
+  block_1_after_attn_merge: torch.Size([1000, 99, 32])
+  block_1_mlp_hidden: torch.Size([1000, 99, 128])
+  block_1_mlp_output: torch.Size([1000, 99, 32])
+  block_1_after_mlp_merge: torch.Size([1000, 99, 32])
+  after_ln_f: torch.Size([1000, 99, 32])
+
+Linear Probe Results (R² scores):
+================================================================================
+
+input_embed:
+  F_magnitude         : R² (all) = 0.0001, R² (last) = 0.0001
+  F_direction_x       : R² (all) = 0.8289, R² (last) = 0.8184
+  F_direction_y       : R² (all) = 0.8289, R² (last) = 0.8308
+  Fx                  : R² (all) = 0.0684, R² (last) = 0.0806
+  Fy                  : R² (all) = 0.0679, R² (last) = 0.0686
+  r                   : R² (all) = 0.0011, R² (last) = 0.0016
+  inv_r               : R² (all) = 0.0003, R² (last) = 0.0003
+  r_squared           : R² (all) = 0.0015, R² (last) = 0.0020
+  inv_r_squared       : R² (all) = 0.0001, R² (last) = 0.0000
+  inv_r_cubed         : R² (all) = 0.0000, R² (last) = 0.0000
+  x                   : R² (all) = 1.0000, R² (last) = 1.0000
+  y                   : R² (all) = 1.0000, R² (last) = 1.0000
+
+after_pos_emb:
+  F_magnitude         : R² (all) = 0.0445, R² (last) = 0.0001
+  F_direction_x       : R² (all) = 0.8291, R² (last) = 0.8185
+  F_direction_y       : R² (all) = 0.8290, R² (last) = 0.8308
+  Fx                  : R² (all) = 0.0689, R² (last) = 0.0806
+  Fy                  : R² (all) = 0.0682, R² (last) = 0.0686
+  r                   : R² (all) = 0.0691, R² (last) = 0.0016
+  inv_r               : R² (all) = 0.0540, R² (last) = 0.0003
+  r_squared           : R² (all) = 0.0769, R² (last) = 0.0021
+  inv_r_squared       : R² (all) = 0.0445, R² (last) = 0.0001
+  inv_r_cubed         : R² (all) = 0.0312, R² (last) = 0.0000
+  x                   : R² (all) = 1.0000, R² (last) = 1.0000
+  y                   : R² (all) = 1.0000, R² (last) = 1.0000
+
+block_0_attn_output:
+  F_magnitude         : R² (all) = 0.2527, R² (last) = -0.8137
+  F_direction_x       : R² (all) = 0.6596, R² (last) = -0.0742
+  F_direction_y       : R² (all) = 0.6649, R² (last) = -0.0923
+  Fx                  : R² (all) = 0.0322, R² (last) = -2.1974
+  Fy                  : R² (all) = 0.0323, R² (last) = -0.4504
+  r                   : R² (all) = 0.8307, R² (last) = 0.9262
+  inv_r               : R² (all) = 0.5513, R² (last) = 0.4816
+  r_squared           : R² (all) = 0.7587, R² (last) = 0.9244
+  inv_r_squared       : R² (all) = 0.2527, R² (last) = -0.8164
+  inv_r_cubed         : R² (all) = 0.0899, R² (last) = -2.4154
+  x                   : R² (all) = 0.8296, R² (last) = 0.8647
+  y                   : R² (all) = 0.8338, R² (last) = 0.0821
+
+block_0_after_attn_merge:
+  F_magnitude         : R² (all) = 0.3094, R² (last) = 0.1988
+  F_direction_x       : R² (all) = 0.9386, R² (last) = 0.9409
+  F_direction_y       : R² (all) = 0.9391, R² (last) = 0.9122
+  Fx                  : R² (all) = 0.1553, R² (last) = 0.3007
+  Fy                  : R² (all) = 0.1557, R² (last) = -0.1277
+  r                   : R² (all) = 0.9251, R² (last) = 0.9063
+  inv_r               : R² (all) = 0.6495, R² (last) = 0.5920
+  r_squared           : R² (all) = 0.8470, R² (last) = 0.9125
+  inv_r_squared       : R² (all) = 0.3094, R² (last) = 0.1985
+  inv_r_cubed         : R² (all) = 0.1122, R² (last) = -0.1101
+  x                   : R² (all) = 0.9526, R² (last) = 0.9780
+  y                   : R² (all) = 0.9520, R² (last) = 0.9763
+
+block_0_mlp_hidden:
+  F_magnitude         : R² (all) = 0.6126, R² (last) = 0.9214
+  F_direction_x       : R² (all) = 0.9833, R² (last) = 0.9970
+  F_direction_y       : R² (all) = 0.9823, R² (last) = 0.9927
+  Fx                  : R² (all) = 0.3916, R² (last) = 0.7828
+  Fy                  : R² (all) = 0.3830, R² (last) = 0.6576
+  r                   : R² (all) = 0.9926, R² (last) = 0.9998
+  inv_r               : R² (all) = 0.8864, R² (last) = 0.9809
+  r_squared           : R² (all) = 0.9733, R² (last) = 0.9991
+  inv_r_squared       : R² (all) = 0.6126, R² (last) = 0.9213
+  inv_r_cubed         : R² (all) = 0.3231, R² (last) = 0.8498
+  x                   : R² (all) = 0.9957, R² (last) = 0.9999
+  y                   : R² (all) = 0.9957, R² (last) = 1.0000
+
+block_0_mlp_output:
+  F_magnitude         : R² (all) = 0.4696, R² (last) = 0.7943
+  F_direction_x       : R² (all) = 0.9630, R² (last) = 0.9791
+  F_direction_y       : R² (all) = 0.9655, R² (last) = 0.9823
+  Fx                  : R² (all) = 0.2662, R² (last) = 0.4623
+  Fy                  : R² (all) = 0.2739, R² (last) = 0.4862
+  r                   : R² (all) = 0.9157, R² (last) = 0.9991
+  inv_r               : R² (all) = 0.7953, R² (last) = 0.9436
+  r_squared           : R² (all) = 0.8035, R² (last) = 0.9970
+  inv_r_squared       : R² (all) = 0.4696, R² (last) = 0.7943
+  inv_r_cubed         : R² (all) = 0.2074, R² (last) = 0.5967
+  x                   : R² (all) = 0.9737, R² (last) = 0.9992
+  y                   : R² (all) = 0.9774, R² (last) = 0.9991
+
+block_0_after_mlp_merge:
+  F_magnitude         : R² (all) = 0.3433, R² (last) = 0.7106
+  F_direction_x       : R² (all) = 0.9625, R² (last) = 0.9799
+  F_direction_y       : R² (all) = 0.9639, R² (last) = 0.9818
+  Fx                  : R² (all) = 0.2654, R² (last) = 0.4657
+  Fy                  : R² (all) = 0.2608, R² (last) = 0.4824
+  r                   : R² (all) = 0.8780, R² (last) = 0.9964
+  inv_r               : R² (all) = 0.6443, R² (last) = 0.9012
+  r_squared           : R² (all) = 0.8502, R² (last) = 0.9948
+  inv_r_squared       : R² (all) = 0.3433, R² (last) = 0.7106
+  inv_r_cubed         : R² (all) = 0.1391, R² (last) = 0.5073
+  x                   : R² (all) = 0.9993, R² (last) = 1.0000
+  y                   : R² (all) = 0.9995, R² (last) = 1.0000
+
+block_1_attn_output:
+  F_magnitude         : R² (all) = 0.3327, R² (last) = 0.5814
+  F_direction_x       : R² (all) = 0.9139, R² (last) = 0.9482
+  F_direction_y       : R² (all) = 0.9192, R² (last) = 0.9464
+  Fx                  : R² (all) = 0.2084, R² (last) = 0.3265
+  Fy                  : R² (all) = 0.2170, R² (last) = 0.2647
+  r                   : R² (all) = 0.7756, R² (last) = 0.9887
+  inv_r               : R² (all) = 0.5846, R² (last) = 0.8350
+  r_squared           : R² (all) = 0.7434, R² (last) = 0.9757
+  inv_r_squared       : R² (all) = 0.3327, R² (last) = 0.5812
+  inv_r_cubed         : R² (all) = 0.1540, R² (last) = 0.3514
+  x                   : R² (all) = 0.9374, R² (last) = 0.9872
+  y                   : R² (all) = 0.9371, R² (last) = 0.9835
+
+block_1_after_attn_merge:
+  F_magnitude         : R² (all) = 0.3428, R² (last) = 0.6804
+  F_direction_x       : R² (all) = 0.9752, R² (last) = 0.9853
+  F_direction_y       : R² (all) = 0.9743, R² (last) = 0.9903
+  Fx                  : R² (all) = 0.3485, R² (last) = 0.5615
+  Fy                  : R² (all) = 0.3562, R² (last) = 0.6087
+  r                   : R² (all) = 0.8288, R² (last) = 0.9968
+  inv_r               : R² (all) = 0.6450, R² (last) = 0.8902
+  r_squared           : R² (all) = 0.7638, R² (last) = 0.9901
+  inv_r_squared       : R² (all) = 0.3428, R² (last) = 0.6804
+  inv_r_cubed         : R² (all) = 0.1432, R² (last) = 0.4664
+  x                   : R² (all) = 0.9852, R² (last) = 0.9989
+  y                   : R² (all) = 0.9915, R² (last) = 0.9990
+
+block_1_mlp_hidden:
+  F_magnitude         : R² (all) = 0.7037, R² (last) = 0.9447
+  F_direction_x       : R² (all) = 0.9862, R² (last) = 0.9983
+  F_direction_y       : R² (all) = 0.9866, R² (last) = 0.9985
+  Fx                  : R² (all) = 0.5255, R² (last) = 0.8535
+  Fy                  : R² (all) = 0.5316, R² (last) = 0.8694
+  r                   : R² (all) = 0.9847, R² (last) = 0.9998
+  inv_r               : R² (all) = 0.9144, R² (last) = 0.9885
+  r_squared           : R² (all) = 0.9790, R² (last) = 0.9998
+  inv_r_squared       : R² (all) = 0.7037, R² (last) = 0.9447
+  inv_r_cubed         : R² (all) = 0.4401, R² (last) = 0.8678
+  x                   : R² (all) = 0.9969, R² (last) = 0.9999
+  y                   : R² (all) = 0.9977, R² (last) = 0.9999
+
+block_1_mlp_output:
+  F_magnitude         : R² (all) = 0.4276, R² (last) = 0.6753
+  F_direction_x       : R² (all) = 0.9687, R² (last) = 0.9854
+  F_direction_y       : R² (all) = 0.9669, R² (last) = 0.9883
+  Fx                  : R² (all) = 0.3900, R² (last) = 0.5886
+  Fy                  : R² (all) = 0.3745, R² (last) = 0.6354
+  r                   : R² (all) = 0.8152, R² (last) = 0.9875
+  inv_r               : R² (all) = 0.7344, R² (last) = 0.8912
+  r_squared           : R² (all) = 0.7391, R² (last) = 0.9670
+  inv_r_squared       : R² (all) = 0.4276, R² (last) = 0.6753
+  inv_r_cubed         : R² (all) = 0.1771, R² (last) = 0.4501
+  x                   : R² (all) = 0.9842, R² (last) = 0.9977
+  y                   : R² (all) = 0.9822, R² (last) = 0.9963
+
+block_1_after_mlp_merge:
+  F_magnitude         : R² (all) = 0.3219, R² (last) = 0.6480
+  F_direction_x       : R² (all) = 0.9650, R² (last) = 0.9853
+  F_direction_y       : R² (all) = 0.9596, R² (last) = 0.9911
+  Fx                  : R² (all) = 0.3338, R² (last) = 0.5833
+  Fy                  : R² (all) = 0.3136, R² (last) = 0.6308
+  r                   : R² (all) = 0.8271, R² (last) = 0.9898
+  inv_r               : R² (all) = 0.6208, R² (last) = 0.8752
+  r_squared           : R² (all) = 0.7780, R² (last) = 0.9787
+  inv_r_squared       : R² (all) = 0.3219, R² (last) = 0.6480
+  inv_r_cubed         : R² (all) = 0.1260, R² (last) = 0.4147
+  x                   : R² (all) = 0.9926, R² (last) = 0.9993
+  y                   : R² (all) = 0.9922, R² (last) = 0.9988
+
+after_ln_f:
+  F_magnitude         : R² (all) = 0.2910, R² (last) = 0.6595
+  F_direction_x       : R² (all) = 0.9515, R² (last) = 0.9785
+  F_direction_y       : R² (all) = 0.9429, R² (last) = 0.9823
+  Fx                  : R² (all) = 0.2902, R² (last) = 0.5370
+  Fy                  : R² (all) = 0.2677, R² (last) = 0.5570
+  r                   : R² (all) = 0.7395, R² (last) = 0.9947
+  inv_r               : R² (all) = 0.5689, R² (last) = 0.8763
+  r_squared           : R² (all) = 0.6637, R² (last) = 0.9902
+  inv_r_squared       : R² (all) = 0.2910, R² (last) = 0.6595
+  inv_r_cubed         : R² (all) = 0.1166, R² (last) = 0.4238
+  x                   : R² (all) = 0.9976, R² (last) = 0.9994
+  y                   : R² (all) = 0.9979, R² (last) = 0.9994
+Evaluating on 500 trajectories...
+Conditioning length: 50, Generating 50 more steps per trajectory...
+
+Error Statistics (aggregated across all 500 trajectories):
+Mean position error: 0.072261 ± 0.078040
+Max position error: 0.951411
+R² scores:
+  X coordinate: 0.982984 ± 0.037945
+  Y coordinate: 0.984255 ± 0.035834
+Evaluating on 500 trajectories...
+Conditioning length: 50, Generating 50 more steps per trajectory...
+
+Error Statistics (aggregated across all 500 trajectories):
+Mean position error: 0.072668 ± 0.072311
+Max position error: 0.878164
+R² scores:
+  X coordinate: 0.982991 ± 0.045346
+  Y coordinate: 0.983295 ± 0.045578
+Evaluation at step 19001 completed.
+
+Step 19100, Total Train Loss: 0.002392, Prediction Loss: 0.002392, Test Loss: 0.000415, Attention Entropy: 0.9229, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 19200, Total Train Loss: 0.002426, Prediction Loss: 0.002426, Test Loss: 0.000311, Attention Entropy: 0.9230, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 19300, Total Train Loss: 0.002272, Prediction Loss: 0.002272, Test Loss: 0.000348, Attention Entropy: 0.9214, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 19400, Total Train Loss: 0.002436, Prediction Loss: 0.002436, Test Loss: 0.000467, Attention Entropy: 0.9199, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 19500, Total Train Loss: 0.002348, Prediction Loss: 0.002348, Test Loss: 0.000392, Attention Entropy: 0.9222, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 19600, Total Train Loss: 0.002387, Prediction Loss: 0.002387, Test Loss: 0.000364, Attention Entropy: 0.9225, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 19700, Total Train Loss: 0.002434, Prediction Loss: 0.002434, Test Loss: 0.000348, Attention Entropy: 0.9225, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 19800, Total Train Loss: 0.002360, Prediction Loss: 0.002360, Test Loss: 0.000355, Attention Entropy: 0.9223, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+Step 19900, Total Train Loss: 0.002359, Prediction Loss: 0.002359, Test Loss: 0.000430, Attention Entropy: 0.9259, Entropy Reg Loss: 0.000000, Entropy Reg Active: False, GPU Memory: 0.000 GB
+
+Evaluating at step 20000...
+Activations collected:
+  input_embed: torch.Size([1000, 99, 32])
+  after_pos_emb: torch.Size([1000, 99, 32])
+  block_0_attn_output: torch.Size([1000, 99, 32])
+  block_0_after_attn_merge: torch.Size([1000, 99, 32])
+  block_0_mlp_hidden: torch.Size([1000, 99, 128])
+  block_0_mlp_output: torch.Size([1000, 99, 32])
+  block_0_after_mlp_merge: torch.Size([1000, 99, 32])
+  block_1_attn_output: torch.Size([1000, 99, 32])
+  block_1_after_attn_merge: torch.Size([1000, 99, 32])
+  block_1_mlp_hidden: torch.Size([1000, 99, 128])
+  block_1_mlp_output: torch.Size([1000, 99, 32])
+  block_1_after_mlp_merge: torch.Size([1000, 99, 32])
+  after_ln_f: torch.Size([1000, 99, 32])
+
+Linear Probe Results (R² scores):
+================================================================================
+
+input_embed:
+  F_magnitude         : R² (all) = 0.0001, R² (last) = 0.0000
+  F_direction_x       : R² (all) = 0.8383, R² (last) = 0.8357
+  F_direction_y       : R² (all) = 0.8342, R² (last) = 0.8330
+  Fx                  : R² (all) = 0.0672, R² (last) = 0.0963
+  Fy                  : R² (all) = 0.0622, R² (last) = 0.0830
+  r                   : R² (all) = 0.0009, R² (last) = 0.0021
+  inv_r               : R² (all) = 0.0003, R² (last) = 0.0002
+  r_squared           : R² (all) = 0.0013, R² (last) = 0.0036
+  inv_r_squared       : R² (all) = 0.0001, R² (last) = 0.0000
+  inv_r_cubed         : R² (all) = 0.0000, R² (last) = 0.0000
+  x                   : R² (all) = 1.0000, R² (last) = 1.0000
+  y                   : R² (all) = 1.0000, R² (last) = 1.0000
+
+after_pos_emb:
+  F_magnitude         : R² (all) = 0.0368, R² (last) = 0.0000
+  F_direction_x       : R² (all) = 0.8383, R² (last) = 0.8357
+  F_direction_y       : R² (all) = 0.8343, R² (last) = 0.8330
+  Fx                  : R² (all) = 0.0676, R² (last) = 0.0963
+  Fy                  : R² (all) = 0.0628, R² (last) = 0.0830
+  r                   : R² (all) = 0.0697, R² (last) = 0.0021
+  inv_r               : R² (all) = 0.0499, R² (last) = 0.0003
+  r_squared           : R² (all) = 0.0785, R² (last) = 0.0036
+  inv_r_squared       : R² (all) = 0.0368, R² (last) = 0.0000
+  inv_r_cubed         : R² (all) = 0.0223, R² (last) = 0.0000
+  x                   : R² (all) = 1.0000, R² (last) = 1.0000
+  y                   : R² (all) = 1.0000, R² (last) = 1.0000
+
+block_0_attn_output:
+  F_magnitude         : R² (all) = 0.2270, R² (last) = 0.7262
+  F_direction_x       : R² (all) = 0.6720, R² (last) = 0.8369
+  F_direction_y       : R² (all) = 0.6699, R² (last) = 0.6917
+  Fx                  : R² (all) = 0.0323, R² (last) = 0.3913
+  Fy                  : R² (all) = 0.0309, R² (last) = 0.0936
+  r                   : R² (all) = 0.8343, R² (last) = 0.9788
+  inv_r               : R² (all) = 0.5484, R² (last) = 0.9172
+  r_squared           : R² (all) = 0.7601, R² (last) = 0.9444
+  inv_r_squared       : R² (all) = 0.2270, R² (last) = 0.7270
+  inv_r_cubed         : R² (all) = 0.0672, R² (last) = 0.4582
+  x                   : R² (all) = 0.8305, R² (last) = 0.8838
+  y                   : R² (all) = 0.8380, R² (last) = 0.8862
+
+block_0_after_attn_merge:
+  F_magnitude         : R² (all) = 0.2762, R² (last) = 0.6841
+  F_direction_x       : R² (all) = 0.9430, R² (last) = 0.9113
+  F_direction_y       : R² (all) = 0.9416, R² (last) = 0.9278
+  Fx                  : R² (all) = 0.1464, R² (last) = 0.3041
+  Fy                  : R² (all) = 0.1387, R² (last) = 0.1765
+  r                   : R² (all) = 0.9258, R² (last) = 0.9750
+  inv_r               : R² (all) = 0.6420, R² (last) = 0.9083
+  r_squared           : R² (all) = 0.8480, R² (last) = 0.9632
+  inv_r_squared       : R² (all) = 0.2762, R² (last) = 0.6843
+  inv_r_cubed         : R² (all) = 0.0841, R² (last) = 0.3227
+  x                   : R² (all) = 0.9534, R² (last) = 0.9719
+  y                   : R² (all) = 0.9529, R² (last) = 0.9725
+
+block_0_mlp_hidden:
+  F_magnitude         : R² (all) = 0.5580, R² (last) = 0.8454
+  F_direction_x       : R² (all) = 0.9847, R² (last) = 0.9969
+  F_direction_y       : R² (all) = 0.9832, R² (last) = 0.9945
+  Fx                  : R² (all) = 0.3727, R² (last) = 0.7110
+  Fy                  : R² (all) = 0.3435, R² (last) = 0.7525
+  r                   : R² (all) = 0.9923, R² (last) = 0.9997
+  inv_r               : R² (all) = 0.8755, R² (last) = 0.9595
+  r_squared           : R² (all) = 0.9727, R² (last) = 0.9997
+  inv_r_squared       : R² (all) = 0.5580, R² (last) = 0.8454
+  inv_r_cubed         : R² (all) = 0.2586, R² (last) = 0.6924
+  x                   : R² (all) = 0.9957, R² (last) = 0.9999
+  y                   : R² (all) = 0.9957, R² (last) = 1.0000
+
+block_0_mlp_output:
+  F_magnitude         : R² (all) = 0.4211, R² (last) = 0.8018
+  F_direction_x       : R² (all) = 0.9654, R² (last) = 0.9836
+  F_direction_y       : R² (all) = 0.9669, R² (last) = 0.9816
+  Fx                  : R² (all) = 0.2519, R² (last) = 0.5351
+  Fy                  : R² (all) = 0.2485, R² (last) = 0.5180
+  r                   : R² (all) = 0.9123, R² (last) = 0.9990
+  inv_r               : R² (all) = 0.7862, R² (last) = 0.9490
+  r_squared           : R² (all) = 0.7986, R² (last) = 0.9971
+  inv_r_squared       : R² (all) = 0.4211, R² (last) = 0.8018
+  inv_r_cubed         : R² (all) = 0.1567, R² (last) = 0.5767
+  x                   : R² (all) = 0.9738, R² (last) = 0.9992
+  y                   : R² (all) = 0.9776, R² (last) = 0.9990
+
+block_0_after_mlp_merge:
+  F_magnitude         : R² (all) = 0.3078, R² (last) = 0.7523
+  F_direction_x       : R² (all) = 0.9648, R² (last) = 0.9839
+  F_direction_y       : R² (all) = 0.9651, R² (last) = 0.9813
+  Fx                  : R² (all) = 0.2477, R² (last) = 0.5220
+  Fy                  : R² (all) = 0.2326, R² (last) = 0.5151
+  r                   : R² (all) = 0.8804, R² (last) = 0.9968
+  inv_r               : R² (all) = 0.6364, R² (last) = 0.9231
+  r_squared           : R² (all) = 0.8525, R² (last) = 0.9945
+  inv_r_squared       : R² (all) = 0.3078, R² (last) = 0.7523
+  inv_r_cubed         : R² (all) = 0.1064, R² (last) = 0.5291
+  x                   : R² (all) = 0.9994, R² (last) = 1.0000
+  y                   : R² (all) = 0.9995, R² (last) = 1.0000
+
+block_1_attn_output:
+  F_magnitude         : R² (all) = 0.3046, R² (last) = 0.6343
+  F_direction_x       : R² (all) = 0.9143, R² (last) = 0.9548
+  F_direction_y       : R² (all) = 0.9218, R² (last) = 0.9510
+  Fx                  : R² (all) = 0.1931, R² (last) = 0.3860
+  Fy                  : R² (all) = 0.1925, R² (last) = 0.3395
+  r                   : R² (all) = 0.7801, R² (last) = 0.9880
+  inv_r               : R² (all) = 0.5839, R² (last) = 0.8604
+  r_squared           : R² (all) = 0.7470, R² (last) = 0.9724
+  inv_r_squared       : R² (all) = 0.3046, R² (last) = 0.6343
+  inv_r_cubed         : R² (all) = 0.1221, R² (last) = 0.3930
+  x                   : R² (all) = 0.9353, R² (last) = 0.9887
+  y                   : R² (all) = 0.9350, R² (last) = 0.9829
+
+block_1_after_attn_merge:
+  F_magnitude         : R² (all) = 0.3133, R² (last) = 0.7186
+  F_direction_x       : R² (all) = 0.9768, R² (last) = 0.9890
+  F_direction_y       : R² (all) = 0.9753, R² (last) = 0.9881
+  Fx                  : R² (all) = 0.3271, R² (last) = 0.6420
+  Fy                  : R² (all) = 0.3169, R² (last) = 0.6044
+  r                   : R² (all) = 0.8263, R² (last) = 0.9967
+  inv_r               : R² (all) = 0.6418, R² (last) = 0.9083
+  r_squared           : R² (all) = 0.7587, R² (last) = 0.9897
+  inv_r_squared       : R² (all) = 0.3133, R² (last) = 0.7186
+  inv_r_cubed         : R² (all) = 0.1139, R² (last) = 0.4932
+  x                   : R² (all) = 0.9854, R² (last) = 0.9991
+  y                   : R² (all) = 0.9917, R² (last) = 0.9990
+
+block_1_mlp_hidden:
+  F_magnitude         : R² (all) = 0.6613, R² (last) = 0.9713
+  F_direction_x       : R² (all) = 0.9870, R² (last) = 0.9987
+  F_direction_y       : R² (all) = 0.9872, R² (last) = 0.9981
+  Fx                  : R² (all) = 0.5043, R² (last) = 0.9088
+  Fy                  : R² (all) = 0.4823, R² (last) = 0.8806
+  r                   : R² (all) = 0.9847, R² (last) = 0.9998
+  inv_r               : R² (all) = 0.9087, R² (last) = 0.9944
+  r_squared           : R² (all) = 0.9788, R² (last) = 0.9998
+  inv_r_squared       : R² (all) = 0.6613, R² (last) = 0.9713
+  inv_r_cubed         : R² (all) = 0.3769, R² (last) = 0.9203
+  x                   : R² (all) = 0.9970, R² (last) = 0.9999
+  y                   : R² (all) = 0.9978, R² (last) = 0.9999
+
+block_1_mlp_output:
+  F_magnitude         : R² (all) = 0.3822, R² (last) = 0.7375
+  F_direction_x       : R² (all) = 0.9707, R² (last) = 0.9894
+  F_direction_y       : R² (all) = 0.9678, R² (last) = 0.9870
+  Fx                  : R² (all) = 0.3714, R² (last) = 0.6364
+  Fy                  : R² (all) = 0.3339, R² (last) = 0.6393
+  r                   : R² (all) = 0.8083, R² (last) = 0.9861
+  inv_r               : R² (all) = 0.7221, R² (last) = 0.9149
+  r_squared           : R² (all) = 0.7319, R² (last) = 0.9638
+  inv_r_squared       : R² (all) = 0.3822, R² (last) = 0.7375
+  inv_r_cubed         : R² (all) = 0.1339, R² (last) = 0.5127
+  x                   : R² (all) = 0.9840, R² (last) = 0.9977
+  y                   : R² (all) = 0.9838, R² (last) = 0.9966
+
+block_1_after_mlp_merge:
+  F_magnitude         : R² (all) = 0.2910, R² (last) = 0.7397
+  F_direction_x       : R² (all) = 0.9671, R² (last) = 0.9885
+  F_direction_y       : R² (all) = 0.9618, R² (last) = 0.9906
+  Fx                  : R² (all) = 0.3097, R² (last) = 0.6390
+  Fy                  : R² (all) = 0.2810, R² (last) = 0.6398
+  r                   : R² (all) = 0.8258, R² (last) = 0.9901
+  inv_r               : R² (all) = 0.6165, R² (last) = 0.9139
+  r_squared           : R² (all) = 0.7749, R² (last) = 0.9795
+  inv_r_squared       : R² (all) = 0.2910, R² (last) = 0.7397
+  inv_r_cubed         : R² (all) = 0.0974, R² (last) = 0.5119
+  x                   : R² (all) = 0.9930, R² (last) = 0.9994
+  y                   : R² (all) = 0.9925, R² (last) = 0.9989
+
+after_ln_f:
+  F_magnitude         : R² (all) = 0.2590, R² (last) = 0.7496
+  F_direction_x       : R² (all) = 0.9541, R² (last) = 0.9826
+  F_direction_y       : R² (all) = 0.9449, R² (last) = 0.9811
+  Fx                  : R² (all) = 0.2707, R² (last) = 0.5844
+  Fy                  : R² (all) = 0.2382, R² (last) = 0.5800
+  r                   : R² (all) = 0.7363, R² (last) = 0.9947
+  inv_r               : R² (all) = 0.5606, R² (last) = 0.9125
+  r_squared           : R² (all) = 0.6611, R² (last) = 0.9900
+  inv_r_squared       : R² (all) = 0.2590, R² (last) = 0.7496
+  inv_r_cubed         : R² (all) = 0.0884, R² (last) = 0.5276
+  x                   : R² (all) = 0.9977, R² (last) = 0.9995
+  y                   : R² (all) = 0.9981, R² (last) = 0.9995
+Evaluating on 500 trajectories...
+Conditioning length: 50, Generating 50 more steps per trajectory...
+
+Error Statistics (aggregated across all 500 trajectories):
+Mean position error: 0.116540 ± 0.110803
+Max position error: 1.283918
+R² scores:
+  X coordinate: 0.968865 ± 0.077359
+  Y coordinate: 0.968426 ± 0.082653
+Evaluating on 500 trajectories...
+Conditioning length: 50, Generating 50 more steps per trajectory...
+
+Error Statistics (aggregated across all 500 trajectories):
+Mean position error: 0.126097 ± 0.122852
+Max position error: 1.405727
+R² scores:
+  X coordinate: 0.968288 ± 0.072552
+  Y coordinate: 0.967502 ± 0.076344
+Evaluation at step 20000 completed.
+
+Final memory stats: {'initial': {'allocated_gb': 0, 'reserved_gb': 0, 'max_allocated_gb': 0}, 'final': {'allocated_gb': 0, 'reserved_gb': 0, 'max_allocated_gb': 0}, 'peak': {'allocated_gb': 0, 'reserved_gb': 0, 'max_allocated_gb': 0}}
+
+Training completed!
+Saved results to ./results/kepler_cv_blocksize/results_block_size_100_num_trajectories_10000_noise_scale_0.1_loss_mask_all_n_steps_20000.npz
+
+================================================================================
+Parameter sweep completed! Total runs: 1
+================================================================================
+
