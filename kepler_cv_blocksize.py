@@ -1256,7 +1256,7 @@ def train_one_model(block_size=100, noise_scale=0.1, lr=1e-3, n_layer=2, n_embd=
     
     print_gpu_memory_stats("After initial forward pass: ")
 
-    batch_size = batch_size * 100 // block_size
+    batch_size = max(4096, batch_size * 2000 // block_size)  # use much larger batch for GPU utilization
     
     # Training with periodic evaluation
     print("\nTraining model with periodic evaluation...")
@@ -1402,24 +1402,26 @@ def sweep_parameters(block_size_list, num_trajectories_list, noise_scale_list, l
 
 def main():
     """Main execution function."""
-    # Run a single model with default parameters
+    import argparse
+    parser = argparse.ArgumentParser(description='Train Kepler CV model')
+    parser.add_argument('--block_size', type=int, default=None,
+                       help='Single block_size to train (if not specified, runs full sweep)')
+    args = parser.parse_args()
+
     seed = 1
     np.random.seed(seed)
     torch.manual_seed(seed)
 
     num_trajectories_list = [10000]
-    block_size_list = [1, 2, 5, 10, 20, 50, 100]
-    #block_size_list = [60, 70, 80, 90]
-    #block_size_list = [100]
+    if args.block_size is not None:
+        block_size_list = [args.block_size]
+    else:
+        block_size_list = [1, 2, 5, 10, 20, 50, 100]
     noise_scale_list = [0.1]
     loss_mask_list = ['all']
-    #loss_mask_list = ['all', 'last']
-    #block_size_list = [100]
-    #noise_scale_list = [0.1]
-    #loss_mask_list = ['all']
     n_steps = 20001
     prob_freq = 100
-    sweep_parameters(block_size_list, num_trajectories_list, noise_scale_list, loss_mask_list, 
+    sweep_parameters(block_size_list, num_trajectories_list, noise_scale_list, loss_mask_list,
                      n_steps=n_steps, prob_freq=prob_freq, seed=seed)
 
 

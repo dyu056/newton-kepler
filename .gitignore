@@ -1,0 +1,9 @@
+# Generated data
+data_cv/
+logs/
+results/
+
+# Python
+__pycache__/
+*.pyc
+.venv/

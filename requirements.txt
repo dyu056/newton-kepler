@@ -1,7 +1,7 @@
 # Newton–Kepler: required packages
 # Python 3.8+ recommended
 
-torch>=2.0
+torch==2.6.0
 numpy
 scipy
 matplotlib
