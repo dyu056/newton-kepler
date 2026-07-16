@@ -296,6 +296,7 @@ def compute_mse_from_tokens(model, tokenized_inputs, true_continuous, x_bin_cent
     Returns:
         mse: Mean squared error
     """
+    was_training = model.training
     model.eval()
     
     # Ensure tokenized_inputs is numpy array (convert from tensor if needed)
@@ -583,7 +584,7 @@ def collect_activations(model, tokenized_inputs, x_bin_centers, y_bin_centers, v
     tokenized_inputs_gpu = torch.from_numpy(tokenized_inputs_np).long().to(device)
     
     with torch.no_grad():
-        (logits_x, logits_y), _ = model.forward(tokenized_inputs_gpu, targets=None)
+        (logits_x, logits_y), _ = model(tokenized_inputs_gpu, targets=None)
         
         # Convert tokenized inputs to continuous positions for gravitational force computation
         # Use numpy array to avoid GPU memory usage
@@ -603,10 +604,38 @@ def collect_activations(model, tokenized_inputs, x_bin_centers, y_bin_centers, v
     for name in activation_dict.keys():
         print(f"  {name}: {activation_dict[name].shape}")
     
+    model.train(was_training)
     return (logits_x, logits_y), gravitational_force
 
 
-def run_linear_probes(activation_dict, gravitational_force):
+def initialize_probe_indices(train_size, eval_size, max_samples, seed):
+    """Draw fixed train/eval samples with replacement without advancing training RNG."""
+    generator = torch.Generator(device='cpu')
+    generator.manual_seed(seed + 1000)
+    return (
+        torch.randint(0, train_size, (min(max_samples, train_size),), generator=generator),
+        torch.randint(0, eval_size, (min(max_samples, eval_size),), generator=generator),
+    )
+
+
+def snapshot_activations(activation_dict):
+    if not activation_dict:
+        raise RuntimeError("No activations were captured")
+    return {name: value.detach().cpu().clone() for name, value in activation_dict.items()}
+
+
+def safe_r2_score(target, prediction):
+    target = np.asarray(target).reshape(-1)
+    prediction = np.asarray(prediction).reshape(-1)
+    if target.shape != prediction.shape:
+        raise ValueError(f"R² shape mismatch: {target.shape} versus {prediction.shape}")
+    if target.size < 2 or np.var(target) <= 1e-12:
+        return float('nan')
+    return float(r2_score(target, prediction))
+
+
+def run_linear_probes(train_activation_dict, train_gravitational_force,
+                      eval_activation_dict, eval_gravitational_force):
     """
     Run linear probes to test if intermediate representations contain
     linear directions corresponding to gravitational force.
@@ -616,10 +645,19 @@ def run_linear_probes(activation_dict, gravitational_force):
     """
     probe_results = {}
     
-    for layer_name, activations in activation_dict.items():
+    if set(train_activation_dict) != set(eval_activation_dict):
+        raise ValueError("Train/eval activation layers do not match")
+
+    for layer_name, activations in train_activation_dict.items():
         # Flatten activations: (batch, time, features) -> (batch*time, features)
         # Move to CPU if on GPU before converting to numpy
-        act_flat = activations.reshape(-1, activations.shape[-1]).cpu().numpy()
+        train_act_flat = activations.reshape(-1, activations.shape[-1]).cpu().numpy()
+        eval_activations = eval_activation_dict[layer_name]
+        eval_act_flat = eval_activations.reshape(-1, eval_activations.shape[-1]).cpu().numpy()
+        if train_act_flat.shape[1] != eval_act_flat.shape[1]:
+            raise ValueError(f"Feature dimension mismatch for {layer_name}")
+        if not np.isfinite(train_act_flat).all() or not np.isfinite(eval_act_flat).all():
+            raise ValueError(f"Non-finite activations for {layer_name}")
         
         # Probe for different gravitational force components
         probes = {}
@@ -631,11 +669,16 @@ def run_linear_probes(activation_dict, gravitational_force):
         ]
         
         for probe_name in probe_targets:
+            train_target = np.asarray(train_gravitational_force[probe_name]).reshape(-1)
+            eval_target = np.asarray(eval_gravitational_force[probe_name]).reshape(-1)
+            if train_act_flat.shape[0] != train_target.size or eval_act_flat.shape[0] != eval_target.size:
+                raise ValueError(f"Activation/target mismatch for {layer_name}/{probe_name}")
             probe = LinearRegression()
-            probe.fit(act_flat, gravitational_force[probe_name])
-            pred = probe.predict(act_flat)
-            r2 = r2_score(gravitational_force[probe_name], pred)
-            probes[probe_name] = {'r2': r2}
+            probe.fit(train_act_flat, train_target)
+            train_r2 = safe_r2_score(train_target, probe.predict(train_act_flat))
+            eval_r2 = safe_r2_score(eval_target, probe.predict(eval_act_flat))
+            probes[probe_name] = {'train_r2': train_r2, 'eval_r2': eval_r2,
+                                  'generalization_gap': train_r2 - eval_r2}
         
         probe_results[layer_name] = probes
     
@@ -645,7 +688,8 @@ def run_linear_probes(activation_dict, gravitational_force):
     for layer_name, probes in probe_results.items():
         print(f"\n{layer_name}:")
         for probe_name, result in probes.items():
-            print(f"  {probe_name:20s}: R² = {result['r2']:.4f}")
+            print(f"  {probe_name:20s}: train R² = {result['train_r2']:.4f}, "
+                  f"eval R² = {result['eval_r2']:.4f}, gap = {result['generalization_gap']:.4f}")
     
     return probe_results
 
@@ -824,6 +868,23 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets,
     
     # Get training data size
     num_train_samples = train_inputs.shape[0]
+    probe_train_indices, probe_eval_indices = initialize_probe_indices(
+        train_inputs.shape[0], test_inputs.shape[0], 500, seed
+    )
+    probe_metadata = {
+        'schema_version': 2,
+        'fit_split': 'model_train',
+        'eval_split': 'model_test',
+        'primary_metric': 'eval_r2',
+        'sampling_method': 'torch.randint',
+        'sampling_with_replacement': True,
+        'fixed_indices_across_checkpoints': True,
+        'probe_seed': seed + 1000,
+        'num_train_draws': probe_train_indices.numel(),
+        'num_eval_draws': probe_eval_indices.numel(),
+        'num_unique_train_sequences': probe_train_indices.unique().numel(),
+        'num_unique_eval_sequences': probe_eval_indices.unique().numel(),
+    }
     
     for i in range(n_steps):
         if i == n_steps // 2:
@@ -906,30 +967,39 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets,
             print(f"\nEvaluating at step {i+1}...")
             eval_step_results = {}
             
-            # Use a smaller subset of train_inputs for activation collection to save memory
-            sample_size_activations = min(500, train_inputs.shape[0])
-            sample_indices_activations = torch.randint(0, train_inputs.shape[0], (sample_size_activations,))
-            # Keep as numpy array - collect_activations will move to GPU internally
-            sample_tokenized_inputs = train_inputs[sample_indices_activations.numpy()]  # Keep as numpy array on CPU
-            sample_continuous = true_train_continuous[sample_indices_activations.numpy()]  # (batch, 100, 2)
-            
-            # Collect activations (activation_dict will be populated by hooks)
-            # Pass CPU tensor - function will handle GPU transfer internally
-            predictions, gravitational_force = collect_activations(
-                model, sample_tokenized_inputs, x_bin_centers, y_bin_centers, 
+            probe_train_inputs = train_inputs[probe_train_indices.numpy()]
+            probe_eval_inputs = test_inputs[probe_eval_indices.numpy()]
+
+            activation_dict.clear()
+            train_predictions, train_gravitational_force = collect_activations(
+                model, probe_train_inputs, x_bin_centers, y_bin_centers,
                 vocab_size_x, vocab_size_y, activation_dict, device
             )
-            
-            # Run linear probes (move activations to CPU to save GPU memory)
-            probe_results = run_linear_probes(activation_dict, gravitational_force)
+            train_activation_dict = snapshot_activations(activation_dict)
+
+            activation_dict.clear()
+            eval_predictions, eval_gravitational_force = collect_activations(
+                model, probe_eval_inputs, x_bin_centers, y_bin_centers,
+                vocab_size_x, vocab_size_y, activation_dict, device
+            )
+            eval_activation_dict = snapshot_activations(activation_dict)
+
+            probe_results = run_linear_probes(
+                train_activation_dict, train_gravitational_force,
+                eval_activation_dict, eval_gravitational_force
+            )
             eval_step_results['probe_results'] = probe_results
+            eval_step_results['probe_metadata'] = probe_metadata
             
             # Clear activations from GPU after probing to free memory
             for key in list(activation_dict.keys()):
                 if isinstance(activation_dict[key], torch.Tensor):
                     del activation_dict[key]
             activation_dict.clear()
-            del predictions, gravitational_force, sample_tokenized_inputs, sample_continuous
+            del train_predictions, eval_predictions
+            del train_gravitational_force, eval_gravitational_force
+            del train_activation_dict, eval_activation_dict
+            del probe_train_inputs, probe_eval_inputs
             clear_gpu_cache()
             
             # Compute MSE using autoregressive generation with conditioning length 50
@@ -1333,11 +1403,10 @@ def main():
     num_trajectories_list = [1000000] #[10, 100, 1000, 10000]
     #vocab_size_list = [100]
     #num_trajectories_list = [100]
-    n_steps = 20001
+    n_steps = 2001
     prob_freq = 100
     sweep_parameters(vocab_size_list, num_trajectories_list, n_steps=n_steps, prob_freq=prob_freq, seed=seed)
 
 
 if __name__ == "__main__":
     main()
-

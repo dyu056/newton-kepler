@@ -223,6 +223,19 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
     
     # Get training data size
     num_train_samples = train_inputs.shape[0]
+    probe_train_indices, probe_eval_indices = initialize_probe_indices(
+        train_inputs.shape[0], test_inputs.shape[0], 1000, seed
+    )
+    probe_metadata = {
+        'schema_version': 2, 'fit_split': 'model_train', 'eval_split': 'model_test',
+        'primary_metric': 'eval_r2', 'sampling_method': 'torch.randint',
+        'sampling_with_replacement': True, 'fixed_indices_across_checkpoints': True,
+        'probe_seed': seed + 1000,
+        'num_train_draws': probe_train_indices.numel(),
+        'num_eval_draws': probe_eval_indices.numel(),
+        'num_unique_train_sequences': probe_train_indices.unique().numel(),
+        'num_unique_eval_sequences': probe_eval_indices.unique().numel(),
+    }
     
     for i in range(n_steps):
 
@@ -271,25 +284,36 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
             
             # Load only a small sample for activation collection (don't reload entire dataset)
             # Use existing train_inputs/train_targets instead of reloading
-            sample_size_activations = min(1000, train_inputs.shape[0])
-            sample_indices = torch.randint(0, train_inputs.shape[0], (sample_size_activations,))
-            
-            # Get sample trajectories from train_trajectories (need full trajectories for force computation)
-            sample_trajectories = train_trajectories[sample_indices.numpy()]  # Keep on CPU
-            sample_inputs = train_inputs[sample_indices].to(device)  # Move to GPU
-            sample_targets = train_targets[sample_indices].to(device)  # Move to GPU
+            probe_train_inputs = train_inputs[probe_train_indices].to(device)
+            probe_train_targets = train_targets[probe_train_indices].to(device)
+            probe_eval_inputs = test_inputs[probe_eval_indices].to(device)
+            probe_eval_targets = test_targets[probe_eval_indices].to(device)
 
-            predictions, gravitational_force = collect_activations(model, sample_inputs, sample_targets, activation_dict)
-            
-            # Run linear probes (move activations to CPU to save GPU memory)
-            probe_results = run_linear_probes(activation_dict, gravitational_force)
+            activation_dict.clear()
+            train_predictions, train_force = collect_activations(
+                model, probe_train_inputs, probe_train_targets, activation_dict
+            )
+            train_activation_dict = snapshot_activations(activation_dict)
+
+            activation_dict.clear()
+            eval_predictions, eval_force = collect_activations(
+                model, probe_eval_inputs, probe_eval_targets, activation_dict
+            )
+            eval_activation_dict = snapshot_activations(activation_dict)
+
+            probe_results = run_linear_probes(
+                train_activation_dict, train_force, eval_activation_dict, eval_force
+            )
             eval_step_results['probe_results'] = probe_results
+            eval_step_results['probe_metadata'] = probe_metadata
             
             # Clear activations from GPU after probing to free memory
             for key in list(activation_dict.keys()):
                 del activation_dict[key]
             activation_dict.clear()
-            del predictions, gravitational_force
+            del train_predictions, eval_predictions, train_force, eval_force
+            del train_activation_dict, eval_activation_dict
+            del probe_train_inputs, probe_train_targets, probe_eval_inputs, probe_eval_targets
             
             # Generate trajectory and compute error stats for train and test
             conditioning_length = 50
@@ -315,7 +339,6 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
             del test_sample_inputs, test_sample_indices
             
             # Clear sample data (train_sample_inputs and test_sample_inputs already deleted above)
-            del sample_inputs, sample_targets, sample_trajectories, sample_indices
             clear_gpu_cache()
             eval_step_results['error_stats_train'] = error_stats_train
             eval_step_results['error_stats_test'] = error_stats_test
@@ -516,9 +539,10 @@ def collect_activations(model, inputs, targets, activation_dict):
         predictions: model predictions
         gravitational_force: computed gravitational force quantities
     """
+    was_training = model.training
     model.eval()
     with torch.no_grad():
-        predictions, _ = model.forward(inputs, targets)
+        predictions, _ = model(inputs, targets)
         
         # Compute gravitational force for comparison
         # Move to CPU if on GPU before converting to numpy
@@ -529,10 +553,37 @@ def collect_activations(model, inputs, targets, activation_dict):
     for name in activation_dict.keys():
         print(f"  {name}: {activation_dict[name].shape}")
     
+    model.train(was_training)
     return predictions, gravitational_force
 
 
-def run_linear_probes(activation_dict, gravitational_force):
+def initialize_probe_indices(train_size, eval_size, max_samples, seed):
+    generator = torch.Generator(device='cpu')
+    generator.manual_seed(seed + 1000)
+    return (
+        torch.randint(0, train_size, (min(max_samples, train_size),), generator=generator),
+        torch.randint(0, eval_size, (min(max_samples, eval_size),), generator=generator),
+    )
+
+
+def snapshot_activations(activation_dict):
+    if not activation_dict:
+        raise RuntimeError("No activations were captured")
+    return {name: value.detach().cpu().clone() for name, value in activation_dict.items()}
+
+
+def safe_r2_score(target, prediction):
+    target = np.asarray(target).reshape(-1)
+    prediction = np.asarray(prediction).reshape(-1)
+    if target.shape != prediction.shape:
+        raise ValueError(f"R² shape mismatch: {target.shape} versus {prediction.shape}")
+    if target.size < 2 or np.var(target) <= 1e-12:
+        return float('nan')
+    return float(r2_score(target, prediction))
+
+
+def run_linear_probes(train_activation_dict, train_gravitational_force,
+                      eval_activation_dict, eval_gravitational_force):
     """
     Run linear probes to test if intermediate representations contain
     linear directions corresponding to gravitational force.
@@ -542,10 +593,16 @@ def run_linear_probes(activation_dict, gravitational_force):
     """
     probe_results = {}
     
-    for layer_name, activations in activation_dict.items():
+    if set(train_activation_dict) != set(eval_activation_dict):
+        raise ValueError("Train/eval activation layers do not match")
+    for layer_name, activations in train_activation_dict.items():
         # Flatten activations: (batch, time, features) -> (batch*time, features)
         # Move to CPU if on GPU before converting to numpy
-        act_flat = activations.reshape(-1, activations.shape[-1]).cpu().numpy()
+        train_act_flat = activations.reshape(-1, activations.shape[-1]).cpu().numpy()
+        eval_activations = eval_activation_dict[layer_name]
+        eval_act_flat = eval_activations.reshape(-1, eval_activations.shape[-1]).cpu().numpy()
+        if train_act_flat.shape[1] != eval_act_flat.shape[1]:
+            raise ValueError(f"Feature dimension mismatch for {layer_name}")
         
         # Probe for different gravitational force components
         probes = {}
@@ -557,11 +614,16 @@ def run_linear_probes(activation_dict, gravitational_force):
         ]
         
         for probe_name in probe_targets:
+            train_target = np.asarray(train_gravitational_force[probe_name]).reshape(-1)
+            eval_target = np.asarray(eval_gravitational_force[probe_name]).reshape(-1)
+            if train_act_flat.shape[0] != train_target.size or eval_act_flat.shape[0] != eval_target.size:
+                raise ValueError(f"Activation/target mismatch for {layer_name}/{probe_name}")
             probe = LinearRegression()
-            probe.fit(act_flat, gravitational_force[probe_name])
-            pred = probe.predict(act_flat)
-            r2 = r2_score(gravitational_force[probe_name], pred)
-            probes[probe_name] = {'r2': r2}
+            probe.fit(train_act_flat, train_target)
+            train_r2 = safe_r2_score(train_target, probe.predict(train_act_flat))
+            eval_r2 = safe_r2_score(eval_target, probe.predict(eval_act_flat))
+            probes[probe_name] = {'train_r2': train_r2, 'eval_r2': eval_r2,
+                                  'generalization_gap': train_r2 - eval_r2}
         
         probe_results[layer_name] = probes
     
@@ -571,7 +633,8 @@ def run_linear_probes(activation_dict, gravitational_force):
     for layer_name, probes in probe_results.items():
         print(f"\n{layer_name}:")
         for probe_name, result in probes.items():
-            print(f"  {probe_name:20s}: R² = {result['r2']:.4f}")
+            print(f"  {probe_name:20s}: train R² = {result['train_r2']:.4f}, "
+                  f"eval R² = {result['eval_r2']:.4f}, gap = {result['generalization_gap']:.4f}")
     
     return probe_results
 
@@ -882,11 +945,10 @@ def main():
     noise_scale_list = [0.1, 0.3, 1.0]
     #num_trajectories_list = [1000]
     #noise_scale_list = [0.1]
-    n_steps = 20001
+    n_steps = 2001
     prob_freq = 100
     sweep_parameters(num_trajectories_list, noise_scale_list, n_steps=n_steps, prob_freq=prob_freq, seed=seed)
 
 
 if __name__ == "__main__":
     main()
-
