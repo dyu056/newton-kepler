@@ -226,7 +226,7 @@ def chop_trajectories_into_sequences(trajectories, block_size, seed=None):
     return inputs, targets
 
 
-def setup_model(block_size, n_layer=2, n_embd=32, device=None):
+def setup_model(block_size, n_layer=1, n_embd=32, device=None):
     """Setup and initialize the GPT model for continuous vision."""
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -1129,7 +1129,7 @@ def generate_trajectory_and_compute_error(model, inputs, trajectories, condition
     return error_stats
 
 
-def train_one_model(block_size=100, noise_scale=0.1, lr=1e-3, n_layer=2, n_embd=16, num_trajectories=10000, 
+def train_one_model(block_size=100, noise_scale=0.1, lr=1e-3, n_layer=1, n_embd=16, num_trajectories=10000, 
                     n_steps=1001, prob_freq=100, loss_mask='all', seed=1, batch_size=128):
     """
     Train a single model with specified hyperparameters.
@@ -1323,7 +1323,7 @@ def train_one_model(block_size=100, noise_scale=0.1, lr=1e-3, n_layer=2, n_embd=
 
 
 def sweep_parameters(block_size_list, num_trajectories_list, noise_scale_list, loss_mask_list=['all'], 
-                     lr=1e-3, n_layer=2, n_embd=32, n_steps=1001, prob_freq=100, seed=1):
+                     lr=1e-3, n_layer=1, n_embd=32, n_steps=1001, prob_freq=100, seed=1):
     """
     Sweep over block_size, num_trajectories, noise_scale, and loss_mask parameters.
     

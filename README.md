@@ -37,6 +37,9 @@ Notebooks expect either pretrained checkpoints (Fig 2) or results from the train
 | **kepler_cv.py** | Train regression transformers on Kepler (continuous) data. Saves to `./results/kepler_cv/`. |
 | **kepler_cv_blocksize.py** | Train with varying block size (context length). Saves to `./results/kepler_cv_blocksize/`. |
 | **model.py**, **model_cv.py** | Model definitions (shared by training scripts). |
+| **model_mlp.py** | MLP-only model — no attention, 2-hidden-layer MLP per block (ablation). |
+| **linear_probe.py** | Standalone linear probe — compute R² on random/untrained models. |
+| **kepler_cv_blocksize_nlayer1.py** | `n_layer=1` variant of the blocksize training script. |
 
 ## Checkpoint (Fig 2)
 
@@ -53,6 +56,84 @@ Run the notebook from **fig2_vafa_spatial_map/** so that `./ckpt.pt` is in the c
 **Small toy models you can quickly train on a CPU**
 * `fig3a_*.ipynb` contains a 1D sine-wave example.
 * `fig4_*.ipynb` contains a 2D Kepler example. 
+
+## MLP-only model (ablation: no attention)
+
+`model_mlp.py` is a variant of `model_cv.py` where every Transformer block is replaced by a pure MLP block — **no attention at all**.
+
+| | `model_cv.py` (original) | `model_mlp.py` (new) |
+|---|---|---|
+| Per-block structure | `LN → Attention → MLP(1 hidden)` | `LN → MLP2(2 hidden)` |
+| MLP hidden layers | 1 (4×n_embd) | 2 (4×n_embd each) |
+| Activation | SiLU | SiLU |
+| Config class | `GPTConfigCV` | `GPTConfigCV` (same interface) |
+
+### Architecture
+
+```
+Input (x, y) → Linear Embed → + Position Embed
+    → MLPBlock① (LN → MLP2) → MLPBlock② (LN → MLP2) → ...
+    → LayerNorm → Output Head → Prediction
+```
+
+`MLP2` forward: `Linear(n_embd → 4×n_embd) → SiLU → Linear(4×n_embd → 4×n_embd) → SiLU → Linear(4×n_embd → n_embd)`
+
+### Usage
+
+Drop-in replacement for `model_cv` in training scripts — just change the import:
+
+```python
+# Original (with attention)
+from model_cv import GPTConfigCV, GPTCV
+
+# MLP-only (no attention)
+from model_mlp import GPTConfigCV, GPTCV
+```
+
+When using `kepler_cv_blocksize.py` with `model_mlp`, the hook registration must handle `MLPBlock` having no `attn` attribute. A pre-patched version is available as `kepler_cv_blocksize_mlp.py` (see below).
+
+---
+
+## `n_layer=1` training variant
+
+`kepler_cv_blocksize_nlayer1.py` — identical to `kepler_cv_blocksize.py`, except all `n_layer` defaults are set to **1** instead of 2. Use this to train 1-layer models for fair parameter-count comparison with the 2-layer baseline (~25K params each).
+
+| File | `n_layer` default |
+|---|---|
+| `kepler_cv_blocksize.py` | 2 |
+| `kepler_cv_blocksize_nlayer1.py` | **1** |
+
+Works with both `model_cv` and `model_mlp` — change the import as described above.
+
+---
+
+## Standalone linear probe (`linear_probe.py`)
+
+Compute linear probe R² scores on a model **without any training** — the model is randomly initialized, activations are extracted via forward hooks, and linear regression probes are fit on the activations.
+
+```bash
+# Attention model, 2 layers
+python linear_probe.py --model_type model_cv --n_layer 2 --num_trajectories 200
+
+# MLP-only model, 1 layer
+python linear_probe.py --model_type model_mlp --n_layer 1 --num_trajectories 200
+```
+
+| Argument | Default | Description |
+|----------|---------|-------------|
+| `--model_type` | `model_mlp` | `model_cv` or `model_mlp` |
+| `--n_layer` | 1 | Number of blocks |
+| `--n_embd` | 32 | Embedding dimension |
+| `--block_size` | 100 | Context length |
+| `--input_dim` | 2 | Input dimension (x, y) |
+| `--num_trajectories` | 500 | Number of test trajectories |
+| `--seed` | 42 | Random seed |
+
+Outputs per-layer R² scores (both `r2_all` on all positions and `r2_last` on the final timestep) for force targets (|F|, Fx, Fy, r, ...) and geometry targets (a, b, e, LRL, ...).
+
+**Note:** Random models can produce non-zero R² because the input coordinates already contain geometric/force information, and random projections preserve some of it. Always compare against a trained baseline.
+
+---
 
 ## Installation
 
