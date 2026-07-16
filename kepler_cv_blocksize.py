@@ -1371,7 +1371,7 @@ def sweep_parameters(block_size_list, num_trajectories_list, noise_scale_list, l
     print(f"\nTotal configurations: {total_runs}, Already completed: {total_runs - len(configs_to_run)}, To run: {len(configs_to_run)}")
     
     for block_size, num_traj, noise_scale, loss_mask in configs_to_run:
-        run_count += 1
+        run_count += 13
         print(f"\n[{run_count}/{len(configs_to_run)}] Running: block_size={block_size}, num_trajectories={num_traj}, noise_scale={noise_scale}, loss_mask={loss_mask}")
         results = train_one_model(
             block_size=block_size,
