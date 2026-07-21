@@ -305,7 +305,7 @@ def compute_loss_with_mask(predictions, targets, loss_mask='all'):
 
 
 def train_model(model, train_inputs, train_targets, test_inputs, test_targets, train_trajectories, test_trajectories,
-                 n_steps=1001, lr=1e-3, weight_decay=0.0, noise_scale=0.1, prob_freq=2, batch_size=128,
+                 n_steps=1001, lr=1e-3, weight_decay=0.0, noise_scale=0.1, prob_freq=10, batch_size=128,
                  loss_mask='all', seed=1, train_orbital_params=None, eval_orbital_params=None,
                  train_sequence_trajectory_ids=None, eval_sequence_trajectory_ids=None,
                  svb_epsilon=0.0, svb_freq=100):
@@ -1124,7 +1124,7 @@ def generate_trajectory_and_compute_error(model, inputs, trajectories, condition
 
 
 def train_one_model(block_size=100, noise_scale=0.1, lr=1e-3, n_layer=2, n_embd=16, num_trajectories=10000,
-                    n_steps=1001, prob_freq=2, loss_mask='all', seed=1, batch_size=128,
+                    n_steps=1001, prob_freq=10, loss_mask='all', seed=1, batch_size=128,
                     svb_epsilon=0.0, svb_freq=100):
     """
     Train a single model with specified hyperparameters.
@@ -1327,7 +1327,7 @@ def train_one_model(block_size=100, noise_scale=0.1, lr=1e-3, n_layer=2, n_embd=
 
 
 def sweep_parameters(block_size_list, num_trajectories_list, noise_scale_list, loss_mask_list=['all'],
-                     lr=1e-3, n_layer=2, n_embd=32, n_steps=1001, prob_freq=2, seed=1,
+                     lr=1e-3, n_layer=2, n_embd=32, n_steps=1001, prob_freq=10, seed=1,
                      svb_epsilon=0.0, svb_freq=100):
     """
     Sweep over block_size, num_trajectories, noise_scale, and loss_mask parameters.
@@ -1425,8 +1425,8 @@ def main():
     #loss_mask_list = ['all']
     n_steps = 1001
     prob_freq = 10
-    sweep_parameters(block_size_list, num_trajectories_list, noise_scale_list, loss_mask_list, 
-                     n_steps=n_steps, prob_freq=prob_freq, seed=seed)
+    sweep_parameters(block_size_list, num_trajectories_list, noise_scale_list, loss_mask_list,
+                     svb_epsilon=0.5, n_steps=n_steps, prob_freq=prob_freq, seed=seed)
 
 
 if __name__ == "__main__":
