@@ -54,6 +54,64 @@ Run the notebook from **fig2_vafa_spatial_map/** so that `./ckpt.pt` is in the c
 * `fig3a_*.ipynb` contains a 1D sine-wave example.
 * `fig4_*.ipynb` contains a 2D Kepler example. 
 
+## Variance-Covariance Regularization (`ablation_env.py`)
+
+基于 `ablation_v2.py` 的严格探针流水线，额外加入中间表示的**方差-协方差正则化**，防止表示坍缩和特征冗余。
+
+### 动机
+
+神经网络中间层容易出现两种退化：
+1. **维度坍缩**：某些特征维度的方差趋于 0，成为"死维度"
+2. **特征冗余**：不同维度高度相关，32 维表示实际只有少数有效维度
+
+### 数学形式
+
+在 MSE loss 上追加两项惩罚：
+
+$$L_{\text{total}} = L_{\text{MSE}} + \lambda_v \cdot L_{\text{var}} + \lambda_c \cdot L_{\text{cov}}$$
+
+#### 方差惩罚 $L_{\text{var}}$
+
+对每个 MLP 投影层的输出 $z \in \mathbb{R}^{B \times T \times d}$，计算每维标准差 $\sigma_j$：
+
+$$L_{\text{var}} = \frac{1}{d}\sum_{j=1}^{d} \max(0,\; 1.0 - \sigma_j)$$
+
+鼓励每维标准差至少为 1.0，防止该维度退化。
+
+#### 协方差惩罚 $L_{\text{cov}}$
+
+对协方差矩阵 $C = \frac{1}{n-1} z^T z$，惩罚非对角元素的平方：
+
+$$L_{\text{cov}} = \frac{1}{d(d-1)}\sum_{i \neq j} C_{ij}^2$$
+
+鼓励不同特征维度彼此独立，降低冗余。
+
+### 实现
+
+通过 `RegHooks` 类向每个 Transformer block 的 MLP 输出层（`c_proj`）注册 forward hook，每次前向传播自动截获中间表示并计算惩罚项。训练循环中与 MSE 组装为 `total_loss`，单次 `backward()` 统一反向传播。
+
+### 参数
+
+| 参数 | 默认值 | 含义 |
+|------|--------|------|
+| `variance_reg_weight` | 0.0 | $\lambda_v$，方差正则强度 |
+| `covariance_reg_weight` | 0.0 | $\lambda_c$，协方差正则强度 |
+
+设两个 $\lambda = 0$ 时等价于 `ablation_v2.py`。
+
+### 实验结果（block_size=100, n_layer=2, λ=0.05）
+
+| Metric | v2（无正则） | env（λ=0.05） |
+|--------|------------|---------------|
+| test_loss | **0.00165** | 0.00221 |
+| \|F\| eval R² | 0.919 | **0.944** |
+| Fx eval R² | 0.875 | **0.921** |
+| Fy eval R² | 0.645 | **0.820** |
+
+方差-协方差正则化显著改善了力场表示质量（Fy +0.17），代价是预测精度轻微下降。
+
+---
+
 ## Installation
 
 Install dependencies with:
