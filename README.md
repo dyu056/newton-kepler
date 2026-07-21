@@ -54,6 +54,53 @@ Run the notebook from **fig2_vafa_spatial_map/** so that `./ckpt.pt` is in the c
 * `fig3a_*.ipynb` contains a 1D sine-wave example.
 * `fig4_*.ipynb` contains a 2D Kepler example. 
 
+## Ablation Experiments (`ablation_v2.py`, `ablation_svb.py`)
+
+Improved training + probing pipeline with rigorous train/eval split for linear probes.
+
+### Key improvements over `kepler_cv_blocksize.py`
+
+| | Original | Ablation v2 |
+|---|---|---|
+| Probe fit data | Model train set | Model train set |
+| Probe eval data | **Same data** (risk of overfitting) | **Model test set** (unseen by both model and probe) |
+| Probe sampling | Random each eval step | Fixed seed, same indices every step |
+| R² metric | Single R² | `train_r2` / `eval_r2` / `generalization_gap` |
+| Time-step variants | `r2_all` + `r2_last` | Same + `sequence_last` |
+
+### SVB: Singular Value Bounding (`ablation_svb.py`)
+
+Additional regularization — clamp weight matrix singular values after each optimizer step:
+
+$$\sigma_i \leftarrow \text{clamp}\left(\sigma_i,\; \frac{1}{1+\varepsilon},\; 1+\varepsilon\right)$$
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `svb_epsilon` | 0.0 (off) | Clamping strength; 0.5 recommended |
+| `svb_freq` | 100 | Apply every N steps |
+
+### Usage
+
+```bash
+# Baseline (no SVB)
+python ablation_v2.py
+
+# With SVB regularization
+python ablation_svb.py   # uses svb_epsilon=0.5 in main()
+```
+
+### Results (block_size=100, n_layer=2)
+
+| Metric | v2 (no SVB) | svb (ε=0.5) |
+|--------|-------------|-------------|
+| Test loss | **0.00165** | 0.00236 |
+| \|F\| eval R² | 0.919 | **0.954** |
+| Fy eval R² | 0.645 | **0.872** |
+
+SVB improves force representation quality but slightly hurts prediction accuracy — a representation vs. performance trade-off.
+
+---
+
 ## Installation
 
 Install dependencies with:
