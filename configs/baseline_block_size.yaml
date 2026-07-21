@@ -1,0 +1,63 @@
+seed: 1
+
+data:
+  data_dir: data_cv
+  num_trajectories: 10000
+  num_points_per_trajectory: 100
+
+model:
+  n_layer: 2
+  n_head: 1
+  n_embd: 32
+
+training:
+  block_sizes: [20]
+  noise_scale: 0.1
+  learning_rate: 0.001
+  weight_decay: 0.0
+  batch_size: 128
+  scale_batch_by_context: true
+  n_steps: 600
+  loss_mask: all
+
+probe:
+  enabled: true
+  frequency: 10
+  num_train_samples: 1000
+  num_eval_samples: 1000
+  schedule:
+    - start: 5
+      end: 100
+      every: 5
+    - start: 200
+      end: 600
+      every: 10
+
+observe:
+  activation_rank:
+    enabled: false
+  attention_entropy:
+    enabled: false
+  variance_covariance:
+    enabled: false
+  singular_values:        # 新增
+    enabled: true
+    num_singular_values: 5  # 可选
+
+# The values are measured and saved but do not contribute to total_loss.
+regularization:
+  variance_covariance:
+    enabled: false
+    start_step: 1
+    target_std: 0.1
+    variance_weight: 0.001
+    covariance_weight: 0.001
+  attention_entropy:          # 新增
+    enabled: false
+    weight: 0.01
+    start_step: 50
+
+
+
+evaluation:
+  rollout_enabled: false
