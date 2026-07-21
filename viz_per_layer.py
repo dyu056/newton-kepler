@@ -109,7 +109,7 @@ print(f'Layers ({len(layers)}): {labels}')
 # Plot 1: Per-probe, per-layer evolution (13 subplots each)
 # =========================================================================
 for probe in PROBES:
-    fig, axes = plt.subplots(4, 4, figsize=(24, 22))
+    fig, axes = plt.subplots(4, 4, figsize=(26, 24))
     axes_flat = axes.flatten()
 
     for idx, layer in enumerate(layers):
@@ -138,7 +138,7 @@ for probe in PROBES:
     fname = f'plots/per_layer_evolution_{probe}.png'
     fig.suptitle(f'{probe} -- Per-Layer R2 Evolution',
                  fontsize=20, y=1.03, fontweight='bold')
-    plt.tight_layout(rect=[0, 0, 1, 0.965])
+    plt.tight_layout(rect=[0, 0.02, 1, 0.94])
     plt.savefig(fname, dpi=150)
     print(f'Saved: {fname}')
 
@@ -161,7 +161,7 @@ for idx, probe in enumerate(PROBES):
     ax.set_ylim(-0.1, 1.1)
     ax.legend(fontsize=11, loc='lower right')
 fig.suptitle('Best R2 Across All Layers', fontsize=16, y=1.02, fontweight='bold')
-plt.tight_layout(rect=[0, 0, 1, 0.97])
+plt.tight_layout(rect=[0, 0.02, 1, 0.94])
 plt.savefig('plots/best_r2_evolution.png', dpi=150)
 print('Saved: plots/best_r2_evolution.png')
 
@@ -184,7 +184,7 @@ for idx, (name, cfg) in enumerate(EXPERIMENTS.items()):
     ax.grid(True, alpha=0.3)
     ax.legend(fontsize=11)
 fig.suptitle('Training & Test Loss', fontsize=16, y=1.02, fontweight='bold')
-plt.tight_layout(rect=[0, 0, 1, 0.97])
+plt.tight_layout(rect=[0, 0.02, 1, 0.94])
 plt.savefig('plots/loss_comparison.png', dpi=150)
 print('Saved: plots/loss_comparison.png')
 
@@ -221,7 +221,7 @@ for pi, probe in enumerate(PROBES):
 
 fig.suptitle('Per-Layer R2 Evolution -- Key Layers Summary', fontsize=16, y=1.02,
              fontweight='bold')
-plt.tight_layout(rect=[0, 0, 1, 0.97])
+plt.tight_layout(rect=[0, 0.02, 1, 0.94])
 plt.savefig('plots/key_layers_summary.png', dpi=150)
 print('Saved: plots/key_layers_summary.png')
 
