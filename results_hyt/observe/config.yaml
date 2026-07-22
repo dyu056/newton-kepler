@@ -35,11 +35,11 @@ probe:
 
 observe:
   activation_rank:
-    enabled: false
+    enabled: true
   attention_entropy:
-    enabled: false
+    enabled: true
   variance_covariance:
-    enabled: false
+    enabled: true
   singular_values:        # 新增
     enabled: true
     num_singular_values: 5  # 可选

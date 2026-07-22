@@ -41,7 +41,7 @@ observe:
   variance_covariance:
     enabled: false
   singular_values:        # 新增
-    enabled: true
+    enabled: false
     num_singular_values: 5  # 可选
 
 # The values are measured and saved but do not contribute to total_loss.
@@ -53,9 +53,9 @@ regularization:
     variance_weight: 0.001
     covariance_weight: 0.001
   attention_entropy:          # 新增
-    enabled: false
-    weight: 0.01
-    start_step: 50
+    enabled: true
+    weight: 0.005
+    start_step: 20
 
 
 
