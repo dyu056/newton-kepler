@@ -572,8 +572,12 @@ def setup_activation_hooks(model):
     for block_idx in range(n_layer):
         block = model.transformer.h[block_idx]
         
-        # 1. Attention output before merge
-        hook = block.attn.register_forward_hook(make_attn_output_hook(block_idx))
+        # 1. Attention output before merge (or LN output for MLP-only models)
+        has_attn = hasattr(block, 'attn')
+        if has_attn:
+            hook = block.attn.register_forward_hook(make_attn_output_hook(block_idx))
+        else:
+            hook = block.ln.register_forward_hook(make_attn_output_hook(block_idx))
         hooks.append(hook)
         
         # 2. Residual after attention merge (input to MLP)
