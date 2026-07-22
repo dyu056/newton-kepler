@@ -47,16 +47,16 @@ class LayerNorm(nn.Module):
 class MLP2(nn.Module):
     """
     MLP with **two** hidden layers instead of one.
-    Hidden-layer settings match the original single-hidden-layer MLP:
-        width = 4 * n_embd, activation = SiLU.
+    Hidden dim = config.mlp_mult * n_embd, activation = SiLU.
     """
 
     def __init__(self, config):
         super().__init__()
-        self.c_fc   = nn.Linear(config.n_embd, 4 * config.n_embd, bias=config.bias)
-        self.c_fc2  = nn.Linear(4 * config.n_embd, 4 * config.n_embd, bias=config.bias)
+        mult = config.mlp_mult
+        self.c_fc   = nn.Linear(config.n_embd, mult * config.n_embd, bias=config.bias)
+        self.c_fc2  = nn.Linear(mult * config.n_embd, mult * config.n_embd, bias=config.bias)
         self.silu   = nn.SiLU()
-        self.c_proj = nn.Linear(4 * config.n_embd, config.n_embd, bias=config.bias)
+        self.c_proj = nn.Linear(mult * config.n_embd, config.n_embd, bias=config.bias)
         self.dropout = nn.Dropout(config.dropout)
 
     def forward(self, x):
@@ -104,6 +104,7 @@ class GPTConfigCV:
     input_dim: int = 1
     # attention_alpha is no longer meaningful — kept for config compat
     attention_alpha: float = 0.0
+    mlp_mult: int = 4           # hidden dim = mlp_mult * n_embd
 
 
 # ---------------------------------------------------------------------------

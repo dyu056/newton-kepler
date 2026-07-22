@@ -19,7 +19,7 @@ import importlib.util
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
 
-from model_cv import GPTConfigCV, GPTCV
+from model_mlp import GPTConfigCV, GPTCV
 
 # Configuration
 seed = 1
@@ -200,8 +200,9 @@ def chop_trajectories_into_sequences(trajectories, block_size, seed=None):
     
     all_inputs = []
     all_targets = []
+    sequence_trajectory_ids = []
     
-    for traj in trajectories:
+    for trajectory_id, traj in enumerate(trajectories):
         # Calculate valid starting positions (must have at least seq_length points remaining)
         max_start = num_points - seq_length + 1
         
@@ -219,14 +220,15 @@ def chop_trajectories_into_sequences(trajectories, block_size, seed=None):
             target_seq = traj[i+block_size:i+block_size+1]  # (1, 2) - just the next point
             all_inputs.append(input_seq)
             all_targets.append(target_seq)
+            sequence_trajectory_ids.append(trajectory_id)
     
     inputs = np.array(all_inputs)  # (num_sequences, block_size, 2)
     targets = np.array(all_targets)  # (num_sequences, 1, 2)
     
-    return inputs, targets
+    return inputs, targets, np.asarray(sequence_trajectory_ids, dtype=np.int64)
 
 
-def setup_model(block_size, n_layer=2, n_embd=32, device=None):
+def setup_model(block_size, n_layer=1, n_embd=32, device=None, mlp_mult=4):
     """Setup and initialize the GPT model for continuous vision."""
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -238,7 +240,8 @@ def setup_model(block_size, n_layer=2, n_embd=32, device=None):
     GPTConfigCV.n_embd = n_embd
     GPTConfigCV.attention_alpha = 0.0
     GPTConfigCV.bias = True
-    
+    GPTConfigCV.mlp_mult = mlp_mult
+
     model = GPTCV(GPTConfigCV)
     model = model.to(device)
     return model
@@ -285,7 +288,8 @@ def compute_loss_with_mask(predictions, targets, loss_mask='all'):
 
 def train_model(model, train_inputs, train_targets, test_inputs, test_targets, train_trajectories, test_trajectories,
                  n_steps=1001, lr=1e-3, weight_decay=0.0, noise_scale=0.1, prob_freq=100, batch_size=128, 
-                 loss_mask='all', seed=1, orbital_params=None):
+                 loss_mask='all', seed=1, train_orbital_params=None, eval_orbital_params=None,
+                 train_sequence_trajectory_ids=None, eval_sequence_trajectory_ids=None):
     """
     Train the model on the trajectory data with periodic evaluation.
     
@@ -334,6 +338,23 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
     
     # Get training data size
     num_train_samples = train_inputs.shape[0]
+    probe_train_indices, probe_eval_indices = initialize_probe_indices(
+        train_inputs.shape[0], test_inputs.shape[0], 1000, seed
+    )
+    probe_train_trajectory_ids = train_sequence_trajectory_ids[probe_train_indices.numpy()]
+    probe_eval_trajectory_ids = eval_sequence_trajectory_ids[probe_eval_indices.numpy()]
+    probe_metadata = {
+        'schema_version': 2, 'fit_split': 'model_train', 'eval_split': 'model_test',
+        'primary_metric': 'eval_r2', 'sampling_method': 'torch.randperm',
+        'sampling_with_replacement': False, 'fixed_indices_across_checkpoints': True,
+        'probe_seed': seed + 1000,
+        'num_train_draws': probe_train_indices.numel(),
+        'num_eval_draws': probe_eval_indices.numel(),
+        'num_unique_train_sequences': probe_train_indices.unique().numel(),
+        'num_unique_eval_sequences': probe_eval_indices.unique().numel(),
+        'num_unique_train_trajectories': int(np.unique(probe_train_trajectory_ids).size),
+        'num_unique_eval_trajectories': int(np.unique(probe_eval_trajectory_ids).size),
+    }
     
     for i in range(n_steps):
 
@@ -384,36 +405,34 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
             
             # Load only a small sample for activation collection (don't reload entire dataset)
             # Use existing train_inputs/train_targets instead of reloading
-            sample_size_activations = min(1000, train_inputs.shape[0])
-            sample_indices = torch.randint(0, train_inputs.shape[0], (sample_size_activations,))
-            
-            # Map sequence indices to trajectory indices
-            # When trajectories are chopped into sequences, we need to map back to original trajectories
-            # Sequences are created sequentially: all from traj 0, then all from traj 1, etc.
-            if train_inputs.shape[0] > train_trajectories.shape[0]:
-                # Trajectories were chopped into sequences
-                num_sequences_per_trajectory = train_inputs.shape[0] // train_trajectories.shape[0]
-                trajectory_indices = (sample_indices.numpy() // num_sequences_per_trajectory)
-                # Clamp to valid range (in case of rounding issues)
-                trajectory_indices = np.clip(trajectory_indices, 0, train_trajectories.shape[0] - 1)
-            else:
-                # No chopping, indices match directly
-                trajectory_indices = sample_indices.numpy()
-            
-            # Get sample trajectories from train_trajectories (need full trajectories for force computation)
-            sample_trajectories = train_trajectories[trajectory_indices]  # Keep on CPU
-            sample_inputs = train_inputs[sample_indices].to(device)  # Move to GPU
-            sample_targets = train_targets[sample_indices].to(device)  # Move to GPU
+            probe_train_inputs = train_inputs[probe_train_indices].to(device)
+            probe_train_targets = train_targets[probe_train_indices].to(device)
+            probe_eval_inputs = test_inputs[probe_eval_indices].to(device)
+            probe_eval_targets = test_targets[probe_eval_indices].to(device)
 
-            predictions, gravitational_force = collect_activations(model, sample_inputs, sample_targets, activation_dict)
-            
-            # Run linear probes (move activations to CPU to save GPU memory)
-            probe_results = run_linear_probes(activation_dict, gravitational_force)
+            activation_dict.clear()
+            train_predictions, train_force = collect_activations(
+                model, probe_train_inputs, probe_train_targets, activation_dict
+            )
+            train_activation_dict = snapshot_activations(activation_dict)
+            activation_dict.clear()
+            eval_predictions, eval_force = collect_activations(
+                model, probe_eval_inputs, probe_eval_targets, activation_dict
+            )
+            eval_activation_dict = snapshot_activations(activation_dict)
+
+            probe_results = run_linear_probes(
+                train_activation_dict, train_force, eval_activation_dict, eval_force
+            )
             eval_step_results['probe_results'] = probe_results
+            eval_step_results['probe_metadata'] = probe_metadata
             
             # Run geometry probes if orbital parameters are available
-            if orbital_params is not None:
-                geometry_probe_results = run_geometry_probes(activation_dict, orbital_params, trajectory_indices)
+            if train_orbital_params is not None and eval_orbital_params is not None:
+                geometry_probe_results = run_geometry_probes(
+                    train_activation_dict, train_orbital_params, probe_train_trajectory_ids,
+                    eval_activation_dict, eval_orbital_params, probe_eval_trajectory_ids
+                )
                 eval_step_results['geometry_probe_results'] = geometry_probe_results
             else:
                 eval_step_results['geometry_probe_results'] = None
@@ -422,7 +441,8 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
             for key in list(activation_dict.keys()):
                 del activation_dict[key]
             activation_dict.clear()
-            del predictions, gravitational_force
+            del train_predictions, eval_predictions, train_force, eval_force
+            del train_activation_dict, eval_activation_dict
             
             # Generate trajectory and compute error stats for train and test
             conditioning_length = 50
@@ -452,7 +472,7 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
             del test_sample_inputs, test_sample_indices
             
             # Clear sample data
-            del sample_inputs, sample_targets, sample_trajectories, sample_indices
+            del probe_train_inputs, probe_train_targets, probe_eval_inputs, probe_eval_targets
             clear_gpu_cache()
             eval_step_results['error_stats_train'] = error_stats_train
             eval_step_results['error_stats_test'] = error_stats_test
@@ -653,9 +673,10 @@ def collect_activations(model, inputs, targets, activation_dict):
         predictions: model predictions
         gravitational_force: computed gravitational force quantities
     """
+    was_training = model.training
     model.eval()
     with torch.no_grad():
-        predictions, _ = model.forward(inputs, None)
+        predictions, _ = model(inputs, None)
         
         # Compute gravitational force for comparison
         # Move to CPU if on GPU before converting to numpy
@@ -666,10 +687,54 @@ def collect_activations(model, inputs, targets, activation_dict):
     for name in activation_dict.keys():
         print(f"  {name}: {activation_dict[name].shape}")
     
+    model.train(was_training)
     return predictions, gravitational_force
 
 
-def run_linear_probes(activation_dict, gravitational_force):
+def initialize_probe_indices(train_size, eval_size, max_samples, seed):
+    generator = torch.Generator(device='cpu')
+    generator.manual_seed(seed + 1000)
+    train_samples = min(max_samples, train_size)
+    eval_samples = min(max_samples, eval_size)
+    return (
+        torch.randperm(train_size, generator=generator)[:train_samples],
+        torch.randperm(eval_size, generator=generator)[:eval_samples],
+    )
+
+
+def snapshot_activations(activation_dict):
+    if not activation_dict:
+        raise RuntimeError("No activations were captured")
+    return {name: value.detach().cpu().clone() for name, value in activation_dict.items()}
+
+
+def safe_r2_score(target, prediction):
+    target = np.asarray(target).reshape(-1)
+    prediction = np.asarray(prediction).reshape(-1)
+    if target.shape != prediction.shape:
+        raise ValueError(f"R² shape mismatch: {target.shape} versus {prediction.shape}")
+    if target.size < 2 or np.var(target) <= 1e-12:
+        return float('nan')
+    return float(r2_score(target, prediction))
+
+
+def reshape_token_target(value, batch_size, time_steps, name):
+    value = value.detach().cpu().numpy() if torch.is_tensor(value) else np.asarray(value)
+    if value.shape == (batch_size, time_steps):
+        target = value
+    elif value.shape == (batch_size, time_steps, 1):
+        target = value[..., 0]
+    elif value.shape == (batch_size * time_steps,):
+        target = value.reshape(batch_size, time_steps)
+    else:
+        raise ValueError(f"{name}: unsupported target shape {value.shape}")
+    if not np.isfinite(target).all():
+        raise ValueError(f"{name} contains NaN or Inf")
+    return target
+
+
+def run_linear_probes(train_activation_dict, train_gravitational_force,
+                      eval_activation_dict, eval_gravitational_force):
     """
     Run linear probes to test if intermediate representations contain
     linear directions corresponding to gravitational force.
@@ -679,14 +744,19 @@ def run_linear_probes(activation_dict, gravitational_force):
     """
     probe_results = {}
     
-    for layer_name, activations in activation_dict.items():
+    if set(train_activation_dict) != set(eval_activation_dict):
+        raise ValueError("Train/eval activation layers do not match")
+    for layer_name, activations in train_activation_dict.items():
         # Flatten activations: (batch, time, features) -> (batch*time, features)
         # Move to CPU if on GPU before converting to numpy
-        act_flat = activations.reshape(-1, activations.shape[-1]).cpu().numpy()
+        train_act_flat = activations.reshape(-1, activations.shape[-1]).cpu().numpy()
+        eval_activations = eval_activation_dict[layer_name]
+        eval_act_flat = eval_activations.reshape(-1, eval_activations.shape[-1]).cpu().numpy()
         
         # Extract last state activations: (batch, time, features) -> (batch, features)
         batch_size, time_steps, _ = activations.shape
-        act_last = activations[:, -1, :].cpu().numpy()  # (batch, features)
+        train_act_last = activations[:, -1, :].cpu().numpy()
+        eval_act_last = eval_activations[:, -1, :].cpu().numpy()
         
         # Probe for different gravitational force components
         probes = {}
@@ -699,23 +769,32 @@ def run_linear_probes(activation_dict, gravitational_force):
         
         for probe_name in probe_targets:
             # Reshape gravitational force back to (batch, time) to extract last timestep
-            force_reshaped = gravitational_force[probe_name].reshape(batch_size, time_steps)
-            force_last = force_reshaped[:, -1]  # (batch,)
-            force_flat = gravitational_force[probe_name]  # Already flattened
+            train_force = reshape_token_target(train_gravitational_force[probe_name], batch_size, time_steps,
+                                               f"{probe_name} train")
+            eval_force = reshape_token_target(eval_gravitational_force[probe_name], eval_activations.shape[0],
+                                              eval_activations.shape[1], f"{probe_name} eval")
+            train_force_flat, eval_force_flat = train_force.reshape(-1), eval_force.reshape(-1)
+            train_force_last, eval_force_last = train_force[:, -1], eval_force[:, -1]
             
             # Probe on all positions
             probe = LinearRegression()
-            probe.fit(act_flat, force_flat)
-            pred = probe.predict(act_flat)
-            r2_all = r2_score(force_flat, pred)
+            probe.fit(train_act_flat, train_force_flat)
+            train_r2_all = safe_r2_score(train_force_flat, probe.predict(train_act_flat))
+            eval_r2_all = safe_r2_score(eval_force_flat, probe.predict(eval_act_flat))
             
             # Probe on last states only
             probe_last = LinearRegression()
-            probe_last.fit(act_last, force_last)
-            pred_last = probe_last.predict(act_last)
-            r2_last = r2_score(force_last, pred_last)
+            probe_last.fit(train_act_last, train_force_last)
+            train_r2_last = safe_r2_score(train_force_last, probe_last.predict(train_act_last))
+            eval_r2_last = safe_r2_score(eval_force_last, probe_last.predict(eval_act_last))
             
-            probes[probe_name] = {'r2': r2_all, 'r2_last': r2_last}
+            probes[probe_name] = {
+                'train_r2_all': train_r2_all, 'eval_r2_all': eval_r2_all,
+                'generalization_gap_all': train_r2_all - eval_r2_all,
+                'train_r2_sequence_last': train_r2_last,
+                'eval_r2_sequence_last': eval_r2_last,
+                'generalization_gap_sequence_last': train_r2_last - eval_r2_last,
+            }
         
         probe_results[layer_name] = probes
     
@@ -725,7 +804,9 @@ def run_linear_probes(activation_dict, gravitational_force):
     for layer_name, probes in probe_results.items():
         print(f"\n{layer_name}:")
         for probe_name, result in probes.items():
-            print(f"  {probe_name:20s}: R² (all) = {result['r2']:.4f}, R² (last) = {result['r2_last']:.4f}")
+            print(f"  {probe_name:20s}: all train/eval = {result['train_r2_all']:.4f}/"
+                  f"{result['eval_r2_all']:.4f}, sequence-last train/eval = "
+                  f"{result['train_r2_sequence_last']:.4f}/{result['eval_r2_sequence_last']:.4f}")
     
     return probe_results
 
@@ -804,160 +885,49 @@ def load_orbital_params(data_dir='data_cv', num_trajectories_needed=None):
     return []
 
 
-def run_geometry_probes(activation_dict, orbital_params, trajectory_indices):
-    """
-    Run linear probes to test if intermediate representations contain
-    linear directions corresponding to orbital geometry parameters.
-    
-    Args:
-        activation_dict: dictionary of activations from the model
-        orbital_params: list of dicts with keys: e, a, b, c, average_radius
-        trajectory_indices: array of trajectory indices corresponding to each activation
-    
-    Returns:
-        probe_results: dictionary mapping layer names to probe results
-    """
-    probe_results = {}
-    
-    # Extract orbital parameters for the trajectories we're probing
-    # orbital_params is a list, trajectory_indices maps sequence indices to trajectory indices
-    # When trajectories are chopped, multiple sequences map to the same trajectory
-    # We need to map each activation to its corresponding orbital parameter
-    
-    # Create a mapping from trajectory index to orbital parameter
-    traj_to_params = {}
-    for idx, params in enumerate(orbital_params):
-        traj_to_params[idx] = params
-    
-    # For each activation, we need to know which trajectory it came from
-    # The trajectory_indices array tells us this
-    
-    # Extract orbital parameter values for each trajectory
-    e_values = np.array([traj_to_params.get(i, {}).get('e', 0.0) for i in trajectory_indices])
-    a_values = np.array([traj_to_params.get(i, {}).get('a', 0.0) for i in trajectory_indices])
-    b_values = np.array([traj_to_params.get(i, {}).get('b', 0.0) for i in trajectory_indices])
-    c_values = np.array([traj_to_params.get(i, {}).get('c', 0.0) for i in trajectory_indices])
-    avg_radius_values = np.array([traj_to_params.get(i, {}).get('average_radius', 0.0) for i in trajectory_indices])
-    LRL_x_values = np.array([traj_to_params.get(i, {}).get('LRL_x', 0.0) for i in trajectory_indices])
-    LRL_y_values = np.array([traj_to_params.get(i, {}).get('LRL_y', 0.0) for i in trajectory_indices])
-    LRL_magnitude_values = np.array([traj_to_params.get(i, {}).get('LRL_magnitude', 0.0) for i in trajectory_indices])
-    LRL_angle_values = np.array([traj_to_params.get(i, {}).get('LRL_angle', 0.0) for i in trajectory_indices])
-    n_x_values = np.array([traj_to_params.get(i, {}).get('n_x', 0.0) for i in trajectory_indices])
-    n_y_values = np.array([traj_to_params.get(i, {}).get('n_y', 0.0) for i in trajectory_indices])
-    
-    for layer_name, activations in activation_dict.items():
-        # Flatten activations: (batch, time, features) -> (batch*time, features)
-        # Move to CPU if on GPU before converting to numpy
-        act_flat = activations.reshape(-1, activations.shape[-1]).cpu().numpy()
-        
-        # Extract last state activations: (batch, time, features) -> (batch, features)
-        batch_size, time_steps, _ = activations.shape
-        act_last = activations[:, -1, :].cpu().numpy()  # (batch, features)
-        
-        # For orbital parameters, we need to repeat the trajectory-level values
-        # for each time step in the activation
-        # Repeat each trajectory's orbital parameter for all time steps
-        e_flat = np.repeat(e_values, time_steps)
-        a_flat = np.repeat(a_values, time_steps)
-        b_flat = np.repeat(b_values, time_steps)
-        c_flat = np.repeat(c_values, time_steps)
-        avg_radius_flat = np.repeat(avg_radius_values, time_steps)
-        LRL_x_flat = np.repeat(LRL_x_values, time_steps)
-        LRL_y_flat = np.repeat(LRL_y_values, time_steps)
-        LRL_magnitude_flat = np.repeat(LRL_magnitude_values, time_steps)
-        LRL_angle_flat = np.repeat(LRL_angle_values, time_steps)
-        n_x_flat = np.repeat(n_x_values, time_steps)
-        n_y_flat = np.repeat(n_y_values, time_steps)
-        # Compute inverse values
-        inv_a_flat = np.repeat(1.0 / a_values, time_steps)
-        inv_a2_flat = np.repeat(1.0 / (a_values ** 2), time_steps)
-        inv_b_flat = np.repeat(1.0 / b_values, time_steps)
-        inv_b2_flat = np.repeat(1.0 / (b_values ** 2), time_steps)
-        
-        # For last states, orbital parameters are just the trajectory values (not repeated)
-        e_last = e_values
-        a_last = a_values
-        b_last = b_values
-        c_last = c_values
-        avg_radius_last = avg_radius_values
-        LRL_x_last = LRL_x_values
-        LRL_y_last = LRL_y_values
-        LRL_magnitude_last = LRL_magnitude_values
-        LRL_angle_last = LRL_angle_values
-        n_x_last = n_x_values
-        n_y_last = n_y_values
-        inv_a_last = 1.0 / a_values
-        inv_a2_last = 1.0 / (a_values ** 2)
-        inv_b_last = 1.0 / b_values
-        inv_b2_last = 1.0 / (b_values ** 2)
-        
-        # Probe for different orbital geometry parameters
-        probes = {}
-        
-        # Define probe targets
-        probe_targets = ['e', 'a', 'b', 'c', 'average_radius', 'LRL_x', 'LRL_y', 'LRL_magnitude', 'LRL_angle', 'n_x', 'n_y', 
-                         '1/a', '1/a^2', '1/b', '1/b^2']
-        probe_values_flat = {
-            'e': e_flat,
-            'a': a_flat,
-            'b': b_flat,
-            'c': c_flat,
-            'average_radius': avg_radius_flat,
-            'LRL_x': LRL_x_flat,
-            'LRL_y': LRL_y_flat,
-            'LRL_magnitude': LRL_magnitude_flat,
-            'LRL_angle': LRL_angle_flat,
-            'n_x': n_x_flat,
-            'n_y': n_y_flat,
-            '1/a': inv_a_flat,
-            '1/a^2': inv_a2_flat,
-            '1/b': inv_b_flat,
-            '1/b^2': inv_b2_flat
-        }
-        probe_values_last = {
-            'e': e_last,
-            'a': a_last,
-            'b': b_last,
-            'c': c_last,
-            'average_radius': avg_radius_last,
-            'LRL_x': LRL_x_last,
-            'LRL_y': LRL_y_last,
-            'LRL_magnitude': LRL_magnitude_last,
-            'LRL_angle': LRL_angle_last,
-            'n_x': n_x_last,
-            'n_y': n_y_last,
-            '1/a': inv_a_last,
-            '1/a^2': inv_a2_last,
-            '1/b': inv_b_last,
-            '1/b^2': inv_b2_last
-        }
-        
-        for probe_name in probe_targets:
-            # Probe on all positions
-            probe = LinearRegression()
-            probe.fit(act_flat, probe_values_flat[probe_name])
-            pred = probe.predict(act_flat)
-            r2_all = r2_score(probe_values_flat[probe_name], pred)
-            
-            # Probe on last states only
-            probe_last = LinearRegression()
-            probe_last.fit(act_last, probe_values_last[probe_name])
-            pred_last = probe_last.predict(act_last)
-            r2_last = r2_score(probe_values_last[probe_name], pred_last)
-            
-            probes[probe_name] = {'r2': r2_all, 'r2_last': r2_last}
-        
-        probe_results[layer_name] = probes
-    
-    # Print results
-    print("\nGeometry Probe Results (R² scores):")
-    print("=" * 80)
-    for layer_name, probes in probe_results.items():
-        print(f"\n{layer_name}:")
-        for probe_name, result in probes.items():
-            print(f"  {probe_name:20s}: R² (all) = {result['r2']:.4f}, R² (last) = {result['r2_last']:.4f}")
-    
-    return probe_results
+def run_geometry_probes(train_activation_dict, train_orbital_params, train_trajectory_ids,
+                        eval_activation_dict, eval_orbital_params, eval_trajectory_ids):
+    """Fit geometry probes on train sequences and score held-out eval sequences."""
+    base_targets = ['e', 'a', 'b', 'c', 'average_radius', 'LRL_x', 'LRL_y',
+                    'LRL_magnitude', 'LRL_angle', 'n_x', 'n_y']
+    probe_targets = base_targets + ['1/a', '1/a^2', '1/b', '1/b^2']
+
+    def values(params, trajectory_ids):
+        if len(trajectory_ids) == 0 or np.min(trajectory_ids) < 0 or np.max(trajectory_ids) >= len(params):
+            raise ValueError("Geometry trajectory IDs are outside the orbital-parameter split")
+        result = {name: np.asarray([params[int(i)][name] for i in trajectory_ids]) for name in base_targets}
+        result['1/a'] = 1.0 / result['a']
+        result['1/a^2'] = 1.0 / result['a'] ** 2
+        result['1/b'] = 1.0 / result['b']
+        result['1/b^2'] = 1.0 / result['b'] ** 2
+        return result
+
+    train_values = values(train_orbital_params, train_trajectory_ids)
+    eval_values = values(eval_orbital_params, eval_trajectory_ids)
+    results = {}
+    for layer_name, train_activations in train_activation_dict.items():
+        eval_activations = eval_activation_dict[layer_name]
+        train_all = train_activations.reshape(-1, train_activations.shape[-1]).cpu().numpy()
+        eval_all = eval_activations.reshape(-1, eval_activations.shape[-1]).cpu().numpy()
+        train_last = train_activations[:, -1, :].cpu().numpy()
+        eval_last = eval_activations[:, -1, :].cpu().numpy()
+        layer_results = {}
+        for name in probe_targets:
+            train_target_all = np.repeat(train_values[name], train_activations.shape[1])
+            eval_target_all = np.repeat(eval_values[name], eval_activations.shape[1])
+            probe_all = LinearRegression().fit(train_all, train_target_all)
+            probe_last = LinearRegression().fit(train_last, train_values[name])
+            train_r2_all = safe_r2_score(train_target_all, probe_all.predict(train_all))
+            eval_r2_all = safe_r2_score(eval_target_all, probe_all.predict(eval_all))
+            train_r2_last = safe_r2_score(train_values[name], probe_last.predict(train_last))
+            eval_r2_last = safe_r2_score(eval_values[name], probe_last.predict(eval_last))
+            layer_results[name] = {
+                'train_r2_all': train_r2_all, 'eval_r2_all': eval_r2_all,
+                'train_r2_sequence_last': train_r2_last,
+                'eval_r2_sequence_last': eval_r2_last,
+            }
+        results[layer_name] = layer_results
+    return results
 
 
 def generate_trajectory_and_compute_error(model, inputs, trajectories, conditioning_length=50, block_size=None):
@@ -1129,8 +1099,9 @@ def generate_trajectory_and_compute_error(model, inputs, trajectories, condition
     return error_stats
 
 
-def train_one_model(block_size=100, noise_scale=0.1, lr=1e-3, n_layer=2, n_embd=16, num_trajectories=10000, 
-                    n_steps=1001, prob_freq=100, loss_mask='all', seed=1, batch_size=128):
+def train_one_model(block_size=100, noise_scale=0.1, lr=1e-3, n_layer=1, n_embd=16, num_trajectories=10000,
+                    n_steps=1001, prob_freq=100, loss_mask='all', seed=1, batch_size=128,
+                    mlp_mult=4):
     """
     Train a single model with specified hyperparameters.
     
@@ -1189,11 +1160,10 @@ def train_one_model(block_size=100, noise_scale=0.1, lr=1e-3, n_layer=2, n_embd=
         # Split orbital parameters to match train/test split
         train_orbital_params = orbital_params[:num_traj//2]
         test_orbital_params = orbital_params[num_traj//2:]
-        # For probing, we'll use train orbital params (since we probe on training data)
-        orbital_params_for_probing = train_orbital_params
     else:
         print("Warning: No orbital parameters found. Geometry probes will be skipped.")
-        orbital_params_for_probing = None
+        train_orbital_params = None
+        test_orbital_params = None
     
     # Prepare inputs and targets based on block_size
     if block_size < num_points_per_trajectory:
@@ -1202,8 +1172,12 @@ def train_one_model(block_size=100, noise_scale=0.1, lr=1e-3, n_layer=2, n_embd=
         print("Chopping trajectories into sequences...")
         num_sequences_per_traj = num_points_per_trajectory // block_size
         print(f"Randomly selecting {num_sequences_per_traj} sequences per trajectory (instead of all sliding windows)")
-        train_inputs_np, train_targets_np = chop_trajectories_into_sequences(train_trajectories, block_size, seed=seed)
-        test_inputs_np, test_targets_np = chop_trajectories_into_sequences(test_trajectories, block_size, seed=seed+1)  # Different seed for test
+        train_inputs_np, train_targets_np, train_sequence_trajectory_ids = chop_trajectories_into_sequences(
+            train_trajectories, block_size, seed=seed
+        )
+        test_inputs_np, test_targets_np, eval_sequence_trajectory_ids = chop_trajectories_into_sequences(
+            test_trajectories, block_size, seed=seed+1
+        )
         print(f"Train sequences: {train_inputs_np.shape[0]}, Test sequences: {test_inputs_np.shape[0]}")
     else:
         # Standard approach: use full trajectories
@@ -1213,6 +1187,8 @@ def train_one_model(block_size=100, noise_scale=0.1, lr=1e-3, n_layer=2, n_embd=
         train_targets_np = train_trajectories[:,1:]   # shape: (train_size, num_points-1, 2)
         test_inputs_np = test_trajectories[:,:-1]  # shape: (test_size, num_points-1, 2)
         test_targets_np = test_trajectories[:,1:]   # shape: (test_size, num_points-1, 2)
+        train_sequence_trajectory_ids = np.arange(train_inputs_np.shape[0], dtype=np.int64)
+        eval_sequence_trajectory_ids = np.arange(test_inputs_np.shape[0], dtype=np.int64)
     
     # Convert to PyTorch tensors - keep on CPU to save GPU memory, will move batches to GPU during training
     train_inputs = torch.from_numpy(train_inputs_np).float()  # keep on CPU
@@ -1228,7 +1204,8 @@ def train_one_model(block_size=100, noise_scale=0.1, lr=1e-3, n_layer=2, n_embd=
     
     # Setup model
     print("\nSetting up model...")
-    model = setup_model(block_size=block_size, n_layer=n_layer, n_embd=n_embd, device=device)
+    model = setup_model(block_size=block_size, n_layer=n_layer, n_embd=n_embd, device=device,
+                        mlp_mult=mlp_mult)
     print_gpu_memory_stats("After model setup: ")
     
     # Initial forward pass - use smaller batch to save memory
@@ -1263,7 +1240,10 @@ def train_one_model(block_size=100, noise_scale=0.1, lr=1e-3, n_layer=2, n_embd=
     training_results = train_model(
         model, train_inputs, train_targets, test_inputs, test_targets, train_trajectories, test_trajectories,
         n_steps=n_steps, lr=lr, weight_decay=0.0, noise_scale=noise_scale, prob_freq=prob_freq,
-        loss_mask=loss_mask, batch_size=batch_size, seed=seed, orbital_params=orbital_params_for_probing
+        loss_mask=loss_mask, batch_size=batch_size, seed=seed,
+        train_orbital_params=train_orbital_params, eval_orbital_params=test_orbital_params,
+        train_sequence_trajectory_ids=train_sequence_trajectory_ids,
+        eval_sequence_trajectory_ids=eval_sequence_trajectory_ids
     )
     
     train_losses = training_results['train_losses']
@@ -1302,6 +1282,7 @@ def train_one_model(block_size=100, noise_scale=0.1, lr=1e-3, n_layer=2, n_embd=
         'lr': lr,
         'n_layer': n_layer,
         'n_embd': n_embd,
+        'mlp_mult': mlp_mult,
         'num_trajectories': num_traj,
         'train_size': train_size,
         'test_size': test_size,
@@ -1322,23 +1303,14 @@ def train_one_model(block_size=100, noise_scale=0.1, lr=1e-3, n_layer=2, n_embd=
     return results
 
 
-def sweep_parameters(block_size_list, num_trajectories_list, noise_scale_list, loss_mask_list=['all'], 
-                     lr=1e-3, n_layer=2, n_embd=32, n_steps=1001, prob_freq=100, seed=1):
+def sweep_parameters(block_size_list, num_trajectories_list, noise_scale_list, loss_mask_list=['all'],
+                     lr=1e-3, n_layer=1, n_embd=32, n_steps=2001, prob_freq=100, seed=1,
+                     mlp_mult_list=None):
     """
-    Sweep over block_size, num_trajectories, noise_scale, and loss_mask parameters.
-    
-    Args:
-        block_size_list: List of block_size values to sweep
-        num_trajectories_list: List of num_trajectories values to sweep
-        noise_scale_list: List of noise_scale values to sweep
-        loss_mask_list: List of loss_mask values to sweep (default: ['all'])
-        lr: Learning rate (fixed)
-        n_layer: Number of transformer layers (fixed)
-        n_embd: Embedding dimension (fixed)
-    
-    Returns:
-        Dictionary mapping (block_size, num_trajectories, noise_scale, loss_mask) to results
+    Sweep over block_size, num_trajectories, noise_scale, loss_mask, and mlp_mult parameters.
     """
+    if mlp_mult_list is None:
+        mlp_mult_list = [4]
     
     print(f"\n{'='*80}")
     print(f"Starting parameter sweep:")
@@ -1349,9 +1321,10 @@ def sweep_parameters(block_size_list, num_trajectories_list, noise_scale_list, l
     print(f"  lr: {lr} (fixed)")
     print(f"  n_layer: {n_layer} (fixed)")
     print(f"  n_embd: {n_embd} (fixed)")
+    print(f"  mlp_mult: {mlp_mult_list}")
     print(f"{'='*80}\n")
-    
-    total_runs = len(block_size_list) * len(num_trajectories_list) * len(noise_scale_list) * len(loss_mask_list)
+
+    total_runs = len(block_size_list) * len(num_trajectories_list) * len(noise_scale_list) * len(loss_mask_list) * len(mlp_mult_list)
     run_count = 0
 
     num_traj = 10000
@@ -1362,17 +1335,18 @@ def sweep_parameters(block_size_list, num_trajectories_list, noise_scale_list, l
         for noise_scale in noise_scale_list:
             for num_traj in num_trajectories_list:
                 for loss_mask in loss_mask_list:
-                    results_filename = f'./results/kepler_cv_blocksize/results_block_size_{block_size}_num_trajectories_{num_traj}_noise_scale_{noise_scale}_loss_mask_{loss_mask}_seed_{seed}.npz'
-                    if not os.path.exists(results_filename):
-                        configs_to_run.append((block_size, num_traj, noise_scale, loss_mask))
-                    else:
-                        print(f"Skipping existing result: {results_filename}")
+                    for mlp_mult in mlp_mult_list:
+                        results_filename = f'./results/kepler_cv_blocksize/results_block_size_{block_size}_num_trajectories_{num_traj}_noise_scale_{noise_scale}_loss_mask_{loss_mask}_mlp_mult_{mlp_mult}_seed_{seed}.npz'
+                        if not os.path.exists(results_filename):
+                            configs_to_run.append((block_size, num_traj, noise_scale, loss_mask, mlp_mult))
+                        else:
+                            print(f"Skipping existing result: {results_filename}")
 
     print(f"\nTotal configurations: {total_runs}, Already completed: {total_runs - len(configs_to_run)}, To run: {len(configs_to_run)}")
-    
-    for block_size, num_traj, noise_scale, loss_mask in configs_to_run:
+
+    for block_size, num_traj, noise_scale, loss_mask, mlp_mult in configs_to_run:
         run_count += 1
-        print(f"\n[{run_count}/{len(configs_to_run)}] Running: block_size={block_size}, num_trajectories={num_traj}, noise_scale={noise_scale}, loss_mask={loss_mask}")
+        print(f"\n[{run_count}/{len(configs_to_run)}] Running: block_size={block_size}, num_trajectories={num_traj}, noise_scale={noise_scale}, loss_mask={loss_mask}, mlp_mult={mlp_mult}")
         results = train_one_model(
             block_size=block_size,
             noise_scale=noise_scale,
@@ -1383,11 +1357,12 @@ def sweep_parameters(block_size_list, num_trajectories_list, noise_scale_list, l
             n_steps=n_steps,
             prob_freq=prob_freq,
             loss_mask=loss_mask,
-            seed=seed
+            seed=seed,
+            mlp_mult=mlp_mult,
         )
 
         # save results to file
-        results_filename = f'./results/kepler_cv_blocksize/results_block_size_{block_size}_num_trajectories_{num_traj}_noise_scale_{noise_scale}_loss_mask_{loss_mask}.npz'
+        results_filename = f'./results/kepler_cv_blocksize/results_block_size_{block_size}_num_trajectories_{num_traj}_noise_scale_{noise_scale}_loss_mask_{loss_mask}_mlp_mult_{mlp_mult}.npz'
         os.makedirs(os.path.dirname(results_filename), exist_ok=True)
         np.savez(results_filename, **results)
         print(f"Saved results to {results_filename}")
@@ -1417,12 +1392,13 @@ def main():
     #block_size_list = [100]
     #noise_scale_list = [0.1]
     #loss_mask_list = ['all']
-    n_steps = 20001
-    prob_freq = 10000
-    sweep_parameters(block_size_list, num_trajectories_list, noise_scale_list, loss_mask_list, 
-                     n_steps=n_steps, prob_freq=prob_freq, seed=seed)
+    n_steps = 2001
+    prob_freq = 10
+    mlp_mult_list = [2, 4, 8, 16]
+    sweep_parameters(block_size_list, num_trajectories_list, noise_scale_list, loss_mask_list,
+                     n_steps=n_steps, prob_freq=prob_freq, seed=seed,
+                     mlp_mult_list=mlp_mult_list)
 
 
 if __name__ == "__main__":
     main()
-
