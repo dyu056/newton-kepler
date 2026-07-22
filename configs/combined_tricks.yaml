@@ -1,0 +1,89 @@
+# Combined tricks experiment: VC-Reg + Attention Entropy Reg + SVB
+# Tricks are staggered to avoid interference during early training.
+#
+# Schedule:
+#   Step   0-50  : Pure trajectory prediction (no regularization)
+#   Step  50-100 : VC-Reg only (stabilize activation statistics)
+#   Step 100-200 : VC-Reg + SVB (add weight-level conditioning)
+#   Step 200+    : VC-Reg + SVB + Attention Entropy (full combination)
+
+seed: 1
+
+data:
+  data_dir: data_cv
+  num_trajectories: 10000
+  num_points_per_trajectory: 100
+
+model:
+  n_layer: 2
+  n_head: 1
+  n_embd: 32
+
+training:
+  block_sizes: [20]
+  noise_scale: 0.1
+  learning_rate: 0.001
+  weight_decay: 0.0
+  batch_size: 128
+  scale_batch_by_context: true
+  n_steps: 1000
+  loss_mask: all
+
+probe:
+  enabled: true
+  frequency: 10
+  num_train_samples: 1000
+  num_eval_samples: 1000
+  schedule:
+    - start: 5
+      end: 100
+      every: 5
+    - start: 200
+      end: 1000
+      every: 10
+
+observe:
+  activation_rank:
+    enabled: true
+  attention_entropy:
+    enabled: true
+  variance_covariance:
+    enabled: true
+  singular_values:
+    enabled: true
+    num_singular_values: 5
+
+# ---------------------------------------------------------------------------
+# Three tricks combined, with staggered start times:
+#   1. Variance-Covariance Reg  →  step 50   (activations)
+#   2. SVB (Singular Value Bounding)  →  step 100  (weights)
+#   3. Attention Entropy Reg    →  step 200  (attention patterns)
+# ---------------------------------------------------------------------------
+regularization:
+  # Trick 1: Variance-Covariance Regularization (starts first)
+  # Penalises deviation of activation std from target_std, and off-diagonal covariance.
+  variance_covariance:
+    enabled: true
+    start_step: 50          # staggered: begins at step 50
+    target_std: 0.1
+    variance_weight: 0.05
+    covariance_weight: 0.05
+
+  # Trick 2: Attention Entropy Regularization (starts last)
+  # Penalises low-entropy attention distributions to encourage diverse attention.
+  attention_entropy:
+    enabled: true
+    weight: 0.005
+    start_step: 200         # staggered: begins at step 200 (150 steps after VC)
+
+  # Trick 3: Singular Value Bounding on weights (starts in the middle)
+  # Clamps singular values of all nn.Linear weight matrices to [1/(1+eps), 1+eps]
+  # via periodic SVD decomposition. Applied every `frequency` steps.
+  svb:
+    enabled: true
+    epsilon: 0.5            # clamp range: [0.667, 1.5]
+    frequency: 100           # re-apply SVD clamping every N steps
+    start_step: 100          # staggered: begins at step 100
+
+evaluation:
+  rollout_enabled: false

@@ -47,6 +47,7 @@ from observe import (
     compute_activation_rank,
     generate_trajectory_and_compute_error,
     get_gpu_memory_stats,
+    svb_apply,
     print_gpu_memory_stats,
     set_attention_entropy_capture,
     compute_weight_singular_values, 
@@ -111,6 +112,7 @@ def should_run_probe(completed_step, probe_frequency, probe_schedule=None):
             return True
     return False
 
+
 def train_model(model, train_inputs, train_targets, test_inputs, test_targets, train_trajectories, test_trajectories,
                  n_steps=1001, lr=1e-3, weight_decay=0.0, noise_scale=0.1, prob_freq=100, batch_size=128, 
                  loss_mask='all', seed=1, train_orbital_params=None, eval_orbital_params=None,
@@ -125,34 +127,12 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
                  covariance_reg_weight=0.0,
                  attention_entropy_reg_enabled=False,
                  attention_entropy_weight=0.0,
-                 attention_entropy_start=1):
-    """
-    Train the model on the trajectory data with periodic evaluation.
-    
-    Args:
-        model: Model to train
-        train_inputs: Training input trajectories
-        train_targets: Training target trajectories
-        test_inputs: Test input trajectories
-        test_targets: Test target trajectories
-        train_trajectories: Full original training trajectories for evaluation
-        test_trajectories: Full original test trajectories for evaluation
-        n_steps: Number of training steps
-        lr: Learning rate
-        weight_decay: Weight decay
-        noise_scale: Scale of noise added during training
-        prob_freq: Frequency of evaluation (every N steps)
-        batch_size: Batch size for training (default: 128)
-        loss_mask: 'all' to compute loss on all tokens, 'last' to compute only on last token
-        seed: Random seed
-    Returns:
-        Dictionary containing:
-            train_losses: list of training losses
-            test_losses: list of test losses
-            eval_results: list of evaluation results at each evaluation step
-            eval_steps: list of step numbers where evaluation was performed
-            memory_stats: dictionary with memory usage statistics
-    """
+                 attention_entropy_start=1,
+                 svb_enabled=False,
+                 svb_epsilon=0.5,
+                 svb_frequency=100,
+                 svb_start=1):
+    """Train the model on the trajectory data with periodic evaluation."""
     np.random.seed(seed)
     torch.manual_seed(seed)
     
@@ -254,6 +234,11 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
 
         total_loss.backward()
         optimizer.step()
+
+        # SVB: periodically clamp weight singular values
+        if svb_enabled and completed_step >= svb_start and completed_step % svb_frequency == 0:
+            svb_apply(model, epsilon=svb_epsilon)
+
         train_losses.append(float(mse_loss.detach().item()))
         total_losses.append(float(total_loss.detach().item()))
         variance_losses.append(
@@ -500,22 +485,12 @@ def train_one_model(block_size=100, data_dir='data_cv', noise_scale=0.1, lr=1e-3
                     covariance_reg_weight=0.0,
                     attention_entropy_reg_enabled=False,
                     attention_entropy_weight=0.0,
-                    attention_entropy_start=1):
-    """
-    Train a single model with specified hyperparameters.
-    
-    Args:
-        block_size: Block size for the model (if < num_points_per_trajectory, trajectories will be chopped)
-        noise_scale: Scale of noise added during training
-        lr: Learning rate
-        n_layer: Number of transformer layers
-        n_embd: Embedding dimension
-        num_trajectories: Number of trajectories to generate
-        loss_mask: 'all' to compute loss on all tokens, 'last' to compute only on last token
-    
-    Returns:
-        Dictionary containing model results and statistics
-    """
+                    attention_entropy_start=1,
+                    svb_enabled=False,
+                    svb_epsilon=0.5,
+                    svb_frequency=100,
+                    svb_start=1):
+    """Train a single model with specified hyperparameters."""
     print(f"\n{'='*80}")
     print(f"Training model: block_size={block_size}, noise_scale={noise_scale}, lr={lr}, n_layer={n_layer}, n_embd={n_embd}, num_trajectories={num_trajectories}, loss_mask={loss_mask}")
     print(f"{'='*80}")
@@ -661,8 +636,12 @@ def train_one_model(block_size=100, data_dir='data_cv', noise_scale=0.1, lr=1e-3
         attention_entropy_reg_enabled=attention_entropy_reg_enabled,
         attention_entropy_weight=attention_entropy_weight,
         attention_entropy_start=attention_entropy_start,
+        svb_enabled=svb_enabled,
+        svb_epsilon=svb_epsilon,
+        svb_frequency=svb_frequency,
+        svb_start=svb_start,
     )
-    
+
     train_losses = training_results['train_losses']
     total_losses = training_results['total_losses']
     test_losses = training_results['test_losses']
@@ -720,6 +699,10 @@ def train_one_model(block_size=100, data_dir='data_cv', noise_scale=0.1, lr=1e-3
         'attention_entropy_reg_enabled': attention_entropy_reg_enabled,
         'attention_entropy_weight': attention_entropy_weight,
         'attention_entropy_start': attention_entropy_start,
+        'svb_enabled': svb_enabled,
+        'svb_epsilon': svb_epsilon,
+        'svb_frequency': svb_frequency,
+        'svb_start': svb_start,
         'final_train_loss': train_losses[-1] if train_losses else None,
         'final_total_loss': total_losses[-1] if total_losses else None,
         'final_test_loss': test_losses[-1] if test_losses else None,
@@ -887,6 +870,15 @@ def run_configured_experiments(config, run_dir, overwrite=False, console_stream=
     attention_entropy_weight = float(attention_entropy_reg_config.get("weight", 0.0))
     attention_entropy_start = int(attention_entropy_reg_config.get("start_step", 1))
 
+    # SVB (Singular Value Bounding) on weight matrices
+    svb_config = regularization_config.get("svb", {})
+    if not isinstance(svb_config, dict):
+        raise ValueError("regularization.svb must be a mapping")
+    svb_enabled = bool(svb_config.get("enabled", False))
+    svb_epsilon = float(svb_config.get("epsilon", 0.5))
+    svb_frequency = int(svb_config.get("frequency", 100))
+    svb_start = int(svb_config.get("start_step", 1))
+
     if num_trajectories <= 0:
         raise ValueError("data.num_trajectories must be positive")
     if n_steps <= 0:
@@ -926,6 +918,12 @@ def run_configured_experiments(config, run_dir, overwrite=False, console_stream=
         raise ValueError("regularization.attention_entropy.start_step must be >= 1")
     if attention_entropy_weight < 0.0:
         raise ValueError("regularization.attention_entropy.weight must be non-negative")
+    if svb_start < 1:
+        raise ValueError("regularization.svb.start_step must be >= 1")
+    if svb_epsilon <= 0.0:
+        raise ValueError("regularization.svb.epsilon must be positive")
+    if svb_frequency < 1:
+        raise ValueError("regularization.svb.frequency must be >= 1")
 
     results_dir = run_dir / "results"
     results_dir.mkdir(parents=True, exist_ok=True)
@@ -1011,6 +1009,10 @@ def run_configured_experiments(config, run_dir, overwrite=False, console_stream=
                         attention_entropy_reg_enabled=attention_entropy_reg_enabled,
                         attention_entropy_weight=attention_entropy_weight,
                         attention_entropy_start=attention_entropy_start,
+                        svb_enabled=svb_enabled,
+                        svb_epsilon=svb_epsilon,
+                        svb_frequency=svb_frequency,
+                        svb_start=svb_start,
                     )
 
                     np.savez_compressed(result_path, **results)

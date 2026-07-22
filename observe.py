@@ -413,5 +413,34 @@ def compute_activation_singular_values(activation_dict, num_singular_values=None
             'effective_rank': float(effective_rank),
             'numerical_rank': int(numerical_rank),
         }
-    
+
     return results
+
+
+def svb_apply(model, epsilon=0.5):
+    """Clamp singular values of every nn.Linear weight matrix to [1/(1+ε), 1+ε].
+
+    For each Linear layer, decomposes  W = U @ diag(S) @ Vh, clamps S to
+    [1/(1+ε), 1+ε], then reconstructs  W' = U @ diag(S_clamped) @ Vh.
+
+    This is applied periodically during training (not as a loss term) to keep
+    weight matrices well-conditioned and prevent rank collapse.
+
+    Args:
+        model: PyTorch model (only nn.Linear layers are touched).
+        epsilon: clamp range parameter.  Larger ε → tighter bounds.
+                 Default 0.5 gives range [0.667, 1.5].
+    """
+    import torch.nn as nn
+
+    with torch.no_grad():
+        for module in model.modules():
+            if not isinstance(module, nn.Linear):
+                continue
+            weight = module.weight.data
+            U, S, Vh = torch.linalg.svd(weight.float(), full_matrices=False)
+            lower = 1.0 / (1.0 + epsilon)
+            upper = 1.0 + epsilon
+            S_clamped = torch.clamp(S, min=lower, max=upper)
+            weight_clamped = U @ torch.diag(S_clamped) @ Vh
+            module.weight.data.copy_(weight_clamped.to(weight.dtype))
