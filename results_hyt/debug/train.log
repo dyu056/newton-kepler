@@ -1,0 +1,546 @@
+
+################################################################################
+Run started: 2026-07-22T08:30:08
+Config: /home/user/hrzhao/configs/baseline_block_size.yaml
+Run name: debug
+Output directory: /home/user/hrzhao/outputs/debug
+Requested physical GPU: 0
+CUDA_VISIBLE_DEVICES: 0
+PyTorch device: cuda
+Visible CUDA devices: 1
+Active CUDA device name: NVIDIA H200
+
+================================================================================
+[1/1] Starting block_20_noise_0.1_loss_all_seed_1.npz
+================================================================================
+
+================================================================================
+Training model: block_size=20, noise_scale=0.1, lr=0.001, n_layer=2, n_embd=32, num_trajectories=10000, loss_mask=all
+================================================================================
+Loading Kepler orbit trajectories from data_cv...
+Loading 20,000 trajectories from 2 chunks...
+Loaded 20,000 trajectories from chunks
+Trajectories shape: (20000, 100, 2)
+Position range: x=[-3.536, 3.517], y=[-3.444, 3.481]
+
+Split: 10000 training trajectories, 10000 test trajectories
+Loading orbital parameters from data_cv...
+Loading 20,000 orbital parameters from 2 chunks...
+Loaded 20,000 orbital parameters from chunks
+Loaded 20000 orbital parameters
+
+Block size (20) < num_points_per_trajectory (100)
+Chopping trajectories into sequences...
+Randomly selecting 5 sequences per trajectory (instead of all sliding windows)
+Train sequences: 50000, Test sequences: 50000
+
+Train input shape: torch.Size([50000, 20, 2]), Train target shape: torch.Size([50000, 1, 2])
+Test input shape: torch.Size([50000, 20, 2]), Test target shape: torch.Size([50000, 1, 2])
+
+Setting up model...
+number of parameters: 0.025634M
+After model setup: GPU Memory - Allocated: 0.000 GB, Reserved: 0.002 GB, Max Allocated: 0.000 GB
+Initial train loss: 1.255086, Initial test loss: 1.087340
+Train predictions shape: torch.Size([128, 20, 2])
+After initial forward pass: GPU Memory - Allocated: 0.031 GB, Reserved: 0.055 GB, Max Allocated: 0.035 GB
+Effective training batch size: 640
+
+Training model with periodic evaluation...
+Hooks registered for 2 transformer blocks:
+  For each block: attn_output, after_attn_merge, mlp_output, after_mlp_merge, mlp_hidden
+  Additional: input_embed, after_pos_emb, after_ln_f
+  Total hooks: 13
+Initial: GPU Memory - Allocated: 0.031 GB, Reserved: 0.055 GB, Max Allocated: 0.031 GB
+Step 1, MSE: 1.228131, Total Loss: 1.228131, Test Loss: 0.976605, GPU Memory: 0.092 GB
+
+Evaluating at step 5...
+Activations collected:
+  input_embed: torch.Size([1000, 20, 32])
+  after_pos_emb: torch.Size([1000, 20, 32])
+  block_0_attn_output: torch.Size([1000, 20, 32])
+  block_0_after_attn_merge: torch.Size([1000, 20, 32])
+  block_0_mlp_hidden: torch.Size([1000, 20, 128])
+  block_0_mlp_output: torch.Size([1000, 20, 32])
+  block_0_after_mlp_merge: torch.Size([1000, 20, 32])
+  block_1_attn_output: torch.Size([1000, 20, 32])
+  block_1_after_attn_merge: torch.Size([1000, 20, 32])
+  block_1_mlp_hidden: torch.Size([1000, 20, 128])
+  block_1_mlp_output: torch.Size([1000, 20, 32])
+  block_1_after_mlp_merge: torch.Size([1000, 20, 32])
+  after_ln_f: torch.Size([1000, 20, 32])
+Activations collected:
+  input_embed: torch.Size([1000, 20, 32])
+  after_pos_emb: torch.Size([1000, 20, 32])
+  block_0_attn_output: torch.Size([1000, 20, 32])
+  block_0_after_attn_merge: torch.Size([1000, 20, 32])
+  block_0_mlp_hidden: torch.Size([1000, 20, 128])
+  block_0_mlp_output: torch.Size([1000, 20, 32])
+  block_0_after_mlp_merge: torch.Size([1000, 20, 32])
+  block_1_attn_output: torch.Size([1000, 20, 32])
+  block_1_after_attn_merge: torch.Size([1000, 20, 32])
+  block_1_mlp_hidden: torch.Size([1000, 20, 128])
+  block_1_mlp_output: torch.Size([1000, 20, 32])
+  block_1_after_mlp_merge: torch.Size([1000, 20, 32])
+  after_ln_f: torch.Size([1000, 20, 32])
+
+Linear Probe Results (R² scores):
+================================================================================
+
+input_embed:
+  F_magnitude         : all train/eval = 0.0000/0.0001, sequence-last train/eval = 0.0000/-0.0015
+  F_direction_x       : all train/eval = 0.8204/0.8274, sequence-last train/eval = 0.8155/0.8191
+  F_direction_y       : all train/eval = 0.8279/0.8357, sequence-last train/eval = 0.8228/0.8224
+  Fx                  : all train/eval = 0.0681/0.0627, sequence-last train/eval = 0.0771/0.0787
+  Fy                  : all train/eval = 0.0637/0.0675, sequence-last train/eval = 0.0949/0.0637
+  r                   : all train/eval = 0.0006/0.0014, sequence-last train/eval = 0.0007/-0.0056
+  inv_r               : all train/eval = 0.0001/0.0003, sequence-last train/eval = 0.0002/-0.0019
+  r_squared           : all train/eval = 0.0013/0.0014, sequence-last train/eval = 0.0008/-0.0075
+  inv_r_squared       : all train/eval = 0.0000/0.0001, sequence-last train/eval = 0.0000/-0.0015
+  inv_r_cubed         : all train/eval = 0.0000/0.0000, sequence-last train/eval = 0.0000/-0.0015
+  x                   : all train/eval = 1.0000/1.0000, sequence-last train/eval = 1.0000/1.0000
+  y                   : all train/eval = 1.0000/1.0000, sequence-last train/eval = 1.0000/1.0000
+
+after_pos_emb:
+  F_magnitude         : all train/eval = 0.0013/-0.0004, sequence-last train/eval = 0.0000/-0.0015
+  F_direction_x       : all train/eval = 0.8206/0.8271, sequence-last train/eval = 0.8155/0.8191
+  F_direction_y       : all train/eval = 0.8281/0.8354, sequence-last train/eval = 0.8228/0.8224
+  Fx                  : all train/eval = 0.0690/0.0623, sequence-last train/eval = 0.0771/0.0787
+  Fy                  : all train/eval = 0.0643/0.0668, sequence-last train/eval = 0.0949/0.0637
+  r                   : all train/eval = 0.0011/0.0018, sequence-last train/eval = 0.0007/-0.0056
+  inv_r               : all train/eval = 0.0005/0.0001, sequence-last train/eval = 0.0002/-0.0019
+  r_squared           : all train/eval = 0.0018/0.0019, sequence-last train/eval = 0.0008/-0.0075
+  inv_r_squared       : all train/eval = 0.0013/-0.0004, sequence-last train/eval = 0.0000/-0.0015
+  inv_r_cubed         : all train/eval = 0.0017/-0.0004, sequence-last train/eval = 0.0000/-0.0015
+  x                   : all train/eval = 1.0000/1.0000, sequence-last train/eval = 1.0000/1.0000
+  y                   : all train/eval = 1.0000/1.0000, sequence-last train/eval = 1.0000/1.0000
+
+block_0_attn_output:
+  F_magnitude         : all train/eval = 0.2242/0.2095, sequence-last train/eval = 0.6062/0.5136
+  F_direction_x       : all train/eval = 0.7043/0.6856, sequence-last train/eval = 0.9433/0.9414
+  F_direction_y       : all train/eval = 0.6983/0.7071, sequence-last train/eval = 0.8952/0.8673
+  Fx                  : all train/eval = 0.0513/0.0418, sequence-last train/eval = 0.3534/0.3248
+  Fy                  : all train/eval = 0.0432/0.0486, sequence-last train/eval = 0.6109/0.3847
+  r                   : all train/eval = 0.8152/0.7968, sequence-last train/eval = 0.9592/0.9583
+  inv_r               : all train/eval = 0.5418/0.5395, sequence-last train/eval = 0.8589/0.8093
+  r_squared           : all train/eval = 0.7283/0.7070, sequence-last train/eval = 0.8782/0.8741
+  inv_r_squared       : all train/eval = 0.2242/0.2095, sequence-last train/eval = 0.6062/0.5136
+  inv_r_cubed         : all train/eval = 0.0569/0.0437, sequence-last train/eval = 0.3650/0.2671
+  x                   : all train/eval = 0.7987/0.7860, sequence-last train/eval = 0.9143/0.9032
+  y                   : all train/eval = 0.8037/0.8100, sequence-last train/eval = 0.8995/0.8768
+
+block_0_after_attn_merge:
+  F_magnitude         : all train/eval = 0.3199/0.2993, sequence-last train/eval = 0.7333/0.6195
+  F_direction_x       : all train/eval = 0.9553/0.9557, sequence-last train/eval = 0.9833/0.9839
+  F_direction_y       : all train/eval = 0.9519/0.9535, sequence-last train/eval = 0.9855/0.9801
+  Fx                  : all train/eval = 0.1812/0.1618, sequence-last train/eval = 0.4983/0.4881
+  Fy                  : all train/eval = 0.1651/0.1727, sequence-last train/eval = 0.7091/0.4469
+  r                   : all train/eval = 0.8514/0.8434, sequence-last train/eval = 0.9393/0.9319
+  inv_r               : all train/eval = 0.6795/0.6772, sequence-last train/eval = 0.9122/0.8664
+  r_squared           : all train/eval = 0.7253/0.7154, sequence-last train/eval = 0.8834/0.8649
+  inv_r_squared       : all train/eval = 0.3199/0.2993, sequence-last train/eval = 0.7333/0.6195
+  inv_r_cubed         : all train/eval = 0.0930/0.0739, sequence-last train/eval = 0.5014/0.3545
+  x                   : all train/eval = 0.9264/0.9305, sequence-last train/eval = 0.9681/0.9691
+  y                   : all train/eval = 0.9382/0.9417, sequence-last train/eval = 0.9445/0.9378
+
+block_0_mlp_hidden:
+  F_magnitude         : all train/eval = 0.4964/0.4467, sequence-last train/eval = 0.9526/0.8370
+  F_direction_x       : all train/eval = 0.9817/0.9813, sequence-last train/eval = 0.9993/0.9987
+  F_direction_y       : all train/eval = 0.9782/0.9782, sequence-last train/eval = 0.9995/0.9981
+  Fx                  : all train/eval = 0.3981/0.3394, sequence-last train/eval = 0.8895/0.7405
+  Fy                  : all train/eval = 0.3586/0.3383, sequence-last train/eval = 0.9402/0.6577
+  r                   : all train/eval = 0.9858/0.9852, sequence-last train/eval = 0.9978/0.9970
+  inv_r               : all train/eval = 0.8327/0.8219, sequence-last train/eval = 0.9906/0.9673
+  r_squared           : all train/eval = 0.9372/0.9337, sequence-last train/eval = 0.9873/0.9825
+  inv_r_squared       : all train/eval = 0.4964/0.4467, sequence-last train/eval = 0.9526/0.8370
+  inv_r_cubed         : all train/eval = 0.2002/0.1439, sequence-last train/eval = 0.8865/0.6201
+  x                   : all train/eval = 0.9917/0.9918, sequence-last train/eval = 0.9964/0.9946
+  y                   : all train/eval = 0.9919/0.9922, sequence-last train/eval = 0.9992/0.9988
+
+block_0_mlp_output:
+  F_magnitude         : all train/eval = 0.2933/0.2667, sequence-last train/eval = 0.7939/0.6985
+  F_direction_x       : all train/eval = 0.9552/0.9551, sequence-last train/eval = 0.9936/0.9931
+  F_direction_y       : all train/eval = 0.9553/0.9562, sequence-last train/eval = 0.9930/0.9897
+  Fx                  : all train/eval = 0.1821/0.1580, sequence-last train/eval = 0.6387/0.6150
+  Fy                  : all train/eval = 0.1843/0.1918, sequence-last train/eval = 0.7349/0.4706
+  r                   : all train/eval = 0.7403/0.7293, sequence-last train/eval = 0.9815/0.9788
+  inv_r               : all train/eval = 0.6001/0.5882, sequence-last train/eval = 0.9490/0.9208
+  r_squared           : all train/eval = 0.6297/0.6181, sequence-last train/eval = 0.9303/0.9192
+  inv_r_squared       : all train/eval = 0.2933/0.2667, sequence-last train/eval = 0.7939/0.6985
+  inv_r_cubed         : all train/eval = 0.0897/0.0688, sequence-last train/eval = 0.5817/0.4292
+  x                   : all train/eval = 0.9264/0.9309, sequence-last train/eval = 0.9858/0.9857
+  y                   : all train/eval = 0.9385/0.9415, sequence-last train/eval = 0.9913/0.9896
+
+block_0_after_mlp_merge:
+  F_magnitude         : all train/eval = 0.1926/0.1753, sequence-last train/eval = 0.7905/0.6976
+  F_direction_x       : all train/eval = 0.9591/0.9594, sequence-last train/eval = 0.9935/0.9927
+  F_direction_y       : all train/eval = 0.9531/0.9540, sequence-last train/eval = 0.9923/0.9891
+  Fx                  : all train/eval = 0.2611/0.2226, sequence-last train/eval = 0.6799/0.5908
+  Fy                  : all train/eval = 0.2214/0.2307, sequence-last train/eval = 0.7150/0.4578
+  r                   : all train/eval = 0.6364/0.6072, sequence-last train/eval = 0.9890/0.9880
+  inv_r               : all train/eval = 0.4380/0.4247, sequence-last train/eval = 0.9472/0.9163
+  r_squared           : all train/eval = 0.5692/0.5381, sequence-last train/eval = 0.9544/0.9526
+  inv_r_squared       : all train/eval = 0.1926/0.1753, sequence-last train/eval = 0.7905/0.6976
+  inv_r_cubed         : all train/eval = 0.0548/0.0419, sequence-last train/eval = 0.5730/0.4346
+  x                   : all train/eval = 0.9997/0.9997, sequence-last train/eval = 1.0000/1.0000
+  y                   : all train/eval = 0.9998/0.9998, sequence-last train/eval = 1.0000/1.0000
+
+block_1_attn_output:
+  F_magnitude         : all train/eval = 0.2760/0.2583, sequence-last train/eval = 0.8111/0.6958
+  F_direction_x       : all train/eval = 0.9039/0.9000, sequence-last train/eval = 0.9514/0.9483
+  F_direction_y       : all train/eval = 0.8959/0.9010, sequence-last train/eval = 0.9560/0.9461
+  Fx                  : all train/eval = 0.1718/0.1488, sequence-last train/eval = 0.4177/0.3460
+  Fy                  : all train/eval = 0.1383/0.1503, sequence-last train/eval = 0.6160/0.3393
+  r                   : all train/eval = 0.8344/0.8167, sequence-last train/eval = 0.9265/0.9245
+  inv_r               : all train/eval = 0.6064/0.6047, sequence-last train/eval = 0.9406/0.8930
+  r_squared           : all train/eval = 0.7550/0.7305, sequence-last train/eval = 0.8648/0.8613
+  inv_r_squared       : all train/eval = 0.2760/0.2583, sequence-last train/eval = 0.8110/0.6958
+  inv_r_cubed         : all train/eval = 0.0776/0.0596, sequence-last train/eval = 0.6310/0.4618
+  x                   : all train/eval = 0.9618/0.9600, sequence-last train/eval = 0.9796/0.9775
+  y                   : all train/eval = 0.9573/0.9564, sequence-last train/eval = 0.9786/0.9740
+
+block_1_after_attn_merge:
+  F_magnitude         : all train/eval = 0.3868/0.3625, sequence-last train/eval = 0.8750/0.7771
+  F_direction_x       : all train/eval = 0.9721/0.9723, sequence-last train/eval = 0.9955/0.9940
+  F_direction_y       : all train/eval = 0.9704/0.9709, sequence-last train/eval = 0.9950/0.9932
+  Fx                  : all train/eval = 0.3215/0.2728, sequence-last train/eval = 0.7680/0.6603
+  Fy                  : all train/eval = 0.2632/0.2767, sequence-last train/eval = 0.7998/0.5783
+  r                   : all train/eval = 0.7523/0.7374, sequence-last train/eval = 0.9243/0.9226
+  inv_r               : all train/eval = 0.7206/0.7121, sequence-last train/eval = 0.9625/0.9387
+  r_squared           : all train/eval = 0.6023/0.5862, sequence-last train/eval = 0.8698/0.8625
+  inv_r_squared       : all train/eval = 0.3868/0.3625, sequence-last train/eval = 0.8750/0.7771
+  inv_r_cubed         : all train/eval = 0.1301/0.1063, sequence-last train/eval = 0.7091/0.5362
+  x                   : all train/eval = 0.9793/0.9788, sequence-last train/eval = 0.9926/0.9915
+  y                   : all train/eval = 0.9770/0.9778, sequence-last train/eval = 0.9954/0.9955
+
+block_1_mlp_hidden:
+  F_magnitude         : all train/eval = 0.5542/0.5148, sequence-last train/eval = 0.9942/0.9016
+  F_direction_x       : all train/eval = 0.9841/0.9838, sequence-last train/eval = 0.9998/0.9990
+  F_direction_y       : all train/eval = 0.9847/0.9848, sequence-last train/eval = 0.9998/0.9991
+  Fx                  : all train/eval = 0.4263/0.3504, sequence-last train/eval = 0.9810/0.7408
+  Fy                  : all train/eval = 0.4034/0.3968, sequence-last train/eval = 0.9756/0.8107
+  r                   : all train/eval = 0.9663/0.9650, sequence-last train/eval = 0.9990/0.9972
+  inv_r               : all train/eval = 0.8638/0.8572, sequence-last train/eval = 0.9989/0.9848
+  r_squared           : all train/eval = 0.9100/0.9074, sequence-last train/eval = 0.9943/0.9844
+  inv_r_squared       : all train/eval = 0.5542/0.5148, sequence-last train/eval = 0.9942/0.9016
+  inv_r_cubed         : all train/eval = 0.2455/0.1926, sequence-last train/eval = 0.9815/0.7144
+  x                   : all train/eval = 0.9943/0.9942, sequence-last train/eval = 0.9998/0.9993
+  y                   : all train/eval = 0.9928/0.9928, sequence-last train/eval = 0.9998/0.9993
+
+block_1_mlp_output:
+  F_magnitude         : all train/eval = 0.3284/0.3005, sequence-last train/eval = 0.8926/0.8161
+  F_direction_x       : all train/eval = 0.9693/0.9694, sequence-last train/eval = 0.9963/0.9952
+  F_direction_y       : all train/eval = 0.9720/0.9729, sequence-last train/eval = 0.9964/0.9949
+  Fx                  : all train/eval = 0.2539/0.2153, sequence-last train/eval = 0.8314/0.7042
+  Fy                  : all train/eval = 0.2291/0.2474, sequence-last train/eval = 0.8594/0.6383
+  r                   : all train/eval = 0.6972/0.6790, sequence-last train/eval = 0.9782/0.9727
+  inv_r               : all train/eval = 0.6298/0.6144, sequence-last train/eval = 0.9774/0.9615
+  r_squared           : all train/eval = 0.5721/0.5540, sequence-last train/eval = 0.9308/0.9185
+  inv_r_squared       : all train/eval = 0.3284/0.3005, sequence-last train/eval = 0.8926/0.8161
+  inv_r_cubed         : all train/eval = 0.1068/0.0842, sequence-last train/eval = 0.7658/0.5950
+  x                   : all train/eval = 0.9558/0.9552, sequence-last train/eval = 0.9949/0.9945
+  y                   : all train/eval = 0.9593/0.9611, sequence-last train/eval = 0.9954/0.9947
+
+block_1_after_mlp_merge:
+  F_magnitude         : all train/eval = 0.2669/0.2459, sequence-last train/eval = 0.8814/0.7906
+  F_direction_x       : all train/eval = 0.9661/0.9665, sequence-last train/eval = 0.9962/0.9955
+  F_direction_y       : all train/eval = 0.9581/0.9596, sequence-last train/eval = 0.9970/0.9957
+  Fx                  : all train/eval = 0.2819/0.2381, sequence-last train/eval = 0.7274/0.6471
+  Fy                  : all train/eval = 0.2338/0.2523, sequence-last train/eval = 0.7905/0.5807
+  r                   : all train/eval = 0.6766/0.6651, sequence-last train/eval = 0.9782/0.9758
+  inv_r               : all train/eval = 0.5527/0.5452, sequence-last train/eval = 0.9720/0.9482
+  r_squared           : all train/eval = 0.5679/0.5573, sequence-last train/eval = 0.9312/0.9245
+  inv_r_squared       : all train/eval = 0.2669/0.2459, sequence-last train/eval = 0.8814/0.7906
+  inv_r_cubed         : all train/eval = 0.0811/0.0620, sequence-last train/eval = 0.7319/0.5582
+  x                   : all train/eval = 0.9996/0.9996, sequence-last train/eval = 1.0000/1.0000
+  y                   : all train/eval = 0.9983/0.9984, sequence-last train/eval = 1.0000/1.0000
+
+after_ln_f:
+  F_magnitude         : all train/eval = 0.4174/0.3900, sequence-last train/eval = 0.9635/0.8925
+  F_direction_x       : all train/eval = 0.9770/0.9771, sequence-last train/eval = 0.9977/0.9971
+  F_direction_y       : all train/eval = 0.9742/0.9745, sequence-last train/eval = 0.9975/0.9964
+  Fx                  : all train/eval = 0.3693/0.3049, sequence-last train/eval = 0.8645/0.7489
+  Fy                  : all train/eval = 0.2834/0.3012, sequence-last train/eval = 0.8610/0.6681
+  r                   : all train/eval = 0.6559/0.6433, sequence-last train/eval = 0.9472/0.9097
+  inv_r               : all train/eval = 0.7167/0.7051, sequence-last train/eval = 0.9910/0.9728
+  r_squared           : all train/eval = 0.4994/0.4860, sequence-last train/eval = 0.8897/0.8260
+  inv_r_squared       : all train/eval = 0.4174/0.3900, sequence-last train/eval = 0.9635/0.8925
+  inv_r_cubed         : all train/eval = 0.1517/0.1250, sequence-last train/eval = 0.8992/0.7338
+  x                   : all train/eval = 0.9919/0.9919, sequence-last train/eval = 0.9986/0.9985
+  y                   : all train/eval = 0.9787/0.9796, sequence-last train/eval = 0.9990/0.9989
+Evaluating on 500 trajectories...
+Conditioning length: 50, Generating 50 more steps per trajectory...
+Using sliding window with block_size=20
+
+Error Statistics (aggregated across all 500 trajectories):
+Mean position error: 1.368553 ± 0.653933
+Max position error: 3.495719
+R² scores:
+  X coordinate: -1.092625 ± 1.424093
+  Y coordinate: -0.898157 ± 1.374362
+Evaluating on 500 trajectories...
+Conditioning length: 50, Generating 50 more steps per trajectory...
+Using sliding window with block_size=20
+
+Error Statistics (aggregated across all 500 trajectories):
+Mean position error: 1.365968 ± 0.641813
+Max position error: 3.300289
+R² scores:
+  X coordinate: -0.915828 ± 1.275053
+  Y coordinate: -0.904878 ± 1.366108
+After evaluation at step 5: GPU Memory - Allocated: 0.086 GB, Reserved: 0.125 GB, Max Allocated: 0.140 GB
+Evaluation at step 5 completed.
+
+
+Evaluating at step 10...
+Activations collected:
+  input_embed: torch.Size([1000, 20, 32])
+  after_pos_emb: torch.Size([1000, 20, 32])
+  block_0_attn_output: torch.Size([1000, 20, 32])
+  block_0_after_attn_merge: torch.Size([1000, 20, 32])
+  block_0_mlp_hidden: torch.Size([1000, 20, 128])
+  block_0_mlp_output: torch.Size([1000, 20, 32])
+  block_0_after_mlp_merge: torch.Size([1000, 20, 32])
+  block_1_attn_output: torch.Size([1000, 20, 32])
+  block_1_after_attn_merge: torch.Size([1000, 20, 32])
+  block_1_mlp_hidden: torch.Size([1000, 20, 128])
+  block_1_mlp_output: torch.Size([1000, 20, 32])
+  block_1_after_mlp_merge: torch.Size([1000, 20, 32])
+  after_ln_f: torch.Size([1000, 20, 32])
+Activations collected:
+  input_embed: torch.Size([1000, 20, 32])
+  after_pos_emb: torch.Size([1000, 20, 32])
+  block_0_attn_output: torch.Size([1000, 20, 32])
+  block_0_after_attn_merge: torch.Size([1000, 20, 32])
+  block_0_mlp_hidden: torch.Size([1000, 20, 128])
+  block_0_mlp_output: torch.Size([1000, 20, 32])
+  block_0_after_mlp_merge: torch.Size([1000, 20, 32])
+  block_1_attn_output: torch.Size([1000, 20, 32])
+  block_1_after_attn_merge: torch.Size([1000, 20, 32])
+  block_1_mlp_hidden: torch.Size([1000, 20, 128])
+  block_1_mlp_output: torch.Size([1000, 20, 32])
+  block_1_after_mlp_merge: torch.Size([1000, 20, 32])
+  after_ln_f: torch.Size([1000, 20, 32])
+
+Linear Probe Results (R² scores):
+================================================================================
+
+input_embed:
+  F_magnitude         : all train/eval = 0.0000/0.0001, sequence-last train/eval = 0.0000/-0.0015
+  F_direction_x       : all train/eval = 0.8204/0.8274, sequence-last train/eval = 0.8155/0.8191
+  F_direction_y       : all train/eval = 0.8279/0.8357, sequence-last train/eval = 0.8228/0.8224
+  Fx                  : all train/eval = 0.0681/0.0627, sequence-last train/eval = 0.0771/0.0787
+  Fy                  : all train/eval = 0.0637/0.0675, sequence-last train/eval = 0.0949/0.0637
+  r                   : all train/eval = 0.0006/0.0014, sequence-last train/eval = 0.0007/-0.0056
+  inv_r               : all train/eval = 0.0001/0.0003, sequence-last train/eval = 0.0002/-0.0019
+  r_squared           : all train/eval = 0.0013/0.0014, sequence-last train/eval = 0.0008/-0.0075
+  inv_r_squared       : all train/eval = 0.0000/0.0001, sequence-last train/eval = 0.0000/-0.0015
+  inv_r_cubed         : all train/eval = 0.0000/0.0000, sequence-last train/eval = 0.0000/-0.0015
+  x                   : all train/eval = 1.0000/1.0000, sequence-last train/eval = 1.0000/1.0000
+  y                   : all train/eval = 1.0000/1.0000, sequence-last train/eval = 1.0000/1.0000
+
+after_pos_emb:
+  F_magnitude         : all train/eval = 0.0013/-0.0004, sequence-last train/eval = 0.0000/-0.0015
+  F_direction_x       : all train/eval = 0.8206/0.8271, sequence-last train/eval = 0.8155/0.8191
+  F_direction_y       : all train/eval = 0.8281/0.8354, sequence-last train/eval = 0.8228/0.8224
+  Fx                  : all train/eval = 0.0690/0.0623, sequence-last train/eval = 0.0771/0.0787
+  Fy                  : all train/eval = 0.0643/0.0668, sequence-last train/eval = 0.0949/0.0637
+  r                   : all train/eval = 0.0011/0.0018, sequence-last train/eval = 0.0007/-0.0056
+  inv_r               : all train/eval = 0.0005/0.0001, sequence-last train/eval = 0.0002/-0.0019
+  r_squared           : all train/eval = 0.0018/0.0019, sequence-last train/eval = 0.0008/-0.0075
+  inv_r_squared       : all train/eval = 0.0013/-0.0004, sequence-last train/eval = 0.0000/-0.0015
+  inv_r_cubed         : all train/eval = 0.0017/-0.0004, sequence-last train/eval = 0.0000/-0.0015
+  x                   : all train/eval = 1.0000/1.0000, sequence-last train/eval = 1.0000/1.0000
+  y                   : all train/eval = 1.0000/1.0000, sequence-last train/eval = 1.0000/1.0000
+
+block_0_attn_output:
+  F_magnitude         : all train/eval = 0.2227/0.2086, sequence-last train/eval = 0.6636/0.5961
+  F_direction_x       : all train/eval = 0.7087/0.6907, sequence-last train/eval = 0.9661/0.9668
+  F_direction_y       : all train/eval = 0.6993/0.7080, sequence-last train/eval = 0.9143/0.8909
+  Fx                  : all train/eval = 0.0518/0.0421, sequence-last train/eval = 0.4946/0.4305
+  Fy                  : all train/eval = 0.0416/0.0465, sequence-last train/eval = 0.5546/0.2903
+  r                   : all train/eval = 0.8239/0.8060, sequence-last train/eval = 0.9436/0.9450
+  inv_r               : all train/eval = 0.5412/0.5395, sequence-last train/eval = 0.8806/0.8528
+  r_squared           : all train/eval = 0.7399/0.7190, sequence-last train/eval = 0.8665/0.8683
+  inv_r_squared       : all train/eval = 0.2227/0.2086, sequence-last train/eval = 0.6636/0.5961
+  inv_r_cubed         : all train/eval = 0.0562/0.0434, sequence-last train/eval = 0.4331/0.3427
+  x                   : all train/eval = 0.8055/0.7931, sequence-last train/eval = 0.9149/0.9099
+  y                   : all train/eval = 0.8105/0.8163, sequence-last train/eval = 0.9271/0.9162
+
+block_0_after_attn_merge:
+  F_magnitude         : all train/eval = 0.2909/0.2720, sequence-last train/eval = 0.7331/0.6506
+  F_direction_x       : all train/eval = 0.9440/0.9443, sequence-last train/eval = 0.9892/0.9884
+  F_direction_y       : all train/eval = 0.9415/0.9438, sequence-last train/eval = 0.9864/0.9827
+  Fx                  : all train/eval = 0.1699/0.1522, sequence-last train/eval = 0.6096/0.5353
+  Fy                  : all train/eval = 0.1584/0.1668, sequence-last train/eval = 0.6902/0.3917
+  r                   : all train/eval = 0.8453/0.8371, sequence-last train/eval = 0.8934/0.8708
+  inv_r               : all train/eval = 0.6407/0.6398, sequence-last train/eval = 0.8920/0.8556
+  r_squared           : all train/eval = 0.7357/0.7236, sequence-last train/eval = 0.8225/0.7881
+  inv_r_squared       : all train/eval = 0.2909/0.2720, sequence-last train/eval = 0.7331/0.6506
+  inv_r_cubed         : all train/eval = 0.0807/0.0633, sequence-last train/eval = 0.5184/0.4021
+  x                   : all train/eval = 0.9359/0.9394, sequence-last train/eval = 0.9627/0.9660
+  y                   : all train/eval = 0.9463/0.9494, sequence-last train/eval = 0.9417/0.9352
+
+block_0_mlp_hidden:
+  F_magnitude         : all train/eval = 0.4537/0.4107, sequence-last train/eval = 0.9429/0.8246
+  F_direction_x       : all train/eval = 0.9772/0.9771, sequence-last train/eval = 0.9992/0.9978
+  F_direction_y       : all train/eval = 0.9729/0.9736, sequence-last train/eval = 0.9989/0.9972
+  Fx                  : all train/eval = 0.3583/0.3041, sequence-last train/eval = 0.8956/0.7062
+  Fy                  : all train/eval = 0.3208/0.3096, sequence-last train/eval = 0.8158/0.5972
+  r                   : all train/eval = 0.9654/0.9632, sequence-last train/eval = 0.9953/0.9898
+  inv_r               : all train/eval = 0.8058/0.7965, sequence-last train/eval = 0.9885/0.9650
+  r_squared           : all train/eval = 0.9010/0.8938, sequence-last train/eval = 0.9776/0.9552
+  inv_r_squared       : all train/eval = 0.4537/0.4107, sequence-last train/eval = 0.9429/0.8246
+  inv_r_cubed         : all train/eval = 0.1696/0.1249, sequence-last train/eval = 0.8535/0.5868
+  x                   : all train/eval = 0.9896/0.9894, sequence-last train/eval = 0.9981/0.9957
+  y                   : all train/eval = 0.9925/0.9925, sequence-last train/eval = 0.9977/0.9953
+
+block_0_mlp_output:
+  F_magnitude         : all train/eval = 0.2689/0.2485, sequence-last train/eval = 0.7839/0.7197
+  F_direction_x       : all train/eval = 0.9488/0.9493, sequence-last train/eval = 0.9930/0.9912
+  F_direction_y       : all train/eval = 0.9485/0.9501, sequence-last train/eval = 0.9904/0.9860
+  Fx                  : all train/eval = 0.1827/0.1593, sequence-last train/eval = 0.6806/0.5787
+  Fy                  : all train/eval = 0.1694/0.1813, sequence-last train/eval = 0.7007/0.4409
+  r                   : all train/eval = 0.7553/0.7486, sequence-last train/eval = 0.9699/0.9667
+  inv_r               : all train/eval = 0.5750/0.5697, sequence-last train/eval = 0.9447/0.9232
+  r_squared           : all train/eval = 0.6580/0.6493, sequence-last train/eval = 0.9018/0.8928
+  inv_r_squared       : all train/eval = 0.2689/0.2485, sequence-last train/eval = 0.7839/0.7197
+  inv_r_cubed         : all train/eval = 0.0777/0.0611, sequence-last train/eval = 0.5653/0.4713
+  x                   : all train/eval = 0.9358/0.9392, sequence-last train/eval = 0.9834/0.9832
+  y                   : all train/eval = 0.9465/0.9489, sequence-last train/eval = 0.9866/0.9844
+
+block_0_after_mlp_merge:
+  F_magnitude         : all train/eval = 0.2148/0.2024, sequence-last train/eval = 0.7888/0.7269
+  F_direction_x       : all train/eval = 0.9493/0.9491, sequence-last train/eval = 0.9928/0.9913
+  F_direction_y       : all train/eval = 0.9390/0.9408, sequence-last train/eval = 0.9890/0.9854
+  Fx                  : all train/eval = 0.2433/0.2056, sequence-last train/eval = 0.6932/0.5747
+  Fy                  : all train/eval = 0.2020/0.2125, sequence-last train/eval = 0.6749/0.4378
+  r                   : all train/eval = 0.6848/0.6660, sequence-last train/eval = 0.9880/0.9864
+  inv_r               : all train/eval = 0.4842/0.4800, sequence-last train/eval = 0.9442/0.9223
+  r_squared           : all train/eval = 0.6057/0.5825, sequence-last train/eval = 0.9565/0.9550
+  inv_r_squared       : all train/eval = 0.2148/0.2024, sequence-last train/eval = 0.7888/0.7269
+  inv_r_cubed         : all train/eval = 0.0602/0.0493, sequence-last train/eval = 0.5717/0.4825
+  x                   : all train/eval = 0.9997/0.9997, sequence-last train/eval = 1.0000/1.0000
+  y                   : all train/eval = 0.9996/0.9996, sequence-last train/eval = 1.0000/1.0000
+
+block_1_attn_output:
+  F_magnitude         : all train/eval = 0.2743/0.2483, sequence-last train/eval = 0.7113/0.6095
+  F_direction_x       : all train/eval = 0.8984/0.8939, sequence-last train/eval = 0.9528/0.9476
+  F_direction_y       : all train/eval = 0.8926/0.8965, sequence-last train/eval = 0.9559/0.9475
+  Fx                  : all train/eval = 0.1589/0.1358, sequence-last train/eval = 0.4347/0.3684
+  Fy                  : all train/eval = 0.1297/0.1399, sequence-last train/eval = 0.4988/0.3156
+  r                   : all train/eval = 0.8255/0.8088, sequence-last train/eval = 0.9189/0.9173
+  inv_r               : all train/eval = 0.6097/0.6020, sequence-last train/eval = 0.8988/0.8561
+  r_squared           : all train/eval = 0.7334/0.7111, sequence-last train/eval = 0.8415/0.8359
+  inv_r_squared       : all train/eval = 0.2743/0.2483, sequence-last train/eval = 0.7113/0.6095
+  inv_r_cubed         : all train/eval = 0.0743/0.0530, sequence-last train/eval = 0.4980/0.3582
+  x                   : all train/eval = 0.9651/0.9626, sequence-last train/eval = 0.9786/0.9759
+  y                   : all train/eval = 0.9636/0.9634, sequence-last train/eval = 0.9752/0.9709
+
+block_1_after_attn_merge:
+  F_magnitude         : all train/eval = 0.3618/0.3404, sequence-last train/eval = 0.8731/0.8217
+  F_direction_x       : all train/eval = 0.9699/0.9697, sequence-last train/eval = 0.9942/0.9935
+  F_direction_y       : all train/eval = 0.9721/0.9724, sequence-last train/eval = 0.9952/0.9933
+  Fx                  : all train/eval = 0.3090/0.2590, sequence-last train/eval = 0.7928/0.7049
+  Fy                  : all train/eval = 0.2766/0.2884, sequence-last train/eval = 0.7880/0.5248
+  r                   : all train/eval = 0.7370/0.7316, sequence-last train/eval = 0.9228/0.9072
+  inv_r               : all train/eval = 0.6932/0.6889, sequence-last train/eval = 0.9636/0.9559
+  r_squared           : all train/eval = 0.5848/0.5819, sequence-last train/eval = 0.8482/0.8286
+  inv_r_squared       : all train/eval = 0.3618/0.3404, sequence-last train/eval = 0.8731/0.8217
+  inv_r_cubed         : all train/eval = 0.1182/0.0965, sequence-last train/eval = 0.7137/0.5993
+  x                   : all train/eval = 0.9838/0.9827, sequence-last train/eval = 0.9917/0.9916
+  y                   : all train/eval = 0.9813/0.9819, sequence-last train/eval = 0.9917/0.9911
+
+block_1_mlp_hidden:
+  F_magnitude         : all train/eval = 0.5529/0.4984, sequence-last train/eval = 0.9846/0.9077
+  F_direction_x       : all train/eval = 0.9817/0.9812, sequence-last train/eval = 0.9998/0.9988
+  F_direction_y       : all train/eval = 0.9853/0.9854, sequence-last train/eval = 0.9997/0.9988
+  Fx                  : all train/eval = 0.4513/0.3750, sequence-last train/eval = 0.9727/0.7854
+  Fy                  : all train/eval = 0.4083/0.4027, sequence-last train/eval = 0.9677/0.8206
+  r                   : all train/eval = 0.9691/0.9654, sequence-last train/eval = 0.9995/0.9972
+  inv_r               : all train/eval = 0.8541/0.8439, sequence-last train/eval = 0.9972/0.9872
+  r_squared           : all train/eval = 0.9315/0.9246, sequence-last train/eval = 0.9969/0.9842
+  inv_r_squared       : all train/eval = 0.5529/0.4984, sequence-last train/eval = 0.9846/0.9077
+  inv_r_cubed         : all train/eval = 0.2500/0.1782, sequence-last train/eval = 0.9579/0.7169
+  x                   : all train/eval = 0.9948/0.9943, sequence-last train/eval = 0.9997/0.9992
+  y                   : all train/eval = 0.9948/0.9948, sequence-last train/eval = 0.9998/0.9993
+
+block_1_mlp_output:
+  F_magnitude         : all train/eval = 0.3179/0.2954, sequence-last train/eval = 0.8709/0.8163
+  F_direction_x       : all train/eval = 0.9685/0.9681, sequence-last train/eval = 0.9950/0.9944
+  F_direction_y       : all train/eval = 0.9719/0.9720, sequence-last train/eval = 0.9966/0.9951
+  Fx                  : all train/eval = 0.2630/0.2266, sequence-last train/eval = 0.7429/0.6556
+  Fy                  : all train/eval = 0.2391/0.2475, sequence-last train/eval = 0.8083/0.5799
+  r                   : all train/eval = 0.7361/0.7234, sequence-last train/eval = 0.9795/0.9655
+  inv_r               : all train/eval = 0.6296/0.6242, sequence-last train/eval = 0.9700/0.9586
+  r_squared           : all train/eval = 0.6209/0.6055, sequence-last train/eval = 0.9393/0.9073
+  inv_r_squared       : all train/eval = 0.3179/0.2954, sequence-last train/eval = 0.8709/0.8163
+  inv_r_cubed         : all train/eval = 0.0998/0.0777, sequence-last train/eval = 0.7161/0.5983
+  x                   : all train/eval = 0.9552/0.9546, sequence-last train/eval = 0.9917/0.9918
+  y                   : all train/eval = 0.9521/0.9528, sequence-last train/eval = 0.9964/0.9954
+
+block_1_after_mlp_merge:
+  F_magnitude         : all train/eval = 0.3037/0.2831, sequence-last train/eval = 0.7978/0.7314
+  F_direction_x       : all train/eval = 0.9630/0.9628, sequence-last train/eval = 0.9960/0.9942
+  F_direction_y       : all train/eval = 0.9566/0.9581, sequence-last train/eval = 0.9951/0.9935
+  Fx                  : all train/eval = 0.2967/0.2492, sequence-last train/eval = 0.7166/0.6587
+  Fy                  : all train/eval = 0.2491/0.2581, sequence-last train/eval = 0.7209/0.5366
+  r                   : all train/eval = 0.7643/0.7579, sequence-last train/eval = 0.9704/0.9612
+  inv_r               : all train/eval = 0.6200/0.6211, sequence-last train/eval = 0.9434/0.9203
+  r_squared           : all train/eval = 0.6472/0.6347, sequence-last train/eval = 0.9225/0.9053
+  inv_r_squared       : all train/eval = 0.3037/0.2831, sequence-last train/eval = 0.7978/0.7314
+  inv_r_cubed         : all train/eval = 0.0941/0.0728, sequence-last train/eval = 0.6036/0.4879
+  x                   : all train/eval = 0.9993/0.9993, sequence-last train/eval = 1.0000/1.0000
+  y                   : all train/eval = 0.9975/0.9976, sequence-last train/eval = 1.0000/1.0000
+
+after_ln_f:
+  F_magnitude         : all train/eval = 0.3960/0.3667, sequence-last train/eval = 0.8127/0.7414
+  F_direction_x       : all train/eval = 0.9765/0.9759, sequence-last train/eval = 0.9967/0.9949
+  F_direction_y       : all train/eval = 0.9708/0.9711, sequence-last train/eval = 0.9970/0.9958
+  Fx                  : all train/eval = 0.3813/0.3194, sequence-last train/eval = 0.7632/0.6352
+  Fy                  : all train/eval = 0.3092/0.3150, sequence-last train/eval = 0.7843/0.6188
+  r                   : all train/eval = 0.7283/0.7202, sequence-last train/eval = 0.9187/0.9036
+  inv_r               : all train/eval = 0.7085/0.7026, sequence-last train/eval = 0.9407/0.9066
+  r_squared           : all train/eval = 0.5872/0.5804, sequence-last train/eval = 0.8376/0.8161
+  inv_r_squared       : all train/eval = 0.3960/0.3667, sequence-last train/eval = 0.8127/0.7414
+  inv_r_cubed         : all train/eval = 0.1402/0.1094, sequence-last train/eval = 0.6307/0.5191
+  x                   : all train/eval = 0.9888/0.9873, sequence-last train/eval = 0.9965/0.9966
+  y                   : all train/eval = 0.9856/0.9859, sequence-last train/eval = 0.9978/0.9968
+Evaluating on 500 trajectories...
+Conditioning length: 50, Generating 50 more steps per trajectory...
+Using sliding window with block_size=20
+
+Error Statistics (aggregated across all 500 trajectories):
+Mean position error: 1.377934 ± 0.639741
+Max position error: 3.595764
+R² scores:
+  X coordinate: -0.856377 ± 1.166528
+  Y coordinate: -0.881381 ± 1.187684
+Evaluating on 500 trajectories...
+Conditioning length: 50, Generating 50 more steps per trajectory...
+Using sliding window with block_size=20
+
+Error Statistics (aggregated across all 500 trajectories):
+Mean position error: 1.355280 ± 0.648482
+Max position error: 3.548634
+R² scores:
+  X coordinate: -0.905080 ± 1.291864
+  Y coordinate: -0.942643 ± 1.288683
+After evaluation at step 10: GPU Memory - Allocated: 0.086 GB, Reserved: 0.125 GB, Max Allocated: 0.143 GB
+Evaluation at step 10 completed.
+
+
+Evaluating at step 15...
+Activations collected:
+  input_embed: torch.Size([1000, 20, 32])
+  after_pos_emb: torch.Size([1000, 20, 32])
+  block_0_attn_output: torch.Size([1000, 20, 32])
+  block_0_after_attn_merge: torch.Size([1000, 20, 32])
+  block_0_mlp_hidden: torch.Size([1000, 20, 128])
+  block_0_mlp_output: torch.Size([1000, 20, 32])
+  block_0_after_mlp_merge: torch.Size([1000, 20, 32])
+  block_1_attn_output: torch.Size([1000, 20, 32])
+  block_1_after_attn_merge: torch.Size([1000, 20, 32])
+  block_1_mlp_hidden: torch.Size([1000, 20, 128])
+  block_1_mlp_output: torch.Size([1000, 20, 32])
+  block_1_after_mlp_merge: torch.Size([1000, 20, 32])
+  after_ln_f: torch.Size([1000, 20, 32])
