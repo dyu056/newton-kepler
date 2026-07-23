@@ -55,15 +55,16 @@ class MLP2(nn.Module):
         mult = config.mlp_mult
         self.c_fc   = nn.Linear(config.n_embd, mult * config.n_embd, bias=config.bias)
         self.c_fc2  = nn.Linear(mult * config.n_embd, mult * config.n_embd, bias=config.bias)
-        self.silu   = nn.SiLU()
+        self.silu1  = nn.SiLU()   # first hidden layer activation
+        self.silu2  = nn.SiLU()   # second hidden layer activation
         self.c_proj = nn.Linear(mult * config.n_embd, config.n_embd, bias=config.bias)
         self.dropout = nn.Dropout(config.dropout)
 
     def forward(self, x):
         x = self.c_fc(x)
-        x = self.silu(x)
+        x = self.silu1(x)          # hook: block_0_mlp_hidden1
         x = self.c_fc2(x)
-        x = self.silu(x)
+        x = self.silu2(x)          # hook: block_0_mlp_hidden2
         x = self.c_proj(x)
         x = self.dropout(x)
         return x

@@ -65,26 +65,30 @@ def setup_hooks(model):
     # Per-block hooks
     for block_idx in range(n_layer):
         block = model.transformer.h[block_idx]
-        has_attn = hasattr(block, 'attn')
 
-        # Pre-MLP representation
-        if has_attn:
-            hooks.append(block.attn.register_forward_hook(make_hook(f'block_{block_idx}_attn_output')))
-        else:
-            hooks.append(block.ln.register_forward_hook(make_hook(f'block_{block_idx}_attn_output')))
-
-        # Input to MLP
+        # 1. Input to MLP (after LN/attn+residual)
         hooks.append(block.mlp.register_forward_pre_hook(make_pre_hook(f'block_{block_idx}_after_attn_merge')))
 
-        # MLP output
+        # 2. c_fc output (pre-silu1)
+        hooks.append(block.mlp.c_fc.register_forward_hook(make_hook(f'block_{block_idx}_mlp_fc1')))
+
+        # 3-4. Hidden activations
+        if hasattr(block.mlp, 'silu1'):
+            hooks.append(block.mlp.silu1.register_forward_hook(make_hook(f'block_{block_idx}_mlp_hidden1')))
+        if hasattr(block.mlp, 'silu2'):
+            hooks.append(block.mlp.silu2.register_forward_hook(make_hook(f'block_{block_idx}_mlp_hidden2')))
+        elif hasattr(block.mlp, 'silu'):
+            hooks.append(block.mlp.silu.register_forward_hook(make_hook(f'block_{block_idx}_mlp_hidden')))
+
+        # 5. c_fc2 output (pre-silu2)
+        if hasattr(block.mlp, 'c_fc2'):
+            hooks.append(block.mlp.c_fc2.register_forward_hook(make_hook(f'block_{block_idx}_mlp_fc2')))
+
+        # 6. MLP output (pre-residual)
         hooks.append(block.mlp.register_forward_hook(make_hook(f'block_{block_idx}_mlp_output')))
 
-        # After MLP merge (block output)
+        # 7. Block output (after residual merge)
         hooks.append(block.register_forward_hook(make_hook(f'block_{block_idx}_after_mlp_merge')))
-
-        # MLP hidden activation
-        if hasattr(block.mlp, 'silu'):
-            hooks.append(block.mlp.silu.register_forward_hook(make_hook(f'block_{block_idx}_mlp_hidden')))
 
     print(f"Registered {len(hooks)} hooks across {n_layer} blocks")
     return hooks, activation_dict
@@ -243,7 +247,7 @@ def main():
     # Order layers naturally
     layer_order = ['input_embed', 'after_pos_emb']
     for i in range(args.n_layer):
-        for suffix in ['attn_output','after_attn_merge','mlp_output','after_mlp_merge','mlp_hidden']:
+        for suffix in ['after_attn_merge','mlp_fc1','mlp_hidden1','mlp_fc2','mlp_hidden2','mlp_output','after_mlp_merge']:
             layer_order.append(f'block_{i}_{suffix}')
     layer_order.append('after_ln_f')
 

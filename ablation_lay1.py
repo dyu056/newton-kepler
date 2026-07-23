@@ -536,64 +536,78 @@ def setup_activation_hooks(model):
             return x[0].detach()
         return x.detach()
     
-    # Hook for attention output BEFORE merging into residual
-    def make_attn_output_hook(block_idx):
-        def hook(module, input, output):
-            activation_dict[f'block_{block_idx}_attn_output'] = extract_tensor(output)
-        return hook
-    
-    # Hook for residual stream AFTER attention merge (input to MLP)
+    # Hook for residual stream / MLP input (after attention-or-LN merge)
     def make_after_attn_merge_hook(block_idx):
         def hook(module, input):
-            # MLP receives the residual stream after attention merge
             activation_dict[f'block_{block_idx}_after_attn_merge'] = extract_tensor(input)
         return hook
-    
-    # Hook for MLP output BEFORE merging into residual
+
+    # Hook for MLP first linear output (c_fc, pre-silu1)
+    def make_mlp_fc1_hook(block_idx):
+        def hook(module, input, output):
+            activation_dict[f'block_{block_idx}_mlp_fc1'] = extract_tensor(output)
+        return hook
+
+    # Hook for MLP second linear output (c_fc2, pre-silu2)
+    def make_mlp_fc2_hook(block_idx):
+        def hook(module, input, output):
+            activation_dict[f'block_{block_idx}_mlp_fc2'] = extract_tensor(output)
+        return hook
+
+    # Hook for MLP first hidden activation (after silu1)
+    def make_mlp_hidden1_hook(block_idx):
+        def hook(module, input, output):
+            activation_dict[f'block_{block_idx}_mlp_hidden1'] = extract_tensor(output)
+        return hook
+
+    # Hook for MLP second hidden activation (after silu2)
+    def make_mlp_hidden2_hook(block_idx):
+        def hook(module, input, output):
+            activation_dict[f'block_{block_idx}_mlp_hidden2'] = extract_tensor(output)
+        return hook
+
+    # Hook for MLP output before merge
     def make_mlp_output_hook(block_idx):
         def hook(module, input, output):
             activation_dict[f'block_{block_idx}_mlp_output'] = extract_tensor(output)
         return hook
-    
-    # Hook for residual stream AFTER MLP merge (output of block)
+
+    # Hook for residual stream after MLP merge (block output)
     def make_after_mlp_merge_hook(block_idx):
         def hook(module, input, output):
-            # Block output is the residual stream after MLP merge
             activation_dict[f'block_{block_idx}_after_mlp_merge'] = extract_tensor(output)
         return hook
-    
-    # Hook for MLP hidden activation after silu
-    def make_mlp_hidden_hook(block_idx):
-        def hook(module, input, output):
-            activation_dict[f'block_{block_idx}_mlp_hidden'] = extract_tensor(output)
-        return hook
-    
+
     # Register hooks for each transformer block
     for block_idx in range(n_layer):
         block = model.transformer.h[block_idx]
-        
-        # 1. Attention output before merge (or LN output for MLP-only models)
-        has_attn = hasattr(block, 'attn')
-        if has_attn:
-            hook = block.attn.register_forward_hook(make_attn_output_hook(block_idx))
-        else:
-            hook = block.ln.register_forward_hook(make_attn_output_hook(block_idx))
-        hooks.append(hook)
-        
-        # 2. Residual after attention merge (input to MLP)
+
+        # 1. MLP input (after LN or attn+residual merge)
         hook = block.mlp.register_forward_pre_hook(make_after_attn_merge_hook(block_idx))
         hooks.append(hook)
-        
-        # 3. MLP output before merge
+
+        # 2. c_fc output (pre-silu1)
+        hook = block.mlp.c_fc.register_forward_hook(make_mlp_fc1_hook(block_idx))
+        hooks.append(hook)
+
+        # 3. First hidden (after silu1)
+        hook = block.mlp.silu1.register_forward_hook(make_mlp_hidden1_hook(block_idx))
+        hooks.append(hook)
+
+        # 4. c_fc2 output (pre-silu2)
+        hook = block.mlp.c_fc2.register_forward_hook(make_mlp_fc2_hook(block_idx))
+        hooks.append(hook)
+
+        # 5. Second hidden (after silu2)
+        hook = block.mlp.silu2.register_forward_hook(make_mlp_hidden2_hook(block_idx))
+        hooks.append(hook)
+
+        # 6. MLP output (pre-residual merge)
         hook = block.mlp.register_forward_hook(make_mlp_output_hook(block_idx))
         hooks.append(hook)
-        
-        # 4. Residual after MLP merge (block output)
+
+        # 7. Block output (after residual merge)
         hook = block.register_forward_hook(make_after_mlp_merge_hook(block_idx))
-        hooks.append(hook)
-        
-        # 5. MLP hidden activation after silu
-        hook = block.mlp.silu.register_forward_hook(make_mlp_hidden_hook(block_idx))
         hooks.append(hook)
     
     # Also register hooks for input embedding and final layer norm
@@ -622,7 +636,7 @@ def setup_activation_hooks(model):
     hooks.append(hook)
     
     print(f"Hooks registered for {n_layer} transformer blocks:")
-    print(f"  For each block: attn_output, after_attn_merge, mlp_output, after_mlp_merge, mlp_hidden")
+    print(f"  For each block: after_attn_merge, mlp_fc1, mlp_hidden1, mlp_fc2, mlp_hidden2, mlp_output, after_mlp_merge")
     print(f"  Additional: input_embed, after_pos_emb, after_ln_f")
     print(f"  Total hooks: {len(hooks)}")
     

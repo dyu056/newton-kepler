@@ -26,12 +26,22 @@ OBS_KEYS = ['Fx', 'Fy', 'F_magnitude', 'r', 'x', 'y']
 
 LAYER_ORDER = [
     'input_embed', 'after_pos_emb',
-    'block_0_attn_output', 'block_0_after_attn_merge',
-    'block_0_mlp_hidden', 'block_0_mlp_output', 'block_0_after_mlp_merge',
+    'block_0_after_attn_merge',
+    'block_0_mlp_fc1', 'block_0_mlp_hidden1',
+    'block_0_mlp_fc2', 'block_0_mlp_hidden2',
+    'block_0_mlp_output', 'block_0_after_mlp_merge',
     'after_ln_f',
 ]
-LAYER_LABELS = ['emb', '+pos', 'b0\na', 'b0\n+a',
-                'b0\nmh', 'b0\nmo', 'b0\n+m', 'LN']
+LAYER_LABELS = [
+    'input\nembed',
+    '+ pos\nembed',
+    'MLP\ninput',
+    'Linear1\nout', 'SiLU1\nout',
+    'Linear2\nout', 'SiLU2\nout',
+    'MLP\noutput',
+    '+ residual',
+    'final\nLN',
+]
 
 OBS_LABELS = {
     'Fx': r'$F_x$', 'Fy': r'$F_y$', 'F_magnitude': r'$|F|$',
