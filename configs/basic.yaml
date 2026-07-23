@@ -8,9 +8,9 @@ data:
 model:
   n_layer: 1
   n_head: 1
-  n_embd: 32
+  n_embd: 128
 training:
-  block_sizes: [2,5,20,50]
+  block_sizes: [2,5,20,50,100]
   noise_scale: 0.1
   learning_rate: 0.001
   weight_decay: 0.0
@@ -31,19 +31,19 @@ probe:
     - start: 0
       end: 200
       every: 5
-    - start: 100
-      end: 2000
+    - start: 200
+      end: 20000
       every: 100
 
 observe:
   activation_rank:
-    enabled: false
+    enabled: true
   attention_entropy:
-    enabled: false
+    enabled: true
   variance_covariance:
-    enabled: false
+    enabled: true
   singular_values:        # 新增
-    enabled: false
+    enabled: true
     num_singular_values: 5
 
 # The values are measured and saved but do not contribute to total_loss.

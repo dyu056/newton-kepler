@@ -1,7 +1,6 @@
 """Single training entry point for Newton-Kepler experiments."""
 
 import argparse
-import contextlib
 import os
 import shutil
 import sys
@@ -68,6 +67,59 @@ np.random.seed(seed)
 torch.manual_seed(seed)
 num_points_per_trajectory = 100
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+_ACTIVE_RESULT_PATH = None
+_ACTIVE_RESULT_METADATA = {}
+
+
+def _atomic_save_npz(path, payload):
+    """Atomically replace an NPZ file without compression overhead."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary_path = path.with_suffix(path.suffix + ".tmp")
+    with temporary_path.open("wb") as file:
+        np.savez(file, **payload)
+    os.replace(temporary_path, path)
+
+
+def _save_partial_training_state(
+    completed_step, train_losses, total_losses, test_losses,
+    variance_losses, covariance_losses, representation_mean_stds,
+    weighted_variance_terms, weighted_covariance_terms, entropy_terms,
+    eval_results, eval_steps,
+):
+    """Persist the latest recoverable metrics while training is still running."""
+    if _ACTIVE_RESULT_PATH is None:
+        return
+    payload = dict(_ACTIVE_RESULT_METADATA)
+    payload.update({
+        "status": "partial",
+        "completed_steps": int(completed_step),
+        "train_losses": train_losses,
+        "total_losses": total_losses,
+        "test_losses": test_losses,
+        "variance_losses": variance_losses,
+        "covariance_losses": covariance_losses,
+        "representation_mean_stds": representation_mean_stds,
+        "weighted_variance_terms": weighted_variance_terms,
+        "weighted_covariance_terms": weighted_covariance_terms,
+        "entropy_terms": entropy_terms,
+        "eval_results": eval_results,
+        "eval_steps": eval_steps,
+    })
+    _atomic_save_npz(_ACTIVE_RESULT_PATH, payload)
+
+
+def _result_is_complete(path):
+    """Treat legacy files without a status field as complete."""
+    try:
+        with np.load(path, allow_pickle=True) as result:
+            if "status" not in result.files:
+                return True
+            return str(result["status"].item()) == "complete"
+    except Exception:
+        return False
 
 
 @dataclass(frozen=True)
@@ -216,9 +268,6 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
     eval_results = []
     eval_steps = []
 
-    # ---- 新增：缓存权重奇异值（整个训练过程只计算一次） ----
-    weight_sv_cache = None
-
     observables = ObservablesConfig(
         probe=probe_enabled,
         activation_rank=activation_rank_enabled,
@@ -258,6 +307,8 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
         probe_train_trajectory_ids = None
         probe_eval_trajectory_ids = None
 
+    latest_test_loss = float("nan")
+
     probe_metadata = {
         'schema_version': 2, 'fit_split': 'model_train', 'eval_split': 'model_test',
         'primary_metric': 'eval_r2', 'sampling_method': 'torch.randperm',
@@ -294,7 +345,10 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
         predictions, _ = model.forward(inputs_noised, None, compute_entropy=compute_entropy)
         mse_loss = compute_loss_with_mask(predictions, batch_targets, loss_mask=loss_mask)
 
-        variance_source, covariance_source = model.variance_covariance_penalties()
+        variance_source = None
+        covariance_source = None
+        if varcov_reg_enabled and completed_step >= varcov_reg_start:
+            variance_source, covariance_source = model.variance_covariance_penalties()
 
         zero = mse_loss.new_zeros(())
         variance_term = zero
@@ -310,16 +364,11 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
                 covariance_term = covariance_reg_weight * covariance_source
                 total_loss = total_loss + covariance_term
 
-        # 新增：注意力熵正则化
         if compute_entropy:
             entropy_penalty = model.attention_entropy_penalty()
             if entropy_penalty is not None:
                 entropy_term = attention_entropy_weight * entropy_penalty
                 total_loss = total_loss + entropy_term
-            else:
-                entropy_term = torch.tensor(0.0, device=total_loss.device)
-        else:
-            entropy_term = torch.tensor(0.0, device=total_loss.device)
 
         total_loss.backward()
         optimizer.step()
@@ -333,11 +382,14 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
             float(covariance_source.detach().item())
             if covariance_source is not None else float("nan")
         )
-        layer_stats = model.variance_covariance_stats()
-        representation_mean_stds.append(
-            float(np.mean([v["mean_std"] for v in layer_stats.values()]))
-            if layer_stats else float("nan")
-        )
+        if varcov_observe_enabled:
+            layer_stats = model.variance_covariance_stats()
+            representation_mean_stds.append(
+                float(np.mean([v["mean_std"] for v in layer_stats.values()]))
+                if layer_stats else float("nan")
+            )
+        else:
+            representation_mean_stds.append(float("nan"))
         weighted_variance_terms.append(float(variance_term.detach().item()))
         weighted_covariance_terms.append(float(covariance_term.detach().item()))
         entropy_terms.append(float(entropy_term.detach().item()))  # 记录熵正则项
@@ -345,21 +397,32 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
         # Clear intermediate variables to save memory
         del inputs_noised, predictions, batch_inputs, batch_targets, batch_indices
 
-        # Compute test loss (no gradient) - use batch
-        with torch.no_grad():
-            test_batch_indices = torch.randint(0, test_inputs.shape[0], (batch_size,))
-            test_batch_inputs = test_inputs[test_batch_indices].to(device)
-            test_batch_targets = test_targets[test_batch_indices].to(device)
-            test_predictions, _ = model.forward(test_batch_inputs, None)
-            test_loss = compute_loss_with_mask(test_predictions, test_batch_targets, loss_mask=loss_mask)
+        evaluation_due = (
+            observables.needs_periodic_eval
+            and should_run_probe(completed_step, prob_freq, probe_schedule)
+        )
+        test_due = evaluation_due or i % 100 == 0
+        if test_due:
+            was_training = model.training
+            model.eval()
+            with torch.no_grad():
+                test_batch_indices = torch.randint(0, test_inputs.shape[0], (batch_size,))
+                test_batch_inputs = test_inputs[test_batch_indices].to(device)
+                test_batch_targets = test_targets[test_batch_indices].to(device)
+                test_predictions, _ = model.forward(test_batch_inputs, None)
+                test_loss = compute_loss_with_mask(
+                    test_predictions, test_batch_targets, loss_mask=loss_mask
+                )
+                latest_test_loss = float(test_loss.item())
+            model.train(was_training)
             del test_batch_inputs, test_batch_targets, test_batch_indices, test_predictions
-            test_losses.append(test_loss.item())
+        test_losses.append(latest_test_loss)
 
         if progress_bar is not None:
             progress_bar.set_postfix(
                 mse=f"{mse_loss.item():.4g}",
                 total=f"{total_loss.item():.4g}",
-                test=f"{test_loss.item():.4g}",
+                test=f"{latest_test_loss:.4g}",
                 refresh=False,
             )
             progress_bar.update(1)
@@ -367,14 +430,12 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
         if i % 100 == 0:
             memory_stats = get_gpu_memory_stats()
             print(f"Step {completed_step}, MSE: {mse_loss.item():.6f}, "
-                    f"Total Loss: {total_loss.item():.6f}, Test Loss: {test_loss.item():.6f}, "
-                    f"GPU Memory: {memory_stats['allocated_gb']:.3f} GB")
-            # Periodically clear GPU cache to prevent memory fragmentation
-            if i % 500 == 0 and i > 0:
-                clear_gpu_cache()
+                  f"Total Loss: {total_loss.item():.6f}, "
+                  f"Test Loss: {latest_test_loss:.6f}, "
+                  f"GPU Memory: {memory_stats['allocated_gb']:.3f} GB")
 
         # Evaluate according to the fixed frequency or piecewise schedule.
-        if observables.needs_periodic_eval and should_run_probe(completed_step, prob_freq, probe_schedule):
+        if evaluation_due:
             print(f"\nEvaluating at step {completed_step}...")
             eval_step_results = {}
 
@@ -395,7 +456,7 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
 
             if observables.needs_activation_capture:
                 activation_dict.clear()
-                train_predictions, train_force = collect_activations(
+                _, train_force = collect_activations(
                     model, probe_train_inputs, probe_train_targets, activation_dict,
                     verbose=probe_verbose
                 )
@@ -404,7 +465,7 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
                 was_training = model.training
                 model.eval()
                 with torch.no_grad():
-                    train_predictions, _ = model(probe_train_inputs, None)
+                    _, _ = model(probe_train_inputs, None)
                 model.train(was_training)
 
             train_varcov_stats = (
@@ -419,7 +480,7 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
 
             if observables.needs_activation_capture:
                 activation_dict.clear()
-                eval_predictions, eval_force = collect_activations(
+                _, eval_force = collect_activations(
                     model, probe_eval_inputs, probe_eval_targets, activation_dict,
                     verbose=probe_verbose
                 )
@@ -428,7 +489,7 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
                 was_training = model.training
                 model.eval()
                 with torch.no_grad():
-                    eval_predictions, _ = model(probe_eval_inputs, None)
+                    _, _ = model(probe_eval_inputs, None)
                 model.train(was_training)
 
             eval_varcov_stats = (
@@ -504,9 +565,9 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
                 eval_step_results['geometry_probe_results'] = None
 
             if singular_values_enabled:
-                if weight_sv_cache is None:
-                    weight_sv_cache = compute_weight_singular_values(model, num_singular_values=singular_values_num)
-                eval_step_results['weight_singular_values'] = weight_sv_cache
+                eval_step_results['weight_singular_values'] = compute_weight_singular_values(
+                    model, num_singular_values=singular_values_num
+                )
             else:
                 eval_step_results['weight_singular_values'] = None
 
@@ -520,10 +581,7 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
                 eval_step_results['activation_singular_values'] = None
 
             # Clear activations from GPU after probing to free memory
-            for key in list(activation_dict.keys()):
-                del activation_dict[key]
             activation_dict.clear()
-            del train_predictions, eval_predictions
             if train_force is not None:
                 del train_force, eval_force
             if train_activation_dict is not None:
@@ -562,19 +620,29 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
 
             # Clear sample data
             del probe_train_inputs, probe_train_targets, probe_eval_inputs, probe_eval_targets
-            clear_gpu_cache()
             eval_step_results['error_stats_train'] = error_stats_train
             eval_step_results['error_stats_test'] = error_stats_test
             eval_step_results['step'] = completed_step
 
             eval_results.append(eval_step_results)
             eval_steps.append(completed_step)
-
-            # Clear GPU cache after evaluation
-            clear_gpu_cache()
+            _save_partial_training_state(
+                completed_step, train_losses, total_losses, test_losses,
+                variance_losses, covariance_losses, representation_mean_stds,
+                weighted_variance_terms, weighted_covariance_terms, entropy_terms,
+                eval_results, eval_steps,
+            )
 
             memory_stats = print_gpu_memory_stats(f"After evaluation at step {completed_step}: ")
             print(f"Evaluation at step {completed_step} completed.\n")
+
+        if i % 100 == 0 and not evaluation_due:
+            _save_partial_training_state(
+                completed_step, train_losses, total_losses, test_losses,
+                variance_losses, covariance_losses, representation_mean_stds,
+                weighted_variance_terms, weighted_covariance_terms, entropy_terms,
+                eval_results, eval_steps,
+            )
 
     # Final memory stats
     final_memory = print_gpu_memory_stats("Final: ")
@@ -947,6 +1015,7 @@ def _config_list(config, plural_key, singular_key, default):
 
 
 def run_configured_experiments(config, run_dir, overwrite=False, console_stream=None):
+    global _ACTIVE_RESULT_PATH, _ACTIVE_RESULT_METADATA
     data_config = config["data"]
     model_config = config["model"]
     training_config = config["training"]
@@ -1124,14 +1193,16 @@ def run_configured_experiments(config, run_dir, overwrite=False, console_stream=
                             refresh=True,
                         )
 
-                    if result_path.exists() and not overwrite:
+                    if result_path.exists() and not overwrite and _result_is_complete(result_path):
                         print(
                             f"[{run_index}/{total_runs}] "
-                            f"Skipping existing result: {result_path}"
+                            f"Skipping completed result: {result_path}"
                         )
                         if progress_bar is not None:
                             progress_bar.update(n_steps)
                         continue
+                    if result_path.exists() and not overwrite:
+                        print(f"Restarting incomplete result: {result_path}")
 
                     print("\n" + "=" * 80)
                     print(f"[{run_index}/{total_runs}] Starting {filename}")
@@ -1144,47 +1215,63 @@ def run_configured_experiments(config, run_dir, overwrite=False, console_stream=
                     if torch.cuda.is_available():
                         torch.cuda.manual_seed_all(experiment_seed)
 
-                    results = train_one_model(
-                        block_size=block_size,
-                        data_dir=data_dir,
-                        noise_scale=noise_scale,
-                        lr=learning_rate,
-                        weight_decay=weight_decay,
-                        n_layer=n_layer,
-                        n_head=n_head,
-                        n_embd=n_embd,
-                        num_trajectories=num_trajectories,
-                        n_steps=n_steps,
-                        prob_freq=probe_frequency,
-                        loss_mask=loss_mask,
-                        seed=experiment_seed,
-                        batch_size=batch_size,
-                        scale_batch_by_context=scale_batch_by_context,
-                        progress_bar=progress_bar,
-                        probe_schedule=probe_schedule,
-                        probe_enabled=probe_enabled,
-                        probe_num_train_samples=probe_num_train_samples,
-                        probe_num_eval_samples=probe_num_eval_samples,
-                        probe_verbose=probe_verbose,
-                        probe_geometry_enabled=probe_geometry_enabled,
-                        activation_rank_enabled=activation_rank_enabled,
-                        attention_entropy_enabled=attention_entropy_enabled,
-                        varcov_observe_enabled=varcov_observe_enabled,
-                        singular_values_enabled=singular_values_enabled,
-                        singular_values_num=singular_values_num,
-                        rollout_enabled=rollout_enabled,
-                        varcov_reg_enabled=varcov_reg_enabled,
-                        varcov_reg_start=varcov_reg_start,
-                        varcov_target_std=varcov_target_std,
-                        variance_reg_weight=variance_reg_weight,
-                        covariance_reg_weight=covariance_reg_weight,
-                        attention_entropy_reg_enabled=attention_entropy_reg_enabled,
-                        attention_entropy_weight=attention_entropy_weight,
-                        attention_entropy_start=attention_entropy_start,
-                    )
+                    _ACTIVE_RESULT_PATH = result_path
+                    _ACTIVE_RESULT_METADATA = {
+                        "block_size": block_size,
+                        "noise_scale": noise_scale,
+                        "loss_mask": loss_mask,
+                        "seed": experiment_seed,
+                        "n_steps": n_steps,
+                    }
 
-                    np.savez_compressed(result_path, **results)
-                    print(f"Saved result to: {result_path}")
+                    try:
+                        results = train_one_model(
+                            block_size=block_size,
+                            data_dir=data_dir,
+                            noise_scale=noise_scale,
+                            lr=learning_rate,
+                            weight_decay=weight_decay,
+                            n_layer=n_layer,
+                            n_head=n_head,
+                            n_embd=n_embd,
+                            num_trajectories=num_trajectories,
+                            n_steps=n_steps,
+                            prob_freq=probe_frequency,
+                            loss_mask=loss_mask,
+                            seed=experiment_seed,
+                            batch_size=batch_size,
+                            scale_batch_by_context=scale_batch_by_context,
+                            progress_bar=progress_bar,
+                            probe_schedule=probe_schedule,
+                            probe_enabled=probe_enabled,
+                            probe_num_train_samples=probe_num_train_samples,
+                            probe_num_eval_samples=probe_num_eval_samples,
+                            probe_verbose=probe_verbose,
+                            probe_geometry_enabled=probe_geometry_enabled,
+                            activation_rank_enabled=activation_rank_enabled,
+                            attention_entropy_enabled=attention_entropy_enabled,
+                            varcov_observe_enabled=varcov_observe_enabled,
+                            singular_values_enabled=singular_values_enabled,
+                            singular_values_num=singular_values_num,
+                            rollout_enabled=rollout_enabled,
+                            varcov_reg_enabled=varcov_reg_enabled,
+                            varcov_reg_start=varcov_reg_start,
+                            varcov_target_std=varcov_target_std,
+                            variance_reg_weight=variance_reg_weight,
+                            covariance_reg_weight=covariance_reg_weight,
+                            attention_entropy_reg_enabled=attention_entropy_reg_enabled,
+                            attention_entropy_weight=attention_entropy_weight,
+                            attention_entropy_start=attention_entropy_start,
+                        )
+
+                        final_payload = dict(results)
+                        final_payload["status"] = "complete"
+                        final_payload["completed_steps"] = n_steps
+                        _atomic_save_npz(result_path, final_payload)
+                        print(f"Saved result to: {result_path}")
+                    finally:
+                        _ACTIVE_RESULT_PATH = None
+                        _ACTIVE_RESULT_METADATA = {}
     finally:
         if progress_bar is not None:
             progress_bar.close()
@@ -1206,34 +1293,31 @@ def main():
     if config_path != saved_config_path.resolve():
         shutil.copy2(config_path, saved_config_path)
 
-    log_path = run_dir / "train.log"
-    with open(log_path, "a", encoding="utf-8", buffering=1) as log_file:
-        with contextlib.redirect_stdout(log_file), contextlib.redirect_stderr(log_file):
-            print("\n" + "#" * 80)
-            print(f"Run started: {datetime.now().isoformat(timespec='seconds')}")
-            print(f"Config: {config_path}")
-            print(f"Run name: {args.run_name}")
-            print(f"Output directory: {run_dir.resolve()}")
-            print(
-                "Requested physical GPU: "
-                f"{args.gpu if args.gpu is not None else 'environment/default'}"
-            )
-            print(
-                "CUDA_VISIBLE_DEVICES: "
-                f"{os.environ.get('CUDA_VISIBLE_DEVICES', '<not set>')}"
-            )
-            print(f"PyTorch device: {device}")
-            if torch.cuda.is_available():
-                print(f"Visible CUDA devices: {torch.cuda.device_count()}")
-                print(f"Active CUDA device name: {torch.cuda.get_device_name(0)}")
+    print("\n" + "#" * 80)
+    print(f"Run started: {datetime.now().isoformat(timespec='seconds')}")
+    print(f"Config: {config_path}")
+    print(f"Run name: {args.run_name}")
+    print(f"Output directory: {run_dir.resolve()}")
+    print(
+        "Requested physical GPU: "
+        f"{args.gpu if args.gpu is not None else 'environment/default'}"
+    )
+    print(
+        "CUDA_VISIBLE_DEVICES: "
+        f"{os.environ.get('CUDA_VISIBLE_DEVICES', '<not set>')}"
+    )
+    print(f"PyTorch device: {device}")
+    if torch.cuda.is_available():
+        print(f"Visible CUDA devices: {torch.cuda.device_count()}")
+        print(f"Active CUDA device name: {torch.cuda.get_device_name(0)}")
 
-            run_configured_experiments(
-                config=config,
-                run_dir=run_dir,
-                overwrite=args.overwrite,
-                console_stream=console_stream,
-            )
-            print(f"Run finished: {datetime.now().isoformat(timespec='seconds')}")
+    run_configured_experiments(
+        config=config,
+        run_dir=run_dir,
+        overwrite=args.overwrite,
+        console_stream=console_stream,
+    )
+    print(f"Run finished: {datetime.now().isoformat(timespec='seconds')}")
 
 
 if __name__ == "__main__":

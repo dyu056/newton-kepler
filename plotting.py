@@ -2,8 +2,102 @@ import re
 import sys
 from pathlib import Path
 
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
+
+
+# ── Publication-style visual theme ─────────────────────────────────────
+FX_COLORS = {
+    "all_train": "#87CEEB",
+    "all_eval": "#5B9BD5",
+    "seq_train": "#2166AC",
+    "seq_eval": "#08306B",
+}
+FY_COLORS = {
+    "all_train": "#F6B26B",
+    "all_eval": "#E67E22",
+    "seq_train": "#C44E52",
+    "seq_eval": "#8C2D2D",
+}
+LOSS_COLORS = {
+    "train": "#2166AC",
+    "test": "#C44E52",
+    "total": "#6A51A3",
+}
+OBSERVABLE_COLORS = [
+    "#08306B", "#2166AC", "#5B9BD5", "#87CEEB",
+    "#8C2D2D", "#C44E52", "#E67E22", "#F6B26B",
+    "#6A51A3", "#4C956C",
+]
+
+plt.rcParams.update({
+    "font.family": "serif",
+    "font.serif": ["Times New Roman", "DejaVu Serif"],
+    "font.size": 10,
+    "axes.titlesize": 11,
+    "axes.labelsize": 10,
+    "axes.titleweight": "bold",
+    "axes.grid": True,
+    "axes.axisbelow": True,
+    "axes.unicode_minus": False,
+    "xtick.direction": "in",
+    "ytick.direction": "in",
+    "lines.linewidth": 1.7,
+    "legend.fontsize": 8,
+    "grid.linestyle": "--",
+    "grid.alpha": 0.28,
+    "figure.dpi": 200,
+    "savefig.dpi": 200,
+    "savefig.bbox": "tight",
+})
+
+
+def _style_axis(ax):
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.tick_params(which="both", direction="in")
+    ax.grid(True, linestyle="--", alpha=0.28)
+
+
+def _markevery(length, target_markers=9):
+    return max(1, int(length) // target_markers)
+
+
+def _positive_for_log(values):
+    values = np.asarray(values, dtype=float).copy()
+    values[~np.isfinite(values) | (values <= 0)] = np.nan
+    return values
+
+
+def _pretty_layer_name(name):
+    fixed = {
+        "input_embed": "Input embedding",
+        "after_pos_emb": "After positional embedding",
+        "after_ln_f": "Final layer norm",
+    }
+    if name in fixed:
+        return fixed[name]
+
+    match = re.match(r"block_(\d+)_(.*)", name)
+    if not match:
+        return name.replace("_", " ")
+
+    block_idx, suffix = match.groups()
+    suffix_labels = {
+        "attn_output": "Attention output",
+        "after_attn_merge": "After attention residual",
+        "mlp_fc1": "MLP linear 1 output",
+        "mlp_hidden1": "MLP SiLU 1 output",
+        "mlp_fc2": "MLP linear 2 output",
+        "mlp_hidden2": "MLP SiLU 2 output",
+        "mlp_hidden": "MLP hidden activation",
+        "mlp_output": "MLP output",
+        "after_mlp_merge": "After MLP residual",
+    }
+    label = suffix_labels.get(suffix, suffix.replace("_", " "))
+    return f"Block {block_idx}\n{label}"
 
 
 def _to_python(value):
@@ -132,6 +226,7 @@ def extract_probe_r2_from_npz(result, targets=("Fx", "Fy")):
 
 
 def plot_losses(result, output_png):
+    """Plot train/test losses using the shared publication-style palette."""
     train_losses = np.asarray(result.get("train_losses", []), dtype=float)
     test_losses = np.asarray(result.get("test_losses", []), dtype=float)
     total_losses = np.asarray(result.get("total_losses", []), dtype=float)
@@ -140,73 +235,178 @@ def plot_losses(result, output_png):
         print("No loss data found.")
         return False
 
-    plt.figure(figsize=(8, 5))
-    if train_losses.size:
-        plt.plot(np.arange(1, train_losses.size + 1), train_losses, label="train MSE")
-    if test_losses.size:
-        plt.plot(np.arange(1, test_losses.size + 1), test_losses, label="test MSE")
-    if total_losses.size:
-        same_as_train = (
-            train_losses.size == total_losses.size
-            and np.allclose(total_losses, train_losses, equal_nan=True)
+    has_train_panel = train_losses.size > 0 or total_losses.size > 0
+    has_test_panel = test_losses.size > 0
+    n_panels = int(has_train_panel) + int(has_test_panel)
+
+    fig, axes = plt.subplots(
+        1,
+        max(1, n_panels),
+        figsize=(7.4 * max(1, n_panels), 5.2),
+        squeeze=False,
+    )
+    axes = axes.reshape(-1)
+    panel_idx = 0
+
+    if has_train_panel:
+        ax = axes[panel_idx]
+        panel_idx += 1
+
+        if train_losses.size:
+            train_steps = np.arange(1, train_losses.size + 1)
+            ax.plot(
+                train_steps,
+                _positive_for_log(train_losses),
+                color=LOSS_COLORS["train"],
+                label="Train MSE",
+                linewidth=1.6,
+                alpha=0.92,
+            )
+
+        if total_losses.size:
+            same_as_train = (
+                train_losses.size == total_losses.size
+                and np.allclose(total_losses, train_losses, equal_nan=True)
+            )
+            if not same_as_train:
+                total_steps = np.arange(1, total_losses.size + 1)
+                ax.plot(
+                    total_steps,
+                    _positive_for_log(total_losses),
+                    color=LOSS_COLORS["total"],
+                    label="Total loss",
+                    linewidth=1.5,
+                    alpha=0.86,
+                )
+
+        ax.set_title("Training Loss")
+        ax.set_xlabel("Training step")
+        ax.set_ylabel("Loss")
+        ax.set_yscale("log")
+        ax.legend(frameon=False, loc="best")
+        _style_axis(ax)
+
+    if has_test_panel:
+        ax = axes[panel_idx]
+        test_steps = np.arange(1, test_losses.size + 1)
+        ax.plot(
+            test_steps,
+            _positive_for_log(test_losses),
+            color=LOSS_COLORS["test"],
+            label="Test MSE",
+            linewidth=1.6,
+            alpha=0.92,
         )
-        if not same_as_train:
-            plt.plot(np.arange(1, total_losses.size + 1), total_losses, label="total loss", alpha=0.8)
-    plt.xlabel("Step")
-    plt.ylabel("Loss")
-    plt.yscale("log")
-    plt.grid(True, alpha=0.3)
-    plt.legend()
-    plt.tight_layout()
-    plt.savefig(output_png, dpi=150)
-    plt.close()
+        ax.set_title("Test Loss")
+        ax.set_xlabel("Training step")
+        ax.set_ylabel("Loss")
+        ax.set_yscale("log")
+        ax.legend(frameon=False, loc="best")
+        _style_axis(ax)
+
+    fig.suptitle("Loss Curves", fontsize=15, fontweight="bold", y=1.01)
+    fig.tight_layout()
+    fig.savefig(output_png)
+    plt.close(fig)
     print(f"Loss plot saved to {output_png}")
     return True
 
 
 def plot_layer_r2(layers, output_png):
-    """Plot per-layer Fx/Fy R2 curves from either old logs or structured npz."""
+    """Plot per-layer Fx/Fy R² curves from either old logs or structured NPZ."""
     layers = {
         name: data
         for name, data in layers.items()
         if data.get("Fx", {}).get("steps") or data.get("Fy", {}).get("steps")
     }
     if not layers:
-        print("No layer R2 data found.")
+        print("No layer R² data found.")
         return False
 
     n_layers = len(layers)
     n_cols = min(4, n_layers)
     n_rows = (n_layers + n_cols - 1) // n_cols
-    fig, axes = plt.subplots(n_rows, n_cols, figsize=(5 * n_cols, 4 * n_rows))
-    axes = np.atleast_1d(axes).reshape(-1)
+    fig, axes = plt.subplots(
+        n_rows,
+        n_cols,
+        figsize=(5.2 * n_cols, 4.3 * n_rows),
+        squeeze=False,
+    )
+    axes = axes.reshape(-1)
+
+    curve_specs = [
+        ("Fx", "all_train", "all_train", r"$F_x$ all · train", "-", None),
+        ("Fx", "all_eval", "all_eval", r"$F_x$ all · eval", "--", None),
+        ("Fx", "seq_train", "seq_train", r"$F_x$ last · train", "-", "o"),
+        ("Fx", "seq_eval", "seq_eval", r"$F_x$ last · eval", "--", "o"),
+        ("Fy", "all_train", "all_train", r"$F_y$ all · train", "-", None),
+        ("Fy", "all_eval", "all_eval", r"$F_y$ all · eval", "--", None),
+        ("Fy", "seq_train", "seq_train", r"$F_y$ last · train", "-", "s"),
+        ("Fy", "seq_eval", "seq_eval", r"$F_y$ last · eval", "--", "s"),
+    ]
+
+    shared_handles = []
+    shared_labels = []
 
     for idx, (layer_name, data) in enumerate(layers.items()):
         ax = axes[idx]
-        if data["Fx"]["steps"]:
-            steps = data["Fx"]["steps"]
-            ax.plot(steps, data["Fx"]["all_train"], "b-", label="Fx all train")
-            ax.plot(steps, data["Fx"]["all_eval"], "b--", label="Fx all eval")
-            ax.plot(steps, data["Fx"]["seq_train"], "r-", label="Fx seq train")
-            ax.plot(steps, data["Fx"]["seq_eval"], "r--", label="Fx seq eval")
-        if data["Fy"]["steps"]:
-            steps = data["Fy"]["steps"]
-            ax.plot(steps, data["Fy"]["all_train"], "g-", label="Fy all train")
-            ax.plot(steps, data["Fy"]["all_eval"], "g--", label="Fy all eval")
-            ax.plot(steps, data["Fy"]["seq_train"], "m-", label="Fy seq train")
-            ax.plot(steps, data["Fy"]["seq_eval"], "m--", label="Fy seq eval")
-        ax.set_title(layer_name)
-        ax.set_xlabel("Step")
-        ax.set_ylabel("R2")
-        ax.legend(loc="best", fontsize=6)
-        ax.grid(True, alpha=0.3)
 
-    for j in range(idx + 1, len(axes)):
+        for target, series_key, color_key, label, linestyle, marker in curve_specs:
+            target_data = data.get(target, {})
+            steps = target_data.get("steps", [])
+            values = target_data.get(series_key, [])
+            if not steps or not values:
+                continue
+
+            palette = FX_COLORS if target == "Fx" else FY_COLORS
+            line, = ax.plot(
+                steps,
+                values,
+                color=palette[color_key],
+                linestyle=linestyle,
+                marker=marker,
+                markersize=3.3 if marker else 0,
+                markevery=_markevery(len(steps)) if marker else None,
+                markerfacecolor="white" if marker else None,
+                markeredgewidth=0.9 if marker else None,
+                linewidth=1.55,
+                alpha=0.95,
+                label=label,
+            )
+            if label not in shared_labels:
+                shared_handles.append(line)
+                shared_labels.append(label)
+
+        ax.set_title(_pretty_layer_name(layer_name))
+        ax.set_xlabel("Training step")
+        ax.set_ylabel(r"$R^2$")
+        ax.set_ylim(-0.05, 1.05)
+        _style_axis(ax)
+
+    for j in range(n_layers, len(axes)):
         axes[j].axis("off")
 
-    plt.tight_layout()
-    plt.savefig(output_png, dpi=150)
-    plt.close()
+    fig.suptitle(
+        r"Linear Probe Evolution: $F_x$ and $F_y$",
+        fontsize=15,
+        fontweight="bold",
+        y=0.995,
+    )
+    if shared_handles:
+        fig.legend(
+            shared_handles,
+            shared_labels,
+            loc="upper center",
+            bbox_to_anchor=(0.5, 0.955),
+            ncol=4,
+            frameon=False,
+            columnspacing=1.5,
+            handlelength=2.6,
+        )
+
+    fig.tight_layout(rect=(0, 0, 1, 0.89))
+    fig.savefig(output_png)
+    plt.close(fig)
     print(f"R2 plot saved to {output_png}")
     return True
 
@@ -280,6 +480,7 @@ def _collect_observable_series(result):
 
 
 def plot_observables(result, output_png):
+    """Plot enabled observables with a consistent categorical palette."""
     series = _collect_observable_series(result)
     if not series:
         print("No observable data found.")
@@ -291,21 +492,56 @@ def plot_observables(result, output_png):
         groups.setdefault(group, {})[name] = values
 
     n_groups = len(groups)
-    fig, axes = plt.subplots(n_groups, 1, figsize=(9, max(3, 3 * n_groups)), squeeze=False)
+    fig, axes = plt.subplots(
+        n_groups,
+        1,
+        figsize=(10, max(3.8, 3.7 * n_groups)),
+        squeeze=False,
+    )
     axes = axes.reshape(-1)
 
     for ax, (group, group_series) in zip(axes, groups.items()):
-        for name, values in sorted(group_series.items()):
-            label = name.split("/", 1)[1] if "/" in name else name
-            ax.plot(values["steps"], values["values"], marker="o", markersize=2, label=label)
-        ax.set_title(group)
-        ax.set_xlabel("Step")
-        ax.grid(True, alpha=0.3)
-        ax.legend(fontsize=7)
+        for idx, (name, values) in enumerate(sorted(group_series.items())):
+            raw_label = name.split("/", 1)[1] if "/" in name else name
+            label = raw_label.replace("/", " · ").replace("_", " ")
+            is_eval = "/eval/" in name
+            marker = "s" if is_eval else "o"
 
-    plt.tight_layout()
-    plt.savefig(output_png, dpi=150)
-    plt.close()
+            ax.plot(
+                values["steps"],
+                values["values"],
+                color=OBSERVABLE_COLORS[idx % len(OBSERVABLE_COLORS)],
+                linestyle="--" if is_eval else "-",
+                marker=marker,
+                markersize=3.2,
+                markevery=_markevery(len(values["steps"])),
+                markerfacecolor="white",
+                markeredgewidth=0.85,
+                label=label,
+                linewidth=1.55,
+                alpha=0.95,
+            )
+
+        ax.set_title(group.replace("_", " ").title())
+        ax.set_xlabel("Training step")
+        ax.set_ylabel("Value")
+        ax.legend(
+            fontsize=8,
+            frameon=False,
+            ncol=min(3, max(1, len(group_series))),
+            loc="best",
+        )
+        _style_axis(ax)
+
+    fig.suptitle(
+        "Observable Evolution During Training",
+        fontsize=15,
+        fontweight="bold",
+        y=1.005,
+    )
+    fig.tight_layout()
+    fig.savefig(output_png)
+    plt.close(fig)
     print(f"Observable plot saved to {output_png}")
     return True
 
