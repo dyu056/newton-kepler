@@ -8,7 +8,7 @@ from sklearn.metrics import r2_score
 from model_cv import GPTConfigCV
 
 
-def setup_activation_hooks(model):
+def setup_activation_hooks(model, verbose=False):
     """
     Set up hooks to collect intermediate activations from the model.
     
@@ -112,10 +112,11 @@ def setup_activation_hooks(model):
     hook = model.transformer.ln_f.register_forward_hook(make_after_ln_f_hook())
     hooks.append(hook)
     
-    print(f"Hooks registered for {n_layer} transformer blocks:")
-    print(f"  For each block: attn_output, after_attn_merge, mlp_output, after_mlp_merge, mlp_hidden")
-    print(f"  Additional: input_embed, after_pos_emb, after_ln_f")
-    print(f"  Total hooks: {len(hooks)}")
+    if verbose:
+        print(f"Hooks registered for {n_layer} transformer blocks:")
+        print(f"  For each block: attn_output, after_attn_merge, mlp_output, after_mlp_merge, mlp_hidden")
+        print(f"  Additional: input_embed, after_pos_emb, after_ln_f")
+        print(f"  Total hooks: {len(hooks)}")
     
     return hooks, activation_dict
 
@@ -158,7 +159,7 @@ def compute_gravitational_force(positions):
     
     return gravitational_force
 
-def collect_activations(model, inputs, targets, activation_dict):
+def collect_activations(model, inputs, targets, activation_dict, verbose=False):
     """
     Run forward pass to collect activations.
     
@@ -176,9 +177,10 @@ def collect_activations(model, inputs, targets, activation_dict):
         positions = inputs.cpu().numpy()  # (batch, time, 2)
         gravitational_force = compute_gravitational_force(positions)
     
-    print("Activations collected:")
-    for name in activation_dict.keys():
-        print(f"  {name}: {activation_dict[name].shape}")
+    if verbose:
+        print("Activations collected:")
+        for name in activation_dict.keys():
+            print(f"  {name}: {activation_dict[name].shape}")
     
     model.train(was_training)
     return predictions, gravitational_force
@@ -222,7 +224,8 @@ def reshape_token_target(value, batch_size, time_steps, name):
     return target
 
 def run_linear_probes(train_activation_dict, train_gravitational_force,
-                      eval_activation_dict, eval_gravitational_force):
+                      eval_activation_dict, eval_gravitational_force,
+                      verbose=False):
     """
     Run linear probes to test if intermediate representations contain
     linear directions corresponding to gravitational force.
@@ -286,16 +289,16 @@ def run_linear_probes(train_activation_dict, train_gravitational_force,
         
         probe_results[layer_name] = probes
     
-    # Print results
-    print("\nLinear Probe Results (R² scores):")
-    print("=" * 80)
-    for layer_name, probes in probe_results.items():
-        print(f"\n{layer_name}:")
-        for probe_name, result in probes.items():
-            print(f"  {probe_name:20s}: all train/eval = {result['train_r2_all']:.4f}/"
-                  f"{result['eval_r2_all']:.4f}, sequence-last train/eval = "
-                  f"{result['train_r2_sequence_last']:.4f}/{result['eval_r2_sequence_last']:.4f}")
-    
+    if verbose:
+        print("\nLinear Probe Results (R² scores):")
+        print("=" * 80)
+        for layer_name, probes in probe_results.items():
+            print(f"\n{layer_name}:")
+            for probe_name, result in probes.items():
+                print(f"  {probe_name:20s}: all train/eval = {result['train_r2_all']:.4f}/"
+                      f"{result['eval_r2_all']:.4f}, sequence-last train/eval = "
+                      f"{result['train_r2_sequence_last']:.4f}/{result['eval_r2_sequence_last']:.4f}")
+
     return probe_results
 
 def run_geometry_probes(train_activation_dict, train_orbital_params, train_trajectory_ids,
