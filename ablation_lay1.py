@@ -1389,7 +1389,7 @@ def main():
     num_trajectories_list = [10000]
     #block_size_list = [1, 2, 5, 10, 20, 50, 100]
     #block_size_list = [60, 70, 80, 90]
-    block_size_list = [100]
+    block_size_list = [2]
     noise_scale_list = [0.1]
     loss_mask_list = ['all']
     #loss_mask_list = ['all', 'last']
