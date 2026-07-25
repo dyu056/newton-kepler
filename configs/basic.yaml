@@ -8,9 +8,11 @@ data:
 model:
   n_layer: 1
   n_head: 1
-  n_embd: 128
+  n_embd: 32
+  mlp_mult: 4
 training:
-  block_sizes: [2,5,20,50,100]
+  block_sizes: [50]
+  mlp_mults: [2, 4, 8, 16]
   noise_scale: 0.1
   learning_rate: 0.001
   weight_decay: 0.0
@@ -39,7 +41,7 @@ observe:
   activation_rank:
     enabled: true
   attention_entropy:
-    enabled: true
+    enabled: false
   variance_covariance:
     enabled: true
   singular_values:        # 新增

@@ -39,7 +39,7 @@ from data_utils import (
     load_trajectories,
 )
 from loss import compute_loss_with_mask
-from model_cv import GPTConfigCV, GPTCV
+from model_mlp import GPTConfigCV, GPTCV
 from observe import (
     clear_gpu_cache,
     collect_attention_entropy,
@@ -52,7 +52,7 @@ from observe import (
     compute_weight_singular_values,
     compute_activation_singular_values
 )
-from probe import (
+from probe_mlp import (
     collect_activations,
     initialize_probe_indices,
     run_geometry_probes,
@@ -160,7 +160,7 @@ def _enabled(value, default=False):
 
 
 def setup_model(block_size, n_layer=2, n_head=1, n_embd=32, device=None,
-                varcov_enabled=False, varcov_target_std=0.1):
+                varcov_enabled=False, varcov_target_std=0.1, mlp_mult=4):
     """Setup and initialize the GPT model for continuous vision."""
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -174,6 +174,7 @@ def setup_model(block_size, n_layer=2, n_head=1, n_embd=32, device=None,
     GPTConfigCV.bias = True
     GPTConfigCV.varcov_enabled = bool(varcov_enabled)
     GPTConfigCV.varcov_target_std = float(varcov_target_std)
+    GPTConfigCV.mlp_mult = int(mlp_mult)
 
     model = GPTCV(GPTConfigCV)
     model = model.to(device)
@@ -697,7 +698,8 @@ def train_one_model(block_size=100, data_dir='data_cv', noise_scale=0.1, lr=1e-3
                     covariance_reg_weight=0.0,
                     attention_entropy_reg_enabled=False,
                     attention_entropy_weight=0.0,
-                    attention_entropy_start=1):
+                    attention_entropy_start=1,
+                    mlp_mult=4):
     """
     Train a single model with specified hyperparameters.
 
@@ -808,6 +810,7 @@ def train_one_model(block_size=100, data_dir='data_cv', noise_scale=0.1, lr=1e-3
         n_embd=n_embd, device=device,
         varcov_enabled=(varcov_observe_enabled or varcov_reg_enabled),
         varcov_target_std=varcov_target_std,
+        mlp_mult=mlp_mult,
     )
     print_gpu_memory_stats("After model setup: ")
 
@@ -910,6 +913,7 @@ def train_one_model(block_size=100, data_dir='data_cv', noise_scale=0.1, lr=1e-3
         'n_layer': n_layer,
         'n_head': n_head,
         'n_embd': n_embd,
+        'mlp_mult': mlp_mult,
         'num_trajectories': num_traj,
         'train_size': train_size,
         'test_size': test_size,
@@ -1049,6 +1053,13 @@ def run_configured_experiments(config, run_dir, overwrite=False, console_stream=
     n_layer = int(model_config.get("n_layer", 2))
     n_head = int(model_config.get("n_head", 1))
     n_embd = int(model_config.get("n_embd", 32))
+    mlp_mult = int(model_config.get("mlp_mult", 4))
+    mlp_mults = [
+        int(value)
+        for value in _config_list(
+            training_config, "mlp_mults", "mlp_mult", [mlp_mult]
+        )
+    ]
     learning_rate = float(
         training_config.get("learning_rate", training_config.get("lr", 1e-3))
     )
@@ -1156,7 +1167,7 @@ def run_configured_experiments(config, run_dir, overwrite=False, console_stream=
     results_dir = run_dir / "results"
     results_dir.mkdir(parents=True, exist_ok=True)
 
-    total_runs = len(block_sizes) * len(noise_scales) * len(loss_masks)
+    total_runs = len(block_sizes) * len(noise_scales) * len(loss_masks) * len(mlp_mults)
     run_index = 0
     progress_bar = (
         tqdm(
@@ -1180,18 +1191,19 @@ def run_configured_experiments(config, run_dir, overwrite=False, console_stream=
 
             for noise_scale in noise_scales:
                 for loss_mask in loss_masks:
-                    run_index += 1
-                    filename = (
-                        f"block_{block_size}_noise_{noise_scale:g}_"
-                        f"loss_{loss_mask}_seed_{experiment_seed}.npz"
-                    )
-                    result_path = results_dir / filename
-
-                    if progress_bar is not None:
-                        progress_bar.set_description(
-                            f"block={block_size} noise={noise_scale:g} loss={loss_mask}",
-                            refresh=True,
+                    for mlp_mult in mlp_mults:
+                        run_index += 1
+                        filename = (
+                            f"block_{block_size}_noise_{noise_scale:g}_"
+                            f"loss_{loss_mask}_mlp_mult_{mlp_mult}_seed_{experiment_seed}.npz"
                         )
+                        result_path = results_dir / filename
+
+                        if progress_bar is not None:
+                            progress_bar.set_description(
+                                f"block={block_size} noise={noise_scale:g} loss={loss_mask} mlp_mult={mlp_mult}",
+                                refresh=True,
+                            )
 
                     if result_path.exists() and not overwrite and _result_is_complete(result_path):
                         print(
@@ -1262,6 +1274,7 @@ def run_configured_experiments(config, run_dir, overwrite=False, console_stream=
                             attention_entropy_reg_enabled=attention_entropy_reg_enabled,
                             attention_entropy_weight=attention_entropy_weight,
                             attention_entropy_start=attention_entropy_start,
+                            mlp_mult=mlp_mult,
                         )
 
                         final_payload = dict(results)
