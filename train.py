@@ -1205,86 +1205,86 @@ def run_configured_experiments(config, run_dir, overwrite=False, console_stream=
                                 refresh=True,
                             )
 
-                    if result_path.exists() and not overwrite and _result_is_complete(result_path):
-                        print(
-                            f"[{run_index}/{total_runs}] "
-                            f"Skipping completed result: {result_path}"
-                        )
-                        if progress_bar is not None:
-                            progress_bar.update(n_steps)
-                        continue
-                    if result_path.exists() and not overwrite:
-                        print(f"Restarting incomplete result: {result_path}")
+                        if result_path.exists() and not overwrite and _result_is_complete(result_path):
+                            print(
+                                f"[{run_index}/{total_runs}] "
+                                f"Skipping completed result: {result_path}"
+                            )
+                            if progress_bar is not None:
+                                progress_bar.update(n_steps)
+                            continue
+                        if result_path.exists() and not overwrite:
+                            print(f"Restarting incomplete result: {result_path}")
 
-                    print("\n" + "=" * 80)
-                    print(f"[{run_index}/{total_runs}] Starting {filename}")
-                    print("=" * 80)
+                        print("\n" + "=" * 80)
+                        print(f"[{run_index}/{total_runs}] Starting {filename}")
+                        print("=" * 80)
 
-                    # Reset before model initialization so every configuration uses
-                    # the requested seed independently.
-                    np.random.seed(experiment_seed)
-                    torch.manual_seed(experiment_seed)
-                    if torch.cuda.is_available():
-                        torch.cuda.manual_seed_all(experiment_seed)
+                        # Reset before model initialization so every configuration uses
+                        # the requested seed independently.
+                        np.random.seed(experiment_seed)
+                        torch.manual_seed(experiment_seed)
+                        if torch.cuda.is_available():
+                            torch.cuda.manual_seed_all(experiment_seed)
 
-                    _ACTIVE_RESULT_PATH = result_path
-                    _ACTIVE_RESULT_METADATA = {
-                        "block_size": block_size,
-                        "noise_scale": noise_scale,
-                        "loss_mask": loss_mask,
-                        "seed": experiment_seed,
-                        "n_steps": n_steps,
-                    }
+                        _ACTIVE_RESULT_PATH = result_path
+                        _ACTIVE_RESULT_METADATA = {
+                            "block_size": block_size,
+                            "noise_scale": noise_scale,
+                            "loss_mask": loss_mask,
+                            "seed": experiment_seed,
+                            "n_steps": n_steps,
+                        }
 
-                    try:
-                        results = train_one_model(
-                            block_size=block_size,
-                            data_dir=data_dir,
-                            noise_scale=noise_scale,
-                            lr=learning_rate,
-                            weight_decay=weight_decay,
-                            n_layer=n_layer,
-                            n_head=n_head,
-                            n_embd=n_embd,
-                            num_trajectories=num_trajectories,
-                            n_steps=n_steps,
-                            prob_freq=probe_frequency,
-                            loss_mask=loss_mask,
-                            seed=experiment_seed,
-                            batch_size=batch_size,
-                            scale_batch_by_context=scale_batch_by_context,
-                            progress_bar=progress_bar,
-                            probe_schedule=probe_schedule,
-                            probe_enabled=probe_enabled,
-                            probe_num_train_samples=probe_num_train_samples,
-                            probe_num_eval_samples=probe_num_eval_samples,
-                            probe_verbose=probe_verbose,
-                            probe_geometry_enabled=probe_geometry_enabled,
-                            activation_rank_enabled=activation_rank_enabled,
-                            attention_entropy_enabled=attention_entropy_enabled,
-                            varcov_observe_enabled=varcov_observe_enabled,
-                            singular_values_enabled=singular_values_enabled,
-                            singular_values_num=singular_values_num,
-                            rollout_enabled=rollout_enabled,
-                            varcov_reg_enabled=varcov_reg_enabled,
-                            varcov_reg_start=varcov_reg_start,
-                            varcov_target_std=varcov_target_std,
-                            variance_reg_weight=variance_reg_weight,
-                            covariance_reg_weight=covariance_reg_weight,
-                            attention_entropy_reg_enabled=attention_entropy_reg_enabled,
-                            attention_entropy_weight=attention_entropy_weight,
-                            attention_entropy_start=attention_entropy_start,
-                            mlp_mult=mlp_mult,
-                        )
+                        try:
+                            results = train_one_model(
+                                block_size=block_size,
+                                data_dir=data_dir,
+                                noise_scale=noise_scale,
+                                lr=learning_rate,
+                                weight_decay=weight_decay,
+                                n_layer=n_layer,
+                                n_head=n_head,
+                                n_embd=n_embd,
+                                num_trajectories=num_trajectories,
+                                n_steps=n_steps,
+                                prob_freq=probe_frequency,
+                                loss_mask=loss_mask,
+                                seed=experiment_seed,
+                                batch_size=batch_size,
+                                scale_batch_by_context=scale_batch_by_context,
+                                progress_bar=progress_bar,
+                                probe_schedule=probe_schedule,
+                                probe_enabled=probe_enabled,
+                                probe_num_train_samples=probe_num_train_samples,
+                                probe_num_eval_samples=probe_num_eval_samples,
+                                probe_verbose=probe_verbose,
+                                probe_geometry_enabled=probe_geometry_enabled,
+                                activation_rank_enabled=activation_rank_enabled,
+                                attention_entropy_enabled=attention_entropy_enabled,
+                                varcov_observe_enabled=varcov_observe_enabled,
+                                singular_values_enabled=singular_values_enabled,
+                                singular_values_num=singular_values_num,
+                                rollout_enabled=rollout_enabled,
+                                varcov_reg_enabled=varcov_reg_enabled,
+                                varcov_reg_start=varcov_reg_start,
+                                varcov_target_std=varcov_target_std,
+                                variance_reg_weight=variance_reg_weight,
+                                covariance_reg_weight=covariance_reg_weight,
+                                attention_entropy_reg_enabled=attention_entropy_reg_enabled,
+                                attention_entropy_weight=attention_entropy_weight,
+                                attention_entropy_start=attention_entropy_start,
+                                mlp_mult=mlp_mult,
+                            )
 
-                        final_payload = dict(results)
-                        final_payload["status"] = "complete"
-                        final_payload["completed_steps"] = n_steps
-                        _atomic_save_npz(result_path, final_payload)
-                        print(f"Saved result to: {result_path}")
-                    finally:
-                        _ACTIVE_RESULT_PATH = None
-                        _ACTIVE_RESULT_METADATA = {}
+                            final_payload = dict(results)
+                            final_payload["status"] = "complete"
+                            final_payload["completed_steps"] = n_steps
+                            _atomic_save_npz(result_path, final_payload)
+                            print(f"Saved result to: {result_path}")
+                        finally:
+                            _ACTIVE_RESULT_PATH = None
+                            _ACTIVE_RESULT_METADATA = {}
     finally:
         if progress_bar is not None:
             progress_bar.close()
