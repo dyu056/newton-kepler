@@ -27,8 +27,8 @@ probe:
   verbose: false
   geometry_enabled: false
   frequency: 10
-  num_train_samples: 1000
-  num_eval_samples: 1000
+  num_train_samples: 5000
+  num_eval_samples: 5000
   schedule:
     - start: 0
       end: 200
