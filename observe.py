@@ -204,7 +204,7 @@ def generate_trajectory_and_compute_error(model, inputs, trajectories, condition
     
     return error_stats
 
-def compute_activation_rank(activation_dict, eps=1e-12, numerical_tol=1e-6):
+def compute_activation_rank(activation_dict, eps=1e-4, numerical_tol=1e-6):
     results = {}
 
     for layer_name, activation in activation_dict.items():
