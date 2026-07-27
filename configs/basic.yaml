@@ -8,9 +8,9 @@ data:
 model:
   n_layer: 1
   n_head: 1
-  n_embd: 128
+  n_embd: 32
 training:
-  block_sizes: [2,5,20,50,100]
+  block_sizes: [50]
   noise_scale: 0.1
   learning_rate: 0.001
   weight_decay: 0.0
@@ -25,8 +25,8 @@ probe:
   verbose: false
   geometry_enabled: false
   frequency: 10
-  num_train_samples: 1000
-  num_eval_samples: 1000
+  num_train_samples: 5000
+  num_eval_samples: 5000
   schedule:
     - start: 0
       end: 200
@@ -41,7 +41,7 @@ observe:
   attention_entropy:
     enabled: true
   variance_covariance:
-    enabled: true
+    enabled: false
   singular_values:        # 新增
     enabled: true
     num_singular_values: 5

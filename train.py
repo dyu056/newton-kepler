@@ -39,7 +39,7 @@ from data_utils import (
     load_trajectories,
 )
 from loss import compute_loss_with_mask
-from model_cv import GPTConfigCV, GPTCV
+from model_att import GPTConfigCV, GPTCV
 from observe import (
     clear_gpu_cache,
     collect_attention_entropy,

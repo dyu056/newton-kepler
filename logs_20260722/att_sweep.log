@@ -1,0 +1,426 @@
+
+################################################################################
+Run started: 2026-07-27T09:51:01
+Config: /data/home/zhaohaoran/kepler/att_exp/configs/basic.yaml
+Run name: att_sweep
+Output directory: /data/home/zhaohaoran/kepler/att_exp/outputs/att_sweep
+Requested physical GPU: 1
+CUDA_VISIBLE_DEVICES: 1
+PyTorch device: cuda
+Visible CUDA devices: 1
+Active CUDA device name: NVIDIA H200
+
+================================================================================
+[1/1] Starting block_50_noise_0.1_loss_all_seed_1.npz
+================================================================================
+
+================================================================================
+Training model: block_size=50, noise_scale=0.1, lr=0.001, weight_decay=0.0, n_layer=1, n_head=1, n_embd=32, num_trajectories=10000, loss_mask=all
+================================================================================
+Loading Kepler orbit trajectories from data_cv...
+Loading 20,000 trajectories from 2 chunks...
+Loaded 20,000 trajectories from chunks
+Trajectories shape: (20000, 100, 2)
+Position range: x=[-3.536, 3.517], y=[-3.444, 3.481]
+
+Split: 10000 training trajectories, 10000 test trajectories
+
+Block size (50) < num_points_per_trajectory (100)
+Chopping trajectories into sequences...
+Randomly selecting 2 sequences per trajectory (instead of all sliding windows)
+Train sequences: 20000, Test sequences: 20000
+
+Train input shape: torch.Size([20000, 50, 2]), Train target shape: torch.Size([20000, 1, 2])
+Test input shape: torch.Size([20000, 50, 2]), Test target shape: torch.Size([20000, 1, 2])
+
+Setting up model...
+number of parameters: 0.004514M
+After model setup: GPU Memory - Allocated: 0.000 GB, Reserved: 0.002 GB, Max Allocated: 0.000 GB
+Initial train loss: 1.095587, Initial test loss: 1.247168
+Train predictions shape: torch.Size([128, 50, 2])
+After initial forward pass: GPU Memory - Allocated: 0.031 GB, Reserved: 0.057 GB, Max Allocated: 0.039 GB
+Effective training batch size: 256
+
+Training model with periodic evaluation...
+Initial: GPU Memory - Allocated: 0.031 GB, Reserved: 0.057 GB, Max Allocated: 0.031 GB
+Step 1, MSE: 1.165550, Total Loss: 1.165550, Test Loss: 1.086826, GPU Memory: 0.063 GB
+
+Evaluating at step 5...
+Attention entropy normalized mean: train=0.999963, eval=0.999963
+After evaluation at step 5: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 5 completed.
+
+
+Evaluating at step 10...
+Attention entropy normalized mean: train=0.999760, eval=0.999759
+After evaluation at step 10: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 10 completed.
+
+
+Evaluating at step 15...
+Attention entropy normalized mean: train=0.998939, eval=0.998933
+After evaluation at step 15: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 15 completed.
+
+
+Evaluating at step 20...
+Attention entropy normalized mean: train=0.996649, eval=0.996628
+After evaluation at step 20: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 20 completed.
+
+
+Evaluating at step 25...
+Attention entropy normalized mean: train=0.991959, eval=0.991890
+After evaluation at step 25: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 25 completed.
+
+
+Evaluating at step 30...
+Attention entropy normalized mean: train=0.985289, eval=0.985154
+After evaluation at step 30: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 30 completed.
+
+
+Evaluating at step 35...
+Attention entropy normalized mean: train=0.978169, eval=0.977980
+After evaluation at step 35: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 35 completed.
+
+
+Evaluating at step 40...
+Attention entropy normalized mean: train=0.970752, eval=0.970520
+After evaluation at step 40: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 40 completed.
+
+
+Evaluating at step 45...
+Attention entropy normalized mean: train=0.963425, eval=0.963160
+After evaluation at step 45: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 45 completed.
+
+
+Evaluating at step 50...
+Attention entropy normalized mean: train=0.955612, eval=0.955307
+After evaluation at step 50: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 50 completed.
+
+
+Evaluating at step 55...
+Attention entropy normalized mean: train=0.947894, eval=0.947562
+After evaluation at step 55: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 55 completed.
+
+
+Evaluating at step 60...
+Attention entropy normalized mean: train=0.941239, eval=0.940909
+After evaluation at step 60: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 60 completed.
+
+
+Evaluating at step 65...
+Attention entropy normalized mean: train=0.937236, eval=0.936921
+After evaluation at step 65: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 65 completed.
+
+
+Evaluating at step 70...
+Attention entropy normalized mean: train=0.936836, eval=0.936536
+After evaluation at step 70: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 70 completed.
+
+
+Evaluating at step 75...
+Attention entropy normalized mean: train=0.938269, eval=0.937989
+After evaluation at step 75: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 75 completed.
+
+
+Evaluating at step 80...
+Attention entropy normalized mean: train=0.938921, eval=0.938686
+After evaluation at step 80: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 80 completed.
+
+
+Evaluating at step 85...
+Attention entropy normalized mean: train=0.939884, eval=0.939675
+After evaluation at step 85: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 85 completed.
+
+
+Evaluating at step 90...
+Attention entropy normalized mean: train=0.939901, eval=0.939722
+After evaluation at step 90: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 90 completed.
+
+
+Evaluating at step 95...
+Attention entropy normalized mean: train=0.940242, eval=0.940087
+After evaluation at step 95: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 95 completed.
+
+
+Evaluating at step 100...
+Attention entropy normalized mean: train=0.940656, eval=0.940528
+After evaluation at step 100: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 100 completed.
+
+Step 101, MSE: 0.024624, Total Loss: 0.024624, Test Loss: 0.016312, GPU Memory: 0.063 GB
+
+Evaluating at step 105...
+Attention entropy normalized mean: train=0.939944, eval=0.939840
+After evaluation at step 105: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 105 completed.
+
+
+Evaluating at step 110...
+Attention entropy normalized mean: train=0.940103, eval=0.940027
+After evaluation at step 110: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 110 completed.
+
+
+Evaluating at step 115...
+Attention entropy normalized mean: train=0.939466, eval=0.939415
+After evaluation at step 115: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 115 completed.
+
+
+Evaluating at step 120...
+Attention entropy normalized mean: train=0.939217, eval=0.939190
+After evaluation at step 120: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 120 completed.
+
+
+Evaluating at step 125...
+Attention entropy normalized mean: train=0.939224, eval=0.939218
+After evaluation at step 125: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 125 completed.
+
+
+Evaluating at step 130...
+Attention entropy normalized mean: train=0.938902, eval=0.938923
+After evaluation at step 130: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 130 completed.
+
+
+Evaluating at step 135...
+Attention entropy normalized mean: train=0.938753, eval=0.938796
+After evaluation at step 135: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 135 completed.
+
+
+Evaluating at step 140...
+Attention entropy normalized mean: train=0.937573, eval=0.937632
+After evaluation at step 140: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 140 completed.
+
+
+Evaluating at step 145...
+Attention entropy normalized mean: train=0.935919, eval=0.935975
+After evaluation at step 145: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 145 completed.
+
+
+Evaluating at step 150...
+Attention entropy normalized mean: train=0.935667, eval=0.935720
+After evaluation at step 150: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 150 completed.
+
+
+Evaluating at step 155...
+Attention entropy normalized mean: train=0.935439, eval=0.935493
+After evaluation at step 155: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 155 completed.
+
+
+Evaluating at step 160...
+Attention entropy normalized mean: train=0.935249, eval=0.935312
+After evaluation at step 160: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 160 completed.
+
+
+Evaluating at step 165...
+Attention entropy normalized mean: train=0.934963, eval=0.935040
+After evaluation at step 165: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 165 completed.
+
+
+Evaluating at step 170...
+Attention entropy normalized mean: train=0.934931, eval=0.935010
+After evaluation at step 170: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 170 completed.
+
+
+Evaluating at step 175...
+Attention entropy normalized mean: train=0.935439, eval=0.935508
+After evaluation at step 175: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 175 completed.
+
+
+Evaluating at step 180...
+Attention entropy normalized mean: train=0.935246, eval=0.935299
+After evaluation at step 180: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 180 completed.
+
+
+Evaluating at step 185...
+Attention entropy normalized mean: train=0.934605, eval=0.934657
+After evaluation at step 185: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 185 completed.
+
+
+Evaluating at step 190...
+Attention entropy normalized mean: train=0.934290, eval=0.934337
+After evaluation at step 190: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 190 completed.
+
+
+Evaluating at step 195...
+Attention entropy normalized mean: train=0.934459, eval=0.934504
+After evaluation at step 195: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 195 completed.
+
+
+Evaluating at step 200...
+Attention entropy normalized mean: train=0.935114, eval=0.935162
+After evaluation at step 200: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 200 completed.
+
+Step 201, MSE: 0.012574, Total Loss: 0.012574, Test Loss: 0.009158, GPU Memory: 0.063 GB
+
+Evaluating at step 300...
+Attention entropy normalized mean: train=0.933677, eval=0.933650
+After evaluation at step 300: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 300 completed.
+
+Step 301, MSE: 0.012193, Total Loss: 0.012193, Test Loss: 0.004575, GPU Memory: 0.063 GB
+
+Evaluating at step 400...
+Attention entropy normalized mean: train=0.928111, eval=0.928086
+After evaluation at step 400: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 400 completed.
+
+Step 401, MSE: 0.011629, Total Loss: 0.011629, Test Loss: 0.004673, GPU Memory: 0.063 GB
+
+Evaluating at step 500...
+Attention entropy normalized mean: train=0.916553, eval=0.916609
+After evaluation at step 500: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 500 completed.
+
+Step 501, MSE: 0.011602, Total Loss: 0.011602, Test Loss: 0.003283, GPU Memory: 0.063 GB
+
+Evaluating at step 600...
+Attention entropy normalized mean: train=0.903042, eval=0.903095
+After evaluation at step 600: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 600 completed.
+
+Step 601, MSE: 0.011459, Total Loss: 0.011459, Test Loss: 0.003663, GPU Memory: 0.063 GB
+
+Evaluating at step 700...
+Attention entropy normalized mean: train=0.881104, eval=0.881143
+After evaluation at step 700: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 700 completed.
+
+Step 701, MSE: 0.011529, Total Loss: 0.011529, Test Loss: 0.003296, GPU Memory: 0.063 GB
+
+Evaluating at step 800...
+Attention entropy normalized mean: train=0.867803, eval=0.867740
+After evaluation at step 800: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 800 completed.
+
+Step 801, MSE: 0.009670, Total Loss: 0.009670, Test Loss: 0.003085, GPU Memory: 0.063 GB
+
+Evaluating at step 900...
+Attention entropy normalized mean: train=0.856412, eval=0.856306
+After evaluation at step 900: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 900 completed.
+
+Step 901, MSE: 0.009383, Total Loss: 0.009383, Test Loss: 0.003368, GPU Memory: 0.063 GB
+
+Evaluating at step 1000...
+Attention entropy normalized mean: train=0.854384, eval=0.854297
+After evaluation at step 1000: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 1000 completed.
+
+Step 1001, MSE: 0.009945, Total Loss: 0.009945, Test Loss: 0.002632, GPU Memory: 0.063 GB
+
+Evaluating at step 1100...
+Attention entropy normalized mean: train=0.853879, eval=0.853785
+After evaluation at step 1100: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 1100 completed.
+
+Step 1101, MSE: 0.008672, Total Loss: 0.008672, Test Loss: 0.002769, GPU Memory: 0.063 GB
+
+Evaluating at step 1200...
+Attention entropy normalized mean: train=0.853796, eval=0.853705
+After evaluation at step 1200: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 1200 completed.
+
+Step 1201, MSE: 0.008665, Total Loss: 0.008665, Test Loss: 0.001891, GPU Memory: 0.063 GB
+
+Evaluating at step 1300...
+Attention entropy normalized mean: train=0.853679, eval=0.853573
+After evaluation at step 1300: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 1300 completed.
+
+Step 1301, MSE: 0.008637, Total Loss: 0.008637, Test Loss: 0.001904, GPU Memory: 0.063 GB
+
+Evaluating at step 1400...
+Attention entropy normalized mean: train=0.853739, eval=0.853640
+After evaluation at step 1400: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 1400 completed.
+
+Step 1401, MSE: 0.009551, Total Loss: 0.009551, Test Loss: 0.001937, GPU Memory: 0.063 GB
+
+Evaluating at step 1500...
+Attention entropy normalized mean: train=0.853642, eval=0.853544
+After evaluation at step 1500: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 1500 completed.
+
+Step 1501, MSE: 0.008521, Total Loss: 0.008521, Test Loss: 0.001563, GPU Memory: 0.063 GB
+
+Evaluating at step 1600...
+Attention entropy normalized mean: train=0.852975, eval=0.852866
+After evaluation at step 1600: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 1600 completed.
+
+Step 1601, MSE: 0.008421, Total Loss: 0.008421, Test Loss: 0.002217, GPU Memory: 0.063 GB
+
+Evaluating at step 1700...
+Attention entropy normalized mean: train=0.854228, eval=0.854133
+After evaluation at step 1700: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 1700 completed.
+
+Step 1701, MSE: 0.009199, Total Loss: 0.009199, Test Loss: 0.001639, GPU Memory: 0.063 GB
+
+Evaluating at step 1800...
+Attention entropy normalized mean: train=0.851692, eval=0.851569
+After evaluation at step 1800: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 1800 completed.
+
+Step 1801, MSE: 0.007704, Total Loss: 0.007704, Test Loss: 0.001598, GPU Memory: 0.063 GB
+
+Evaluating at step 1900...
+Attention entropy normalized mean: train=0.851692, eval=0.851579
+After evaluation at step 1900: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 1900 completed.
+
+Step 1901, MSE: 0.007682, Total Loss: 0.007682, Test Loss: 0.002134, GPU Memory: 0.063 GB
+
+Evaluating at step 2000...
+Attention entropy normalized mean: train=0.851453, eval=0.851354
+After evaluation at step 2000: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Evaluation at step 2000 completed.
+
+Final: GPU Memory - Allocated: 0.064 GB, Reserved: 1.125 GB, Max Allocated: 0.982 GB
+Final memory stats: {'initial': {'allocated_gb': 0.03128767013549805, 'reserved_gb': 0.056640625, 'max_allocated_gb': 0.03128767013549805}, 'final': {'allocated_gb': 0.064483642578125, 'reserved_gb': 1.125, 'max_allocated_gb': 0.9821810722351074}, 'peak': {'allocated_gb': 0.064483642578125, 'reserved_gb': 1.125, 'max_allocated_gb': 0.9821810722351074}}
+
+Training completed!
+After training: GPU Memory - Allocated: 0.063 GB, Reserved: 0.084 GB, Max Allocated: 0.982 GB
+
+Memory Summary:
+  Initial: 0.031 GB
+  Final: 0.064 GB
+  Peak: 0.982 GB
+  Memory increase: 0.033 GB
+Saved result to: outputs/att_sweep/results/block_50_noise_0.1_loss_all_seed_1.npz
+Run finished: 2026-07-27T09:51:44

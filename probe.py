@@ -5,7 +5,7 @@ import torch
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
 
-from model_cv import GPTConfigCV
+from model_att import GPTConfigCV
 
 
 class _ActivationStore(dict):
@@ -29,38 +29,46 @@ def setup_activation_hooks(model, verbose=False):
         if activation_dict.capture_enabled:
             activation_dict[name] = extract_tensor(value)
 
-    def make_attn_output_hook(block_idx):
+    def make_hook_save(name):
         def hook(module, inputs, output):
-            save(f"block_{block_idx}_attn_output", output)
+            save(name, output)
         return hook
 
-    def make_after_attn_merge_hook(block_idx):
+    def make_prehook_save(name):
         def hook(module, inputs):
-            save(f"block_{block_idx}_after_attn_merge", inputs)
+            save(name, inputs)
         return hook
 
-    def make_mlp_output_hook(block_idx):
-        def hook(module, inputs, output):
-            save(f"block_{block_idx}_mlp_output", output)
-        return hook
-
-    def make_after_mlp_merge_hook(block_idx):
-        def hook(module, inputs, output):
-            save(f"block_{block_idx}_after_mlp_merge", output)
-        return hook
-
-    def make_mlp_hidden_hook(block_idx):
-        def hook(module, inputs, output):
-            save(f"block_{block_idx}_mlp_hidden", output)
-        return hook
+    has_mlp = hasattr(model.transformer.h[0], 'mlp')
 
     for block_idx in range(n_layer):
         block = model.transformer.h[block_idx]
-        hooks.append(block.attn.register_forward_hook(make_attn_output_hook(block_idx)))
-        hooks.append(block.mlp.register_forward_pre_hook(make_after_attn_merge_hook(block_idx)))
-        hooks.append(block.mlp.register_forward_hook(make_mlp_output_hook(block_idx)))
-        hooks.append(block.register_forward_hook(make_after_mlp_merge_hook(block_idx)))
-        hooks.append(block.mlp.silu.register_forward_hook(make_mlp_hidden_hook(block_idx)))
+
+        # 1. LN output (pre-attention input)
+        hooks.append(block.ln.register_forward_hook(
+            make_hook_save(f"block_{block_idx}_ln_output")))
+
+        # 2. Attention output
+        hooks.append(block.attn.register_forward_hook(
+            make_hook_save(f"block_{block_idx}_attn_output")))
+
+        if has_mlp:
+            # 3. MLP input (after attention + residual)
+            hooks.append(block.mlp.register_forward_pre_hook(
+                make_prehook_save(f"block_{block_idx}_mlp_input")))
+            # 4. c_fc output
+            hooks.append(block.mlp.c_fc.register_forward_hook(
+                make_hook_save(f"block_{block_idx}_fc_output")))
+            # 5. SiLU hidden
+            hooks.append(block.mlp.silu.register_forward_hook(
+                make_hook_save(f"block_{block_idx}_mlp_hidden")))
+            # 6. MLP output
+            hooks.append(block.mlp.register_forward_hook(
+                make_hook_save(f"block_{block_idx}_mlp_output")))
+
+        # 7. Block output (after residual merge)
+        hooks.append(block.register_forward_hook(
+            make_hook_save(f"block_{block_idx}_output")))
 
     def input_embed_hook(module, inputs, output):
         save("input_embed", output)
