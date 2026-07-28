@@ -204,6 +204,7 @@ def should_run_probe(completed_step, probe_frequency, probe_schedule=None):
 def train_model(model, train_inputs, train_targets, test_inputs, test_targets, train_trajectories, test_trajectories,
                  n_steps=1001, lr=1e-3, weight_decay=0.0, noise_scale=0.1, prob_freq=100, batch_size=128,
                  loss_mask='all', seed=1, train_orbital_params=None, eval_orbital_params=None,
+                 optimizer_type='adamw',
                  train_sequence_trajectory_ids=None, eval_sequence_trajectory_ids=None,
                  progress_bar=None, probe_schedule=None, probe_enabled=True,
                  probe_num_train_samples=1000, probe_num_eval_samples=1000,
@@ -255,7 +256,10 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
     if torch.cuda.is_available() and device.type == "cuda":
         torch.cuda.reset_peak_memory_stats(device)
 
-    optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
+    if optimizer_type == 'gd':
+        optimizer = torch.optim.SGD(model.parameters(), lr=lr)
+    else:
+        optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
     train_losses = []
     total_losses = []
     test_losses = []
@@ -322,17 +326,63 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
         'num_unique_eval_trajectories': int(np.unique(probe_eval_trajectory_ids).size) if probe_eval_trajectory_ids is not None else 0,
     }
 
+    # ── Step 0 probe (random init) ──
+    if (observables.needs_periodic_eval
+            and probe_schedule is not None
+            and should_run_probe(0, prob_freq, probe_schedule)):
+        print("\nEvaluating at step 0 (random init)...")
+        eval_step_results = {}
+        probe_train_inputs = train_inputs[probe_train_indices].to(device)
+        probe_train_targets = train_targets[probe_train_indices].to(device)
+        probe_eval_inputs = test_inputs[probe_eval_indices].to(device)
+        probe_eval_targets = test_targets[probe_eval_indices].to(device)
+        if observables.needs_activation_capture:
+            activation_dict.clear()
+            _, train_force = collect_activations(
+                model, probe_train_inputs, probe_train_targets, activation_dict, verbose=probe_verbose)
+            train_activation_dict = snapshot_activations(activation_dict)
+            activation_dict.clear()
+            _, eval_force = collect_activations(
+                model, probe_eval_inputs, probe_eval_targets, activation_dict, verbose=probe_verbose)
+            eval_activation_dict = snapshot_activations(activation_dict)
+        if probe_enabled:
+            eval_step_results['probe_results'] = run_linear_probes(
+                train_activation_dict, train_force, eval_activation_dict, eval_force, verbose=probe_verbose)
+        eval_step_results['probe_metadata'] = probe_metadata
+        if singular_values_enabled:
+            eval_step_results['weight_singular_values'] = compute_weight_singular_values(
+                model, num_singular_values=singular_values_num)
+            eval_step_results['activation_singular_values'] = {
+                'train': compute_activation_singular_values(train_activation_dict, num_singular_values=singular_values_num),
+                'eval': compute_activation_singular_values(eval_activation_dict, num_singular_values=singular_values_num)}
+        eval_step_results['attention_entropy'] = None
+        eval_step_results['variance_covariance'] = None
+        eval_step_results['geometry_probe_results'] = None
+        eval_step_results['error_stats_train'] = None
+        eval_step_results['error_stats_test'] = None
+        eval_step_results['step'] = 0
+        eval_results.append(eval_step_results)
+        eval_steps.append(0)
+        del probe_train_inputs, probe_train_targets, probe_eval_inputs, probe_eval_targets
+        if observables.needs_activation_capture:
+            del train_force, eval_force, train_activation_dict, eval_activation_dict
+        activation_dict.clear()
+        print("Evaluation at step 0 completed.\n")
+
     for i in range(n_steps):
 
         if i == n_steps // 2:
             for param_group in optimizer.param_groups:
                 param_group['lr'] *= 0.1
 
-        # Sample a random batch from training data
-        # train_inputs is on CPU, so we sample indices and move to GPU
-        batch_indices = torch.randint(0, num_train_samples, (batch_size,))
-        batch_inputs = train_inputs[batch_indices].to(device)
-        batch_targets = train_targets[batch_indices].to(device)
+        # Sample data: full-batch for GD, random batch for AdamW
+        if optimizer_type == 'gd':
+            batch_inputs = train_inputs.to(device)
+            batch_targets = train_targets.to(device)
+        else:
+            batch_indices = torch.randint(0, num_train_samples, (batch_size,))
+            batch_inputs = train_inputs[batch_indices].to(device)
+            batch_targets = train_targets[batch_indices].to(device)
 
         # Training step. ``completed_step`` is the number of the optimizer
         # update being performed and is consistently one-based.
@@ -395,7 +445,10 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
         entropy_terms.append(float(entropy_term.detach().item()))  # 记录熵正则项
 
         # Clear intermediate variables to save memory
-        del inputs_noised, predictions, batch_inputs, batch_targets, batch_indices
+        if optimizer_type == 'gd':
+            del inputs_noised, predictions, batch_inputs, batch_targets
+        else:
+            del inputs_noised, predictions, batch_inputs, batch_targets, batch_indices
 
         evaluation_due = (
             observables.needs_periodic_eval
@@ -697,7 +750,8 @@ def train_one_model(block_size=100, data_dir='data_cv', noise_scale=0.1, lr=1e-3
                     covariance_reg_weight=0.0,
                     attention_entropy_reg_enabled=False,
                     attention_entropy_weight=0.0,
-                    attention_entropy_start=1):
+                    attention_entropy_start=1,
+                    optimizer_type='adamw'):
     """
     Train a single model with specified hyperparameters.
 
@@ -869,6 +923,7 @@ def train_one_model(block_size=100, data_dir='data_cv', noise_scale=0.1, lr=1e-3
         attention_entropy_reg_enabled=attention_entropy_reg_enabled,
         attention_entropy_weight=attention_entropy_weight,
         attention_entropy_start=attention_entropy_start,
+        optimizer_type=optimizer_type,
     )
 
     train_losses = training_results['train_losses']
@@ -1054,6 +1109,7 @@ def run_configured_experiments(config, run_dir, overwrite=False, console_stream=
     )
     weight_decay = float(training_config.get("weight_decay", 0.0))
     batch_size = int(training_config.get("batch_size", 128))
+    optimizer_type = str(training_config.get("optimizer", "adamw"))
     scale_batch_by_context = bool(
         training_config.get("scale_batch_by_context", True)
     )
@@ -1262,6 +1318,7 @@ def run_configured_experiments(config, run_dir, overwrite=False, console_stream=
                             attention_entropy_reg_enabled=attention_entropy_reg_enabled,
                             attention_entropy_weight=attention_entropy_weight,
                             attention_entropy_start=attention_entropy_start,
+                            optimizer_type=optimizer_type,
                         )
 
                         final_payload = dict(results)
