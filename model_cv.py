@@ -16,6 +16,8 @@ import torch
 import torch.nn as nn
 from torch.nn import functional as F
 
+from loss import compute_varcov_penalty
+
 class LayerNorm(nn.Module):
     """ LayerNorm but with an optional bias. PyTorch doesn't support simply bias=False """
 
@@ -43,6 +45,12 @@ class CausalSelfAttention(nn.Module):
         self.n_embd = config.n_embd
         self.dropout = config.dropout
         self.alpha = config.attention_alpha  # Position-dependent scaling parameter
+        # Disabled during normal training. Evaluation code can enable this flag
+        # to cache only aggregated entropy statistics, never the full matrix.
+        self.capture_attention_stats = False
+        self.last_attention_stats = None
+        self.compute_entropy = False      # 是否计算可微熵
+        self.last_entropy = None          # 存储当前 batch 的熵值（标量 tensor，可微）
         # flash attention make GPU go brrrrr but support is only in PyTorch >= 2.0
         self.flash = hasattr(torch.nn.functional, 'scaled_dot_product_attention')
         if not self.flash:
@@ -52,83 +60,132 @@ class CausalSelfAttention(nn.Module):
         self.register_buffer("bias", torch.tril(torch.ones(config.block_size, config.block_size))
                                     .view(1, 1, config.block_size, config.block_size))
 
+    @torch.no_grad()
+    def _record_attention_stats(self, probabilities):
+        if not self.capture_attention_stats:
+            self.last_attention_stats = None
+            return
+
+        probs = probabilities.detach().float().clamp_min(1e-12)
+        entropy = -(probs * probs.log()).sum(dim=-1)  # (B, H, T)
+        per_head = entropy.mean(dim=(0, 2))
+
+        sequence_length = probabilities.size(-2)
+        if sequence_length > 1:
+            visible_keys = torch.arange(
+                2, sequence_length + 1,
+                device=entropy.device,
+                dtype=entropy.dtype,
+            )
+            normalized = entropy[:, :, 1:] / visible_keys.log().view(1, 1, -1)
+            normalized_per_head = normalized.mean(dim=(0, 2))
+            normalized_mean = normalized.mean()
+        else:
+            normalized_per_head = torch.zeros_like(per_head)
+            normalized_mean = entropy.new_tensor(0.0)
+
+        self.last_attention_stats = {
+            "mean_entropy": float(entropy.mean().item()),
+            "normalized_mean_entropy": float(normalized_mean.item()),
+            "entropy_by_head": per_head.cpu().tolist(),
+            "normalized_entropy_by_head": normalized_per_head.cpu().tolist(),
+            "sequence_length": int(sequence_length),
+        }
+
     def forward(self, x):
         B, T, C = x.size() # batch size, sequence length, embedding dimensionality (n_embd)
+        self.last_attention_stats = None
+        self.last_entropy = None  # 新增：重置熵缓存
 
         # calculate query, key, values for all heads in batch and move head forward to be the batch dim
-        q, k, v  = self.c_attn(x).split(self.n_embd, dim=2)
+        q, k, v = self.c_attn(x).split(self.n_embd, dim=2)
         k = k.view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
         q = q.view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
         v = v.view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
 
-        # causal self-attention; Self-attend: (B, nh, T, hs) x (B, nh, hs, T) -> (B, nh, T, T)
-        if self.flash:
-            # efficient attention using Flash Attention CUDA kernels
-            # Note: Flash attention doesn't support position-dependent scaling easily,
-            # so we fall back to manual implementation when alpha != 1.0
-            if self.alpha != 1.0:
-                # manual implementation with position-dependent scaling
-                att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1)))
-                att = att.masked_fill(self.bias[:,:,:T,:T] == 0, float('-inf'))
-                # Apply position-dependent scaling: (log N)^alpha where N is position index
-                # N is 1-indexed (position 0 -> N=1, position 1 -> N=2, etc.)
-                positions = torch.arange(1, T + 1, dtype=att.dtype, device=att.device)  # (T,)
-                log_positions = torch.log(positions)  # (T,)
-                position_scale = log_positions ** self.alpha  # (T,)
-                # Apply scaling: each query position N gets scaled by (log N)^alpha
-                # att shape is (B, nh, T, T), we want to scale each row (query position)
-                att = att * position_scale.view(1, 1, T, 1)  # Broadcast to (B, nh, T, T)
-                att = F.softmax(att, dim=-1)
-                att = self.attn_dropout(att)
-                y = att @ v
-            else:
-                y = torch.nn.functional.scaled_dot_product_attention(q, k, v, attn_mask=None, dropout_p=self.dropout if self.training else 0, is_causal=True)
+        need_weights = self.capture_attention_stats or self.compute_entropy or (self.alpha != 1.0)
+
+        if self.flash and not need_weights:
+            # Flash attention (no weights)
+            y = torch.nn.functional.scaled_dot_product_attention(
+                q, k, v, attn_mask=None,
+                dropout_p=self.dropout if self.training else 0,
+                is_causal=True,
+            )
         else:
-            # manual implementation of attention
+            # Manual attention (weights available)
             att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1)))
             att = att.masked_fill(self.bias[:,:,:T,:T] == 0, float('-inf'))
-            # Apply position-dependent scaling: (log N)^alpha where N is position index
-            # N is 1-indexed (position 0 -> N=1, position 1 -> N=2, etc.)
-            positions = torch.arange(1, T + 1, dtype=att.dtype, device=att.device)  # (T,)
-            log_positions = torch.log(positions)  # (T,)
-            position_scale = log_positions ** self.alpha  # (T,)
-            # Apply scaling: each query position N gets scaled by (log N)^alpha
-            # att shape is (B, nh, T, T), we want to scale each row (query position)
-            att = att * position_scale.view(1, 1, T, 1)  # Broadcast to (B, nh, T, T)
+            if self.alpha != 1.0:
+                positions = torch.arange(1, T + 1, dtype=att.dtype, device=att.device)
+                log_positions = torch.log(positions)
+                position_scale = log_positions ** self.alpha
+                att = att * position_scale.view(1, 1, T, 1)
             att = F.softmax(att, dim=-1)
-            att = self.attn_dropout(att)
-            y = att @ v # (B, nh, T, T) x (B, nh, T, hs) -> (B, nh, T, hs)
-        y = y.transpose(1, 2).contiguous().view(B, T, C) # re-assemble all head outputs side by side
 
-        # output projection
+            # Record stats for observation (no gradient)
+            if self.capture_attention_stats:
+                self._record_attention_stats(att)
+
+            # Compute differentiable entropy if requested
+            if self.compute_entropy:
+                entropy = -torch.sum(att * torch.log(att + 1e-12), dim=-1)  # (B, nh, T)
+                self.last_entropy = entropy.mean()  # scalar, differentiable
+            else:
+                self.last_entropy = None
+
+            att = self.attn_dropout(att)
+            y = att @ v
+
+        y = y.transpose(1, 2).contiguous().view(B, T, C)
         y = self.resid_dropout(self.c_proj(y))
         return y
 
 class MLP(nn.Module):
 
-    def __init__(self, config):
+    def __init__(self, config, layer_name):
         super().__init__()
+        self.layer_name = layer_name
+        self.varcov_enabled = bool(config.varcov_enabled)
+        self.varcov_target_std = float(config.varcov_target_std)
         self.c_fc    = nn.Linear(config.n_embd, 4 * config.n_embd, bias=config.bias)
         #self.gelu    = nn.GELU()
         self.silu    = nn.SiLU()
         self.c_proj  = nn.Linear(4 * config.n_embd, config.n_embd, bias=config.bias)
         self.dropout = nn.Dropout(config.dropout)
 
+        self.last_variance_loss = None
+        self.last_covariance_loss = None
+        self.last_mean_std = None
+
     def forward(self, x):
         x = self.c_fc(x)
         x = self.silu(x)
-        x = self.c_proj(x)
-        x = self.dropout(x)
-        return x
+        projected = self.c_proj(x)
+
+        self.last_variance_loss = None
+        self.last_covariance_loss = None
+        self.last_mean_std = None
+        if self.varcov_enabled:
+            (
+                self.last_variance_loss,
+                self.last_covariance_loss,
+                self.last_mean_std,
+            ) = compute_varcov_penalty(
+                projected,
+                target_std=self.varcov_target_std,
+            )
+
+        return self.dropout(projected)
 
 class Block(nn.Module):
 
-    def __init__(self, config):
+    def __init__(self, config, layer_name):
         super().__init__()
         self.ln_1 = LayerNorm(config.n_embd, bias=config.bias)
         self.attn = CausalSelfAttention(config)
         self.ln_2 = LayerNorm(config.n_embd, bias=config.bias)
-        self.mlp = MLP(config)
+        self.mlp = MLP(config, layer_name=layer_name)
 
     def forward(self, x):
         x = x + self.attn(self.ln_1(x))
@@ -145,6 +202,8 @@ class GPTConfigCV:
     bias: bool = True # True: bias in Linears and LayerNorms, like GPT-2. False: a bit better and faster
     input_dim: int = 1 # Dimension of input continuous variables (e.g., 1 for 1D, 2 for 2D coordinates)
     attention_alpha: float = 0.0 # Position-dependent scaling parameter: (log N)^alpha applied before softmax
+    varcov_enabled: bool = False
+    varcov_target_std: float = 0.1
 
 class GPTCV(nn.Module):
     """
@@ -160,7 +219,10 @@ class GPTCV(nn.Module):
         self.transformer = nn.ModuleDict(dict(
             wpe = nn.Embedding(config.block_size, config.n_embd),
             drop = nn.Dropout(config.dropout),
-            h = nn.ModuleList([Block(config) for _ in range(config.n_layer)]),
+            h = nn.ModuleList([
+                Block(config, layer_name=f"block_{index}")
+                for index in range(config.n_layer)
+            ]),
             ln_f = LayerNorm(config.n_embd, bias=config.bias),
         ))
         # Learnable input embedding layer: maps input_dim to n_embd
@@ -218,7 +280,7 @@ class GPTCV(nn.Module):
         
         return x_emb
 
-    def forward(self, x, targets=None):
+    def forward(self, x, targets=None,compute_entropy=False):
         """
         Forward pass for continuous variables.
         
@@ -233,6 +295,8 @@ class GPTCV(nn.Module):
             predictions: predicted continuous values of shape (b, t, d)
             loss: MSE loss if targets are provided, None otherwise
         """
+        for block in self.transformer.h:
+            block.attn.compute_entropy = compute_entropy
         device = x.device
         
         # Handle input shape: if 2D, add dimension
@@ -287,6 +351,52 @@ class GPTCV(nn.Module):
 
         return predictions, loss
 
+    def variance_covariance_penalties(self):
+        """Return layer-averaged penalties from the latest forward pass."""
+        variance_losses = []
+        covariance_losses = []
+        for block in self.transformer.h:
+            if block.mlp.last_variance_loss is not None:
+                variance_losses.append(block.mlp.last_variance_loss)
+            if block.mlp.last_covariance_loss is not None:
+                covariance_losses.append(block.mlp.last_covariance_loss)
+
+        variance = (
+            torch.stack(variance_losses).mean()
+            if variance_losses else None
+        )
+        covariance = (
+            torch.stack(covariance_losses).mean()
+            if covariance_losses else None
+        )
+        return variance, covariance
+
+    def variance_covariance_stats(self):
+        """Return detached per-layer statistics from the latest forward pass."""
+        results = {}
+        for index, block in enumerate(self.transformer.h):
+            mlp = block.mlp
+            if mlp.last_mean_std is None:
+                continue
+            results[f"block_{index}"] = {
+                "mean_std": float(mlp.last_mean_std.detach().item()),
+                "variance_loss": float(
+                    mlp.last_variance_loss.detach().item()
+                ),
+                "covariance_loss": float(
+                    mlp.last_covariance_loss.detach().item()
+                ),
+            }
+        return results
+    def attention_entropy_penalty(self):
+        entropies = []
+        for block in self.transformer.h:
+            if block.attn.last_entropy is not None:
+                entropies.append(block.attn.last_entropy)
+        if not entropies:
+            return None
+        return torch.stack(entropies).mean()
+        
     def crop_block_size(self, block_size):
         # model surgery to decrease the block size if necessary
         # e.g. we may load the GPT2 pretrained model checkpoint (block size 1024)
