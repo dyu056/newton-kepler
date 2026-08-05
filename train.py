@@ -65,7 +65,6 @@ from probe import (
 seed = 1
 np.random.seed(seed)
 torch.manual_seed(seed)
-num_points_per_trajectory = 100
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
@@ -788,6 +787,9 @@ def train_one_model(block_size=100, data_dir='data_cv', noise_scale=0.1, lr=1e-3
     print(f"Position range: x=[{trajectories[:,:,0].min():.3f}, {trajectories[:,:,0].max():.3f}], "
           f"y=[{trajectories[:,:,1].min():.3f}, {trajectories[:,:,1].max():.3f}]")
 
+    # Auto-detect sequence length from data (Kepler=100, Spring=129, etc.)
+    num_points_per_trajectory = trajectories.shape[1]
+
     # Split into train and test sets (50/50 split)
     num_traj = trajectories.shape[0]
     train_trajectories = trajectories[:num_traj//2]
@@ -1081,6 +1083,14 @@ def run_configured_experiments(config, run_dir, overwrite=False, console_stream=
     experiment_seed = int(config.get("seed", 1))
     data_dir = str(data_config.get("data_dir", "data_cv"))
     num_trajectories = int(data_config.get("num_trajectories", 10000))
+
+    # Peek at data shape to validate block_sizes before training loop
+    from data_utils import load_spring_metadata
+    _spring_meta = load_spring_metadata(data_dir)
+    if _spring_meta:
+        num_points_per_trajectory = int(_spring_meta.get("num_frames", 129))
+    else:
+        num_points_per_trajectory = 100  # Kepler default
 
     block_sizes = [
         int(value)

@@ -1,4 +1,9 @@
-"""Dataset loading and sequence construction for Newton-Kepler experiments."""
+"""Dataset loading and sequence construction for Newton-Kepler experiments.
+
+Supports two data backends (auto-detected from directory contents):
+  - Kepler   (data_cv/):     2-D orbital trajectories   (N, 100, 2)
+  - Spring   (data_spring/): 2-D phase-space SHM         (N, 129, 2)  [x, v]
+"""
 
 import importlib.util
 import os
@@ -109,9 +114,15 @@ def load_trajectories(data_dir='data_cv', num_trajectories_needed=None):
         print(f"Loaded {trajectories.shape[0]:,} trajectories from {npy_path}")
         return trajectories
     else:
+        # ── Spring data auto-detection ──
+        spring_train = os.path.join(data_dir, "train_trajectories.npy")
+        if os.path.exists(spring_train):
+            return _load_spring_trajectories(data_dir, num_trajectories_needed)
+
         raise FileNotFoundError(
             f"Trajectories not found in {data_dir}. "
-            f"Please run generate_kepler_cv.py first to generate the dataset."
+            f"For Kepler: run generate_kepler_cv.py first. "
+            f"For Spring: run generate_spring_data.py first."
         )
 
 def chop_trajectories_into_sequences(trajectories, block_size, seed=None):
@@ -240,3 +251,40 @@ def load_orbital_params(data_dir='data_cv', num_trajectories_needed=None):
     # If chunks weren't available, return empty list
     print(f"Orbital parameters not found in {data_dir}")
     return []
+
+
+# ── Spring data backend ──────────────────────────────────────────────
+
+def _load_spring_trajectories(
+    data_dir: str,
+    num_trajectories_needed: int | None = None,
+) -> np.ndarray:
+    """Load Spring SHM phase-space trajectories (internal, called by load_trajectories)."""
+    train_path = os.path.join(data_dir, "train_trajectories.npy")
+    eval_path  = os.path.join(data_dir, "eval_trajectories.npy")
+
+    train = np.load(train_path).astype(np.float32)
+    pieces = [train]
+
+    if os.path.exists(eval_path):
+        eval_data = np.load(eval_path).astype(np.float32)
+        pieces.append(eval_data)
+
+    trajectories = np.concatenate(pieces, axis=0)
+
+    if num_trajectories_needed is not None:
+        trajectories = trajectories[:num_trajectories_needed]
+
+    print(
+        f"Loaded {trajectories.shape[0]:,} spring trajectories "
+        f"from {data_dir}  (shape={trajectories.shape})"
+    )
+    return trajectories
+
+
+def load_spring_metadata(data_dir: str = "data_spring") -> dict:
+    """Return the spring dataset metadata dict (fps, num_frames, omega_range, etc.)."""
+    meta_path = os.path.join(data_dir, "metadata.pt")
+    if not os.path.exists(meta_path):
+        return {}
+    return torch.load(meta_path, weights_only=False)
