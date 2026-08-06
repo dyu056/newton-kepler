@@ -35,7 +35,7 @@ from tqdm.auto import tqdm
 
 from data_utils import (
     chop_trajectories_into_sequences,
-    load_orbital_params,
+    load_spring_metadata,
     load_trajectories,
 )
 from loss import compute_loss_with_mask
@@ -55,7 +55,6 @@ from observe import (
 from probe import (
     collect_activations,
     initialize_probe_indices,
-    run_geometry_probes,
     run_linear_probes,
     setup_activation_hooks,
     snapshot_activations,
@@ -202,12 +201,12 @@ def should_run_probe(completed_step, probe_frequency, probe_schedule=None):
 
 def train_model(model, train_inputs, train_targets, test_inputs, test_targets, train_trajectories, test_trajectories,
                  n_steps=1001, lr=1e-3, weight_decay=0.0, noise_scale=0.1, prob_freq=100, batch_size=128,
-                 loss_mask='all', seed=1, train_orbital_params=None, eval_orbital_params=None,
+                 loss_mask='all', seed=1,
                  optimizer_type='adamw',
                  train_sequence_trajectory_ids=None, eval_sequence_trajectory_ids=None,
                  progress_bar=None, probe_schedule=None, probe_enabled=True,
                  probe_num_train_samples=1000, probe_num_eval_samples=1000,
-                 probe_verbose=False, probe_geometry_enabled=True,
+                 probe_verbose=False,
                  activation_rank_enabled=False,
                  attention_entropy_enabled=False,
                  varcov_observe_enabled=False,
@@ -735,7 +734,7 @@ def train_one_model(block_size=100, data_dir='data_cv', noise_scale=0.1, lr=1e-3
                     scale_batch_by_context=True, progress_bar=None,
                     probe_schedule=None, probe_enabled=True,
                     probe_num_train_samples=1000, probe_num_eval_samples=1000,
-                    probe_verbose=False, probe_geometry_enabled=True,
+                    probe_verbose=False,
                     activation_rank_enabled=False,
                     attention_entropy_enabled=False,
                     varcov_observe_enabled=False,

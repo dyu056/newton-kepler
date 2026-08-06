@@ -1,129 +1,40 @@
-"""Dataset loading and sequence construction for Newton-Kepler experiments.
+"""Dataset loading for Spring SHM trajectories."""
 
-Supports two data backends (auto-detected from directory contents):
-  - Kepler   (data_cv/):     2-D orbital trajectories   (N, 100, 2)
-  - Spring   (data_spring/): 2-D phase-space SHM         (N, 129, 2)  [x, v]
-"""
-
-import importlib.util
 import os
 
 import numpy as np
 import torch
 
 
-def load_trajectories(data_dir='data_cv', num_trajectories_needed=None):
-    """
-    Load continuous trajectories from the data_cv folder.
-    Supports both chunked format (new) and single file format (old, for backward compatibility).
-    
-    Args:
-        data_dir: Directory containing the saved trajectories
-        num_trajectories_needed: Number of trajectories to load (None = load all available)
-    
-    Returns:
-        trajectories: array of shape (num_trajectories, num_points, 2)
-    """
-    # ── Spring data: detect early, return immediately ──
-    spring_train = os.path.join(data_dir, "train_trajectories.npy")
-    if os.path.exists(spring_train):
-        return _load_spring_trajectories(data_dir, num_trajectories_needed)
+def load_trajectories(data_dir='data_spring', num_trajectories_needed=None):
+    """Load Spring SHM trajectories from data_dir/train_trajectories.npy.
 
-    # Check for chunked format first
-    metadata_path = os.path.join(data_dir, 'metadata.pt')
-    if os.path.exists(metadata_path):
-        metadata = torch.load(metadata_path, weights_only=False)
-        chunk_size = metadata.get('chunk_size', 10000)
-        num_chunks = metadata.get('num_chunks', 0)
-        total_available = metadata.get('num_trajectories', 0)
-        
-        # Determine how many trajectories to load
-        if num_trajectories_needed is None:
-            num_trajectories_needed = total_available
-        else:
-            num_trajectories_needed = min(num_trajectories_needed, total_available)
-        
-        # Ensure num_trajectories_needed is an integer
-        num_trajectories_needed = int(num_trajectories_needed)
-        chunk_size = int(chunk_size)
-        num_chunks = int(num_chunks)
-        
-        # Only try to load chunks if we have chunks available
-        if num_chunks > 0 and num_trajectories_needed > 0:
-            print(f"Loading {num_trajectories_needed:,} trajectories from {num_chunks} chunks...")
-            
-            # Calculate which chunks we need
-            num_chunks_needed = (num_trajectories_needed + chunk_size - 1) // chunk_size
-            num_chunks_needed = min(num_chunks_needed, num_chunks)
-            num_chunks_needed = int(num_chunks_needed)
-            
-            # Load chunks
-            chunks = []
-            trajectories_loaded = 0
-            
-            for chunk_idx in range(num_chunks_needed):
-                chunk_filename = os.path.join(data_dir, f'trajectories_chunk_{chunk_idx:06d}.pt')
-                if os.path.exists(chunk_filename):
-                    chunk_data = torch.load(chunk_filename, weights_only=False)
-                    if isinstance(chunk_data, torch.Tensor):
-                        chunk_data = chunk_data.numpy()
-                    
-                    remaining_needed = num_trajectories_needed - trajectories_loaded
-                    if chunk_data.shape[0] <= remaining_needed:
-                        chunks.append(chunk_data)
-                        trajectories_loaded += chunk_data.shape[0]
-                    else:
-                        # Only take what we need
-                        chunks.append(chunk_data[:remaining_needed])
-                        trajectories_loaded += remaining_needed
-                        break
-                else:
-                    print(f"Warning: Chunk {chunk_idx} not found. Falling back to old format.")
-                    chunks = []  # Clear chunks to trigger fallback
-                    break
-            
-            # Concatenate chunks if we successfully loaded any
-            if chunks:
-                trajectories = np.concatenate(chunks, axis=0)
-                # Ensure we have exactly the number needed
-                if trajectories.shape[0] > num_trajectories_needed:
-                    trajectories = trajectories[:num_trajectories_needed]
-                print(f"Loaded {trajectories.shape[0]:,} trajectories from chunks")
-                return trajectories
-        
-        # If chunks weren't available or loading failed, fall through to old format
-        print(f"Chunked format not available or incomplete, falling back to old format...")
-    
-    # Fallback to old format (single file) for backward compatibility
-    pt_path = os.path.join(data_dir, 'trajectories.pt')
-    npy_path = os.path.join(data_dir, 'trajectories.npy')
-    
-    if os.path.exists(pt_path):
-        trajectories = torch.load(pt_path, weights_only=False)
-        if isinstance(trajectories, torch.Tensor):
-            trajectories = trajectories.numpy()
-        
-        # Limit to num_trajectories_needed if specified
-        if num_trajectories_needed is not None and trajectories.shape[0] > num_trajectories_needed:
-            trajectories = trajectories[:num_trajectories_needed]
-        
-        print(f"Loaded {trajectories.shape[0]:,} trajectories from {pt_path}")
-        return trajectories
-    elif os.path.exists(npy_path):
-        trajectories = np.load(npy_path)
-        
-        # Limit to num_trajectories_needed if specified
-        if num_trajectories_needed is not None and trajectories.shape[0] > num_trajectories_needed:
-            trajectories = trajectories[:num_trajectories_needed]
-        
-        print(f"Loaded {trajectories.shape[0]:,} trajectories from {npy_path}")
-        return trajectories
-    else:
+    Args:
+        data_dir: Directory containing train_trajectories.npy
+        num_trajectories_needed: Number of trajectories (None = all)
+    Returns:
+        float32 array of shape (N, num_frames, 1)
+    """
+    train_path = os.path.join(data_dir, "train_trajectories.npy")
+    if not os.path.exists(train_path):
         raise FileNotFoundError(
-            f"Trajectories not found in {data_dir}. "
-            f"For Kepler: run generate_kepler_cv.py first. "
-            f"For Spring: run generate_spring_data.py first."
+            f"train_trajectories.npy not found in {data_dir}. "
+            f"Run: python generate_spring_data.py --config configs/spring.yaml"
         )
+
+    trajectories = np.load(train_path).astype(np.float32)
+
+    eval_path = os.path.join(data_dir, "eval_trajectories.npy")
+    if os.path.exists(eval_path):
+        eval_data = np.load(eval_path).astype(np.float32)
+        trajectories = np.concatenate([trajectories, eval_data], axis=0)
+
+    if num_trajectories_needed is not None:
+        trajectories = trajectories[:num_trajectories_needed]
+
+    print(f"Loaded {trajectories.shape[0]:,} spring trajectories "
+          f"from {data_dir}  (shape={trajectories.shape})")
+    return trajectories
 
 def chop_trajectories_into_sequences(trajectories, block_size, seed=None):
     """

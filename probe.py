@@ -109,71 +109,27 @@ def setup_activation_hooks(model, verbose=False):
     return hooks, activation_dict
 
 
-def compute_gravitational_force(positions):
-    """Compute probe targets.  1D→position+velocity, 2D→gravity force components."""
-    input_dim = positions.shape[-1] if hasattr(positions, 'shape') else 2
-    if input_dim == 1:
-        # 1D SHM: position x and finite-difference velocity dx = x_{t+1} - x_t
-        # dx is NOT in training data — model must learn it implicitly from positions.
-        if torch.is_tensor(positions):
-            x = positions[..., 0]                          # (B, T)
-            dx = (x[:, 1:] - x[:, :-1]) / 0.05            # Δt = 1/20 fps
-            # Align: dx has T-1 steps, pad last with NaN-equivalent (0 for probe)
-            dx_padded = torch.cat([dx, dx[:, -1:]], dim=1)
-            return {"x": x.reshape(-1), "dx": dx_padded.reshape(-1)}
-        x = np.asarray(positions)[..., 0]
-        dx = (x[:, 1:] - x[:, :-1]) / 0.05
-        dx_padded = np.concatenate([dx, dx[:, -1:]], axis=1)
-        return {"x": x.flatten(), "dx": dx_padded.flatten()}
+def compute_force_probes(positions):
+    """1D SHM probe targets: position x and finite-difference velocity dx.
 
+    dx = (x_{t+1} - x_t) / Δt   where Δt = 1/20 fps = 0.05 s.
+
+    dx is NOT in training data — model must learn it implicitly from positions.
+    """
     if torch.is_tensor(positions):
         x = positions[..., 0]
-        y = positions[..., 1]
-        r = torch.sqrt(x.square() + y.square())
-        r3 = r.pow(3).clamp_min(1e-10)
-        fx = -x / r3
-        fy = -y / r3
-        magnitude = torch.sqrt(fx.square() + fy.square())
-        safe_magnitude = magnitude.clamp_min(1e-10)
-        safe_r = r.clamp_min(1e-10)
-        safe_r2 = r.square().clamp_min(1e-10)
-        safe_r3 = r.pow(3).clamp_min(1e-10)
-        return {
-            "Fx": fx.reshape(-1),
-            "Fy": fy.reshape(-1),
-            "F_magnitude": magnitude.reshape(-1),
-            "F_direction_x": (fx / safe_magnitude).reshape(-1),
-            "F_direction_y": (fy / safe_magnitude).reshape(-1),
-            "r": r.reshape(-1),
-            "inv_r": (1.0 / safe_r).reshape(-1),
-            "r_squared": r.square().reshape(-1),
-            "inv_r_squared": (1.0 / safe_r2).reshape(-1),
-            "inv_r_cubed": (1.0 / safe_r3).reshape(-1),
-            "x": x.reshape(-1),
-            "y": y.reshape(-1),
-        }
+        dx = (x[:, 1:] - x[:, :-1]) / 0.05
+        dx_padded = torch.cat([dx, dx[:, -1:]], dim=1)
+        return {"x": x.reshape(-1), "dx": dx_padded.reshape(-1)}
+    x = np.asarray(positions)[..., 0]
+    dx = (x[:, 1:] - x[:, :-1]) / 0.05
+    dx_padded = np.concatenate([dx, dx[:, -1:]], axis=1)
+    return {"x": x.flatten(), "dx": dx_padded.flatten()}
 
-    positions = np.asarray(positions)
-    r = np.sqrt(positions[:, :, 0] ** 2 + positions[:, :, 1] ** 2)
-    r3 = np.where(r ** 3 < 1e-10, 1e-10, r ** 3)
-    fx = -positions[:, :, 0] / r3
-    fy = -positions[:, :, 1] / r3
-    magnitude = np.sqrt(fx ** 2 + fy ** 2)
-    safe_magnitude = np.where(magnitude < 1e-10, 1e-10, magnitude)
-    return {
-        "Fx": fx.flatten(),
-        "Fy": fy.flatten(),
-        "F_magnitude": magnitude.flatten(),
-        "F_direction_x": (fx / safe_magnitude).flatten(),
-        "F_direction_y": (fy / safe_magnitude).flatten(),
-        "r": r.flatten(),
-        "inv_r": (1.0 / np.where(r < 1e-10, 1e-10, r)).flatten(),
-        "r_squared": (r ** 2).flatten(),
-        "inv_r_squared": (1.0 / np.where(r ** 2 < 1e-10, 1e-10, r ** 2)).flatten(),
-        "inv_r_cubed": (1.0 / np.where(r ** 3 < 1e-10, 1e-10, r ** 3)).flatten(),
-        "x": positions[:, :, 0].flatten(),
-        "y": positions[:, :, 1].flatten(),
-    }
+
+def collect_activations(model, inputs, targets, activation_dict, verbose=False):
+    """Run one eval forward, capturing activations only for this call."""
+    del targets  # Kept in the public interface for backward compatibility.
 
 
 def collect_activations(model, inputs, targets, activation_dict, verbose=False):
@@ -186,7 +142,7 @@ def collect_activations(model, inputs, targets, activation_dict, verbose=False):
     try:
         with torch.no_grad():
             predictions, _ = model(inputs, None)
-            gravitational_force = compute_gravitational_force(inputs)
+            force_probes = compute_force_probes(inputs)
     finally:
         activation_dict.capture_enabled = False
         model.train(was_training)
@@ -199,7 +155,7 @@ def collect_activations(model, inputs, targets, activation_dict, verbose=False):
         for name, value in activation_dict.items():
             print(f"  {name}: {tuple(value.shape)}")
 
-    return predictions, gravitational_force
+    return predictions, force_probes
 
 
 def initialize_probe_indices(train_size, eval_size, max_samples, seed):
@@ -301,15 +257,15 @@ def _safe_r2_score_torch(target, prediction):
     return float((1.0 - residual / total).item())
 
 
-def run_linear_probes(train_activation_dict, train_gravitational_force,
-                      eval_activation_dict, eval_gravitational_force,
+def run_linear_probes(train_activation_dict, train_force_probes,
+                      eval_activation_dict, eval_force_probes,
                       verbose=False):
     """Fit every target as an independent linear probe on GPU when available."""
     if set(train_activation_dict) != set(eval_activation_dict):
         raise ValueError("Train/eval activation layers do not match")
 
     # Use whatever keys the force function returned (12 for 2D Kepler, 2 for 1D Spring)
-    probe_targets = sorted(train_gravitational_force.keys())
+    probe_targets = sorted(train_force_probes.keys())
     probe_results = {}
 
     for layer_name, train_activations in train_activation_dict.items():
@@ -327,11 +283,11 @@ def run_linear_probes(train_activation_dict, train_gravitational_force,
         probes = {}
         for probe_name in probe_targets:
             train_force = _reshape_token_target_torch(
-                train_gravitational_force[probe_name], batch_size, time_steps,
+                train_force_probes[probe_name], batch_size, time_steps,
                 f"{probe_name} train", device,
             )
             eval_force = _reshape_token_target_torch(
-                eval_gravitational_force[probe_name], eval_batch_size, eval_time_steps,
+                eval_force_probes[probe_name], eval_batch_size, eval_time_steps,
                 f"{probe_name} eval", device,
             )
             train_force_flat = train_force.reshape(-1)
@@ -376,58 +332,3 @@ def run_linear_probes(train_activation_dict, train_gravitational_force,
                 )
 
     return probe_results
-
-
-def run_geometry_probes(train_activation_dict, train_orbital_params, train_trajectory_ids,
-                        eval_activation_dict, eval_orbital_params, eval_trajectory_ids):
-    """Fit geometry probes on train sequences and score held-out eval sequences."""
-    base_targets = [
-        "e", "a", "b", "c", "average_radius", "LRL_x", "LRL_y",
-        "LRL_magnitude", "LRL_angle", "n_x", "n_y",
-    ]
-    probe_targets = base_targets + ["1/a", "1/a^2", "1/b", "1/b^2"]
-
-    def values(params, trajectory_ids):
-        if (
-            len(trajectory_ids) == 0
-            or np.min(trajectory_ids) < 0
-            or np.max(trajectory_ids) >= len(params)
-        ):
-            raise ValueError("Geometry trajectory IDs are outside the orbital-parameter split")
-        result = {
-            name: np.asarray([params[int(i)][name] for i in trajectory_ids])
-            for name in base_targets
-        }
-        result["1/a"] = 1.0 / result["a"]
-        result["1/a^2"] = 1.0 / result["a"] ** 2
-        result["1/b"] = 1.0 / result["b"]
-        result["1/b^2"] = 1.0 / result["b"] ** 2
-        return result
-
-    train_values = values(train_orbital_params, train_trajectory_ids)
-    eval_values = values(eval_orbital_params, eval_trajectory_ids)
-    results = {}
-    for layer_name, train_activations in train_activation_dict.items():
-        eval_activations = eval_activation_dict[layer_name]
-        train_all = train_activations.reshape(-1, train_activations.shape[-1]).cpu().numpy()
-        eval_all = eval_activations.reshape(-1, eval_activations.shape[-1]).cpu().numpy()
-        train_last = train_activations[:, -1, :].cpu().numpy()
-        eval_last = eval_activations[:, -1, :].cpu().numpy()
-        layer_results = {}
-        for name in probe_targets:
-            train_target_all = np.repeat(train_values[name], train_activations.shape[1])
-            eval_target_all = np.repeat(eval_values[name], eval_activations.shape[1])
-            probe_all = _LinearRegression().fit(train_all, train_target_all)
-            probe_last = _LinearRegression().fit(train_last, train_values[name])
-            train_r2_all = safe_r2_score(train_target_all, probe_all.predict(train_all))
-            eval_r2_all = safe_r2_score(eval_target_all, probe_all.predict(eval_all))
-            train_r2_last = safe_r2_score(train_values[name], probe_last.predict(train_last))
-            eval_r2_last = safe_r2_score(eval_values[name], probe_last.predict(eval_last))
-            layer_results[name] = {
-                "train_r2_all": train_r2_all,
-                "eval_r2_all": eval_r2_all,
-                "train_r2_sequence_last": train_r2_last,
-                "eval_r2_sequence_last": eval_r2_last,
-            }
-        results[layer_name] = layer_results
-    return results

@@ -116,7 +116,7 @@ def generate_trajectory_and_compute_error(model, inputs, trajectories, condition
             
             # Compute R² scores for each trajectory column
             input_dim = true_aligned.shape[2]
-            _col_names = {0: "x", 1: "y"} if input_dim <= 2 else {d: f"col_{d}" for d in range(input_dim)}
+            _col_names = {0: "x"}
             all_r2_cols = {_col_names[d]: [] for d in range(input_dim)}
             for traj_idx in range(num_trajectories):
                 for d in range(input_dim):
@@ -170,7 +170,7 @@ def generate_trajectory_and_compute_error(model, inputs, trajectories, condition
             
             # Compute R² scores for each trajectory column
             input_dim = true_aligned.shape[2]
-            _col_names = {0: "x", 1: "y"} if input_dim <= 2 else {d: f"col_{d}" for d in range(input_dim)}
+            _col_names = {0: "x"}
             all_r2_cols = {_col_names[d]: [] for d in range(input_dim)}
             for traj_idx in range(num_trajectories):
                 for d in range(input_dim):
