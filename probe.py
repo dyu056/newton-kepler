@@ -2,8 +2,35 @@
 
 import numpy as np
 import torch
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import r2_score
+# ── NumPy-only replacements for sklearn (no network on H200) ──
+
+
+class __LinearRegression:
+    """Thin wrapper around np.linalg.lstsq, sklearn-compatible API."""
+    def __init__(self):
+        self.coef_ = None
+        self.intercept_ = None
+
+    def fit(self, X, y):
+        X = np.asarray(X, dtype=np.float64)
+        y = np.asarray(y, dtype=np.float64)
+        X_aug = np.column_stack([X, np.ones(X.shape[0])])
+        coef, _, _, _ = np.linalg.lstsq(X_aug, y, rcond=None)
+        self.coef_ = coef[:-1]
+        self.intercept_ = coef[-1]
+        return self
+
+    def predict(self, X):
+        X = np.asarray(X, dtype=np.float64)
+        return X @ self.coef_ + self.intercept_
+
+
+def _r2_score(y_true, y_pred):
+    ss_res = float(np.sum((y_true - y_pred) ** 2))
+    ss_tot = float(np.sum((y_true - np.mean(y_true)) ** 2))
+    if ss_tot < 1e-12:
+        return float("nan")
+    return float(1.0 - ss_res / ss_tot)
 
 from model_cv import GPTConfigCV
 
@@ -186,7 +213,7 @@ def safe_r2_score(target, prediction):
         raise ValueError(f"R² shape mismatch: {target.shape} versus {prediction.shape}")
     if target.size < 2 or np.var(target) <= 1e-12:
         return float("nan")
-    return float(r2_score(target, prediction))
+    return float(_r2_score(target, prediction))
 
 
 def reshape_token_target(value, batch_size, time_steps, name):
@@ -377,8 +404,8 @@ def run_geometry_probes(train_activation_dict, train_orbital_params, train_traje
         for name in probe_targets:
             train_target_all = np.repeat(train_values[name], train_activations.shape[1])
             eval_target_all = np.repeat(eval_values[name], eval_activations.shape[1])
-            probe_all = LinearRegression().fit(train_all, train_target_all)
-            probe_last = LinearRegression().fit(train_last, train_values[name])
+            probe_all = _LinearRegression().fit(train_all, train_target_all)
+            probe_last = _LinearRegression().fit(train_last, train_values[name])
             train_r2_all = safe_r2_score(train_target_all, probe_all.predict(train_all))
             eval_r2_all = safe_r2_score(eval_target_all, probe_all.predict(eval_all))
             train_r2_last = safe_r2_score(train_values[name], probe_last.predict(train_last))

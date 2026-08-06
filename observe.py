@@ -2,7 +2,16 @@
 
 import numpy as np
 import torch
-from sklearn.metrics import r2_score
+# import local r2_score below instead of sklearn
+
+
+def _r2_score(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    """R² score (same as sklearn.metrics.r2_score)."""
+    ss_res = float(np.sum((y_true - y_pred) ** 2))
+    ss_tot = float(np.sum((y_true - np.mean(y_true)) ** 2))
+    if ss_tot < 1e-12:
+        return float("nan")
+    return float(1.0 - ss_res / ss_tot)
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -110,7 +119,7 @@ def generate_trajectory_and_compute_error(model, inputs, trajectories, condition
             all_r2_cols = {f"col_{d}": [] for d in range(input_dim)}
             for traj_idx in range(num_trajectories):
                 for d in range(input_dim):
-                    r2_val = r2_score(true_aligned[traj_idx, :, d],
+                    r2_val = _r2_score(true_aligned[traj_idx, :, d],
                                       generated_aligned[traj_idx, :, d])
                     all_r2_cols[f"col_{d}"].append(r2_val)
             
@@ -163,7 +172,7 @@ def generate_trajectory_and_compute_error(model, inputs, trajectories, condition
             all_r2_cols = {f"col_{d}": [] for d in range(input_dim)}
             for traj_idx in range(num_trajectories):
                 for d in range(input_dim):
-                    r2_val = r2_score(true_aligned[traj_idx, :, d],
+                    r2_val = _r2_score(true_aligned[traj_idx, :, d],
                                       generated_aligned[traj_idx, :, d])
                     all_r2_cols[f"col_{d}"].append(r2_val)
             
