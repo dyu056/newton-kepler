@@ -1,19 +1,36 @@
 # Spring SHM phase-space benchmark — 1-layer conditional attention
 # Uses the same GPTCV model as Kepler, input_dim=2 (x, v)
+#
+# THIS FILE IS THE SINGLE SOURCE OF TRUTH.
+#   python generate_spring_data.py --config configs/spring.yaml
+#   python train.py --config configs/spring.yaml --run-name spring_test --gpu 0
 seed: 3407
 
+# ── Data generation ──────────────────────────────────────────────
+generation:
+  total_trajectories: 20000   # must be >= 2 × data.num_trajectories
+  num_sample_videos: 8        # .mp4 files rendered for visual check
+  fps: 20
+  num_frames: 129
+  omega_low: 2.2              # rad/s
+  omega_high: 6.4
+  amplitude_low: 0.10         # normalised coordinates
+  amplitude_high: 0.17
+
+# ── Training data ─────────────────────────────────────────────────
 data:
   data_dir: data_spring
-  num_trajectories: 10000       # per-split count (loads 2× this, splits 50/50)
-  num_frames: 129               # 129 frames @ 20 fps
+  num_trajectories: 10000     # per-split (train.py loads 2× this, then 50/50)
 
+# ── Model architecture ────────────────────────────────────────────
 model:
-  n_layer: 1                    # single transformer layer
-  n_head: 1                     # single attention head
+  n_layer: 1
+  n_head: 1
   n_embd: 128
 
+# ── Training loop ─────────────────────────────────────────────────
 training:
-  block_sizes: [2, 5, 20, 50, 100]  # context lengths to sweep
+  block_sizes: [2, 5, 20, 50, 100]
   noise_scale: 0.1
   learning_rate: 0.001
   weight_decay: 0.0
@@ -21,13 +38,14 @@ training:
   scale_batch_by_context: true
   n_steps: 2000
   progress_bar: false
-  loss_mask: all                # predict all tokens
-  optimizer: gd                 # full-batch gradient descent
+  loss_mask: all
+  optimizer: gd
 
+# ── Linear probes ─────────────────────────────────────────────────
 probe:
   enabled: true
   verbose: false
-  geometry_enabled: false       # no orbital params for spring
+  geometry_enabled: false
   frequency: 10
   num_train_samples: 5000
   num_eval_samples: 5000
@@ -39,6 +57,7 @@ probe:
       end: 20000
       every: 100
 
+# ── Observables (logged but not in loss) ──────────────────────────
 observe:
   activation_rank:
     enabled: true
@@ -50,6 +69,7 @@ observe:
     enabled: true
     num_singular_values: 5
 
+# ── Regularisation (contribute to total_loss) ─────────────────────
 regularization:
   variance_covariance:
     enabled: false
@@ -62,5 +82,6 @@ regularization:
     weight: 0.01
     start_step: 50
 
+# ── Evaluation ────────────────────────────────────────────────────
 evaluation:
   rollout_enabled: true
