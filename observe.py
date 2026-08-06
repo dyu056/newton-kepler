@@ -105,14 +105,14 @@ def generate_trajectory_and_compute_error(model, inputs, trajectories, condition
             # Compute mean across trajectories before deleting
             position_errors_mean = np.mean(position_errors, axis=0)  # (min_len,)
             
-            # Compute R² scores for each trajectory
-            all_r2_x = []
-            all_r2_y = []
+            # Compute R² scores for each trajectory column
+            input_dim = true_aligned.shape[2]
+            all_r2_cols = {f"col_{d}": [] for d in range(input_dim)}
             for traj_idx in range(num_trajectories):
-                r2_x = r2_score(true_aligned[traj_idx, :, 0], generated_aligned[traj_idx, :, 0])
-                r2_y = r2_score(true_aligned[traj_idx, :, 1], generated_aligned[traj_idx, :, 1])
-                all_r2_x.append(r2_x)
-                all_r2_y.append(r2_y)
+                for d in range(input_dim):
+                    r2_val = r2_score(true_aligned[traj_idx, :, d],
+                                      generated_aligned[traj_idx, :, d])
+                    all_r2_cols[f"col_{d}"].append(r2_val)
             
             # Clear intermediate variables
             del generated_np, true_trajectories_np, generated_only, true_generated, generated_aligned, true_aligned, position_errors
@@ -158,14 +158,14 @@ def generate_trajectory_and_compute_error(model, inputs, trajectories, condition
             # Compute mean across trajectories before deleting
             position_errors_mean = np.mean(position_errors, axis=0)  # (min_len,)
             
-            # Compute R² scores for each trajectory
-            all_r2_x = []
-            all_r2_y = []
+            # Compute R² scores for each trajectory column
+            input_dim = true_aligned.shape[2]
+            all_r2_cols = {f"col_{d}": [] for d in range(input_dim)}
             for traj_idx in range(num_trajectories):
-                r2_x = r2_score(true_aligned[traj_idx, :, 0], generated_aligned[traj_idx, :, 0])
-                r2_y = r2_score(true_aligned[traj_idx, :, 1], generated_aligned[traj_idx, :, 1])
-                all_r2_x.append(r2_x)
-                all_r2_y.append(r2_y)
+                for d in range(input_dim):
+                    r2_val = r2_score(true_aligned[traj_idx, :, d],
+                                      generated_aligned[traj_idx, :, d])
+                    all_r2_cols[f"col_{d}"].append(r2_val)
             
             # Clear intermediate variables
             del generated_np, true_trajectories_np, generated_only, true_generated, generated_aligned, true_aligned, position_errors
@@ -177,30 +177,25 @@ def generate_trajectory_and_compute_error(model, inputs, trajectories, condition
     max_error = np.max(all_position_errors)
     std_error = np.std(all_position_errors)
     
-    mean_r2_x = np.mean(all_r2_x)
-    mean_r2_y = np.mean(all_r2_y)
-    std_r2_x = np.std(all_r2_x)
-    std_r2_y = np.std(all_r2_y)
+    mean_r2 = {k: float(np.mean(v)) for k, v in all_r2_cols.items()}
+    std_r2  = {k: float(np.std(v))  for k, v in all_r2_cols.items()}
     
     error_stats = {
         'position_errors': position_errors_mean,
         'mean_error': mean_error,
         'std_error': std_error,
         'max_error': max_error,
-        'mean_r2_x': mean_r2_x,
-        'std_r2_x': std_r2_x,
-        'mean_r2_y': mean_r2_y,
-        'std_r2_y': std_r2_y,
-        'all_r2_x': all_r2_x,
-        'all_r2_y': all_r2_y,
+        'mean_r2': mean_r2,
+        'std_r2': std_r2,
+        'all_r2': {k: list(v) for k, v in all_r2_cols.items()},
     }
     
     print(f"\nError Statistics (aggregated across all {num_trajectories} trajectories):")
     print(f"Mean position error: {mean_error:.6f} ± {std_error:.6f}")
     print(f"Max position error: {max_error:.6f}")
     print(f"R² scores:")
-    print(f"  X coordinate: {mean_r2_x:.6f} ± {std_r2_x:.6f}")
-    print(f"  Y coordinate: {mean_r2_y:.6f} ± {std_r2_y:.6f}")
+    for d in sorted(mean_r2.keys()):
+        print(f"  {d}: {mean_r2[d]:.6f} ± {std_r2[d]:.6f}")
     
     return error_stats
 
