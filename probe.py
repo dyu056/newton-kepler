@@ -110,15 +110,21 @@ def setup_activation_hooks(model, verbose=False):
 
 
 def compute_gravitational_force(positions):
-    """Compute force/position probe targets.  1D data → SHM force only."""
+    """Compute probe targets.  1D→position+velocity, 2D→gravity force components."""
     input_dim = positions.shape[-1] if hasattr(positions, 'shape') else 2
     if input_dim == 1:
-        # 1D SHM: force = -ω²·x  (mass normalised), no y coordinate
+        # 1D SHM: position x and finite-difference velocity dx = x_{t+1} - x_t
+        # dx is NOT in training data — model must learn it implicitly from positions.
         if torch.is_tensor(positions):
-            x = positions[..., 0]
-            return {"x": x.reshape(-1), "Fx": -x.reshape(-1)}
+            x = positions[..., 0]                          # (B, T)
+            dx = (x[:, 1:] - x[:, :-1]) / 0.05            # Δt = 1/20 fps
+            # Align: dx has T-1 steps, pad last with NaN-equivalent (0 for probe)
+            dx_padded = torch.cat([dx, dx[:, -1:]], dim=1)
+            return {"x": x.reshape(-1), "dx": dx_padded.reshape(-1)}
         x = np.asarray(positions)[..., 0]
-        return {"x": x.flatten(), "Fx": -x.flatten()}
+        dx = (x[:, 1:] - x[:, :-1]) / 0.05
+        dx_padded = np.concatenate([dx, dx[:, -1:]], axis=1)
+        return {"x": x.flatten(), "dx": dx_padded.flatten()}
 
     if torch.is_tensor(positions):
         x = positions[..., 0]
