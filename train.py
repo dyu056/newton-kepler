@@ -784,8 +784,12 @@ def train_one_model(block_size=100, data_dir='data_cv', noise_scale=0.1, lr=1e-3
     if trajectories.shape[0] == 0:
         raise ValueError(f"No trajectories loaded. Please check that the data files exist in data_cv/")
 
-    print(f"Position range: x=[{trajectories[:,:,0].min():.3f}, {trajectories[:,:,0].max():.3f}], "
-          f"y=[{trajectories[:,:,1].min():.3f}, {trajectories[:,:,1].max():.3f}]")
+    input_dim = trajectories.shape[2]
+    if input_dim >= 2:
+        print(f"Position range: x=[{trajectories[:,:,0].min():.3f}, {trajectories[:,:,0].max():.3f}], "
+              f"y=[{trajectories[:,:,1].min():.3f}, {trajectories[:,:,1].max():.3f}]")
+    else:
+        print(f"Position range: x=[{trajectories[:,:,0].min():.3f}, {trajectories[:,:,0].max():.3f}]")
 
     # Auto-detect sequence length from data (Kepler=100, Spring=129, etc.)
     num_points_per_trajectory = trajectories.shape[1]
