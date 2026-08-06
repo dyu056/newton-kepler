@@ -332,3 +332,8 @@ def run_linear_probes(train_activation_dict, train_force_probes,
                 )
 
     return probe_results
+
+
+def run_geometry_probes(*args, **kwargs):
+    """Stub: geometry probes not available for 1D Spring data."""
+    return {}

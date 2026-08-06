@@ -79,123 +79,27 @@ def chop_trajectories_into_sequences(trajectories, block_size, seed=None):
         
         # Create sequences starting at selected positions
         for i in start_positions:
-            input_seq = traj[i:i+block_size]  # (block_size, 2)
-            target_seq = traj[i+block_size:i+block_size+1]  # (1, 2) - just the next point
+            input_seq = traj[i:i+block_size]
+            target_seq = traj[i+block_size:i+block_size+1]
             all_inputs.append(input_seq)
             all_targets.append(target_seq)
             sequence_trajectory_ids.append(trajectory_id)
     
-    inputs = np.array(all_inputs)  # (num_sequences, block_size, 2)
-    targets = np.array(all_targets)  # (num_sequences, 1, 2)
-    
+    inputs = np.array(all_inputs)
+    targets = np.array(all_targets)
+
     return inputs, targets, np.asarray(sequence_trajectory_ids, dtype=np.int64)
-
-def load_orbital_params(data_dir='data_cv', num_trajectories_needed=None):
-    """
-    Load orbital parameters from the data_cv folder.
-    Supports chunked format (orbital_params_chunk_*.py files).
-    
-    Args:
-        data_dir: Directory containing the saved orbital parameters
-        num_trajectories_needed: Number of trajectories to load (None = load all available)
-    
-    Returns:
-        orbital_params: list of dicts with keys: e, a, b, c, average_radius
-    """
-    # Check for chunked format
-    metadata_path = os.path.join(data_dir, 'metadata.pt')
-    if os.path.exists(metadata_path):
-        metadata = torch.load(metadata_path, weights_only=False)
-        chunk_size = metadata.get('chunk_size', 10000)
-        num_chunks = metadata.get('num_chunks', 0)
-        total_available = metadata.get('num_trajectories', 0)
-        
-        # Determine how many trajectories to load
-        if num_trajectories_needed is None:
-            num_trajectories_needed = total_available
-        else:
-            num_trajectories_needed = min(num_trajectories_needed, total_available)
-        
-        # Ensure num_trajectories_needed is an integer
-        num_trajectories_needed = int(num_trajectories_needed)
-        chunk_size = int(chunk_size)
-        num_chunks = int(num_chunks)
-        
-        if num_chunks > 0 and num_trajectories_needed > 0:
-            print(f"Loading {num_trajectories_needed:,} orbital parameters from {num_chunks} chunks...")
-            
-            # Calculate which chunks we need
-            num_chunks_needed = (num_trajectories_needed + chunk_size - 1) // chunk_size
-            num_chunks_needed = min(num_chunks_needed, num_chunks)
-            num_chunks_needed = int(num_chunks_needed)
-            
-            # Load chunks
-            all_orbital_params = []
-            trajectories_loaded = 0
-            
-            for chunk_idx in range(num_chunks_needed):
-                chunk_filename = os.path.join(data_dir, f'orbital_params_chunk_{chunk_idx:06d}.py')
-                if os.path.exists(chunk_filename):
-                    # Import the orbital_params from the Python file
-                    spec = importlib.util.spec_from_file_location(f"orbital_params_chunk_{chunk_idx}", chunk_filename)
-                    module = importlib.util.module_from_spec(spec)
-                    spec.loader.exec_module(module)
-                    chunk_data = module.orbital_params
-                    
-                    remaining_needed = num_trajectories_needed - trajectories_loaded
-                    if len(chunk_data) <= remaining_needed:
-                        all_orbital_params.extend(chunk_data)
-                        trajectories_loaded += len(chunk_data)
-                    else:
-                        # Only take what we need
-                        all_orbital_params.extend(chunk_data[:remaining_needed])
-                        trajectories_loaded += remaining_needed
-                        break
-                else:
-                    print(f"Warning: Orbital parameters chunk {chunk_idx} not found.")
-                    break
-            
-            if all_orbital_params:
-                print(f"Loaded {len(all_orbital_params):,} orbital parameters from chunks")
-                return all_orbital_params
-    
-    # If chunks weren't available, return empty list
-    print(f"Orbital parameters not found in {data_dir}")
-    return []
-
-
-# ── Spring data backend ──────────────────────────────────────────────
-
-def _load_spring_trajectories(
-    data_dir: str,
-    num_trajectories_needed: int | None = None,
-) -> np.ndarray:
-    """Load Spring SHM phase-space trajectories (internal, called by load_trajectories)."""
-    train_path = os.path.join(data_dir, "train_trajectories.npy")
-    eval_path  = os.path.join(data_dir, "eval_trajectories.npy")
-
-    train = np.load(train_path).astype(np.float32)
-    pieces = [train]
-
-    if os.path.exists(eval_path):
-        eval_data = np.load(eval_path).astype(np.float32)
-        pieces.append(eval_data)
-
-    trajectories = np.concatenate(pieces, axis=0)
-
-    if num_trajectories_needed is not None:
-        trajectories = trajectories[:num_trajectories_needed]
-
-    print(
-        f"Loaded {trajectories.shape[0]:,} spring trajectories "
-        f"from {data_dir}  (shape={trajectories.shape})"
-    )
-    return trajectories
 
 
 def load_spring_metadata(data_dir: str = "data_spring") -> dict:
-    """Return the spring dataset metadata dict (fps, num_frames, omega_range, etc.)."""
+    """Return spring dataset metadata (fps, num_frames, omega_range)."""
     meta_path = os.path.join(data_dir, "metadata.pt")
     if not os.path.exists(meta_path):
         return {}
     return torch.load(meta_path, weights_only=False)
+
+
+
+def load_orbital_params(data_dir="data_cv", num_trajectories_needed=None):
+    """Stub: orbital parameters not available for Spring data."""
+    return []
