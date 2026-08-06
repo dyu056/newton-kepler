@@ -24,6 +24,11 @@ def load_trajectories(data_dir='data_cv', num_trajectories_needed=None):
     Returns:
         trajectories: array of shape (num_trajectories, num_points, 2)
     """
+    # ── Spring data: detect early, return immediately ──
+    spring_train = os.path.join(data_dir, "train_trajectories.npy")
+    if os.path.exists(spring_train):
+        return _load_spring_trajectories(data_dir, num_trajectories_needed)
+
     # Check for chunked format first
     metadata_path = os.path.join(data_dir, 'metadata.pt')
     if os.path.exists(metadata_path):
@@ -114,11 +119,6 @@ def load_trajectories(data_dir='data_cv', num_trajectories_needed=None):
         print(f"Loaded {trajectories.shape[0]:,} trajectories from {npy_path}")
         return trajectories
     else:
-        # ── Spring data auto-detection ──
-        spring_train = os.path.join(data_dir, "train_trajectories.npy")
-        if os.path.exists(spring_train):
-            return _load_spring_trajectories(data_dir, num_trajectories_needed)
-
         raise FileNotFoundError(
             f"Trajectories not found in {data_dir}. "
             f"For Kepler: run generate_kepler_cv.py first. "
