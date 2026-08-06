@@ -4,7 +4,7 @@ seed: 3407
 
 data:
   data_dir: data_spring
-  num_trajectories: 10000       # train trajectories
+  num_trajectories: 10000       # per-split count (loads 2× this, splits 50/50)
   num_frames: 129               # 129 frames @ 20 fps
 
 model:

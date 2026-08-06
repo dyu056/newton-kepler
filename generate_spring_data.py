@@ -38,8 +38,8 @@ from spring_shortcuts.simulation import (
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--out-dir", type=Path, default=Path("data_spring"))
-    p.add_argument("--num-train", type=int, default=10000)
-    p.add_argument("--num-eval", type=int, default=2000)
+    p.add_argument("--num-train", type=int, default=20000)
+    p.add_argument("--num-eval", type=int, default=4000)
     p.add_argument("--num-sample-videos", type=int, default=8)
     p.add_argument("--seed", type=int, default=3407)
     p.add_argument("--overwrite", action="store_true")
