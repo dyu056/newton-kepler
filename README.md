@@ -1,6 +1,6 @@
 # Spring SHM — 用 GPT 学习简谐运动
 
-用一个单层 causal attention Transformer（GPTCV）学习弹簧振子的简谐运动轨迹预测。模型在相空间 `(x, v)` 中做 next-step prediction——给定前 N 个时刻的 `(位置, 速度)`，预测下一时刻的 `(位置, 速度)`。
+用一个单层 causal attention Transformer（GPTCV）学习弹簧振子的简谐运动轨迹预测。模型只看到位置序列 `x(t)`，做 next-step prediction——给定前 N 个时刻的位置，预测下一时刻的位置。速度不由数据显式提供，模型必须从位置差分中隐式推断。
 
 核心问题：**一个极简 Transformer 在只看到纯轨迹数据的情况下，能否学到真实的物理动力学？**
 
@@ -26,14 +26,9 @@
 
 ```
 x(t) = A · cos(ωt + φ)           —— 位置
-v(t) = -Aω · sin(ωt + φ)         —— 速度（位置的精确时间导数）
 ```
 
-这就是全部。没有弹簧常数 k、没有质量 m、没有阻尼系数——因为这些量在无阻尼 SHM 中可以完全被 ω 吸收：
-
-```
-ω = sqrt(k/m)
-```
+模型的输入只有 `x(t)` 序列。速度 `v(t) = -Aω·sin(ωt+φ)` 不进入训练数据——模型必须像 Kepler 原始设定一样，从位置差分 `Δx/Δt` 中隐式学习速度概念。
 
 ### 自由参数
 
@@ -58,30 +53,23 @@ t_i = i / 20,   i = 0, 1, 2, ..., 128
 
 ω 的范围 [2.2, 6.4] 意味着周期范围约 [0.98, 2.86] 秒，每条轨迹包含 2~6 个完整振荡周期。
 
-### 相空间表示
+### 数据格式
 
-每条轨迹保存为 2D 相空间数组：
+每条轨迹保存为 1D 位置序列：
 
 ```
-shape: (129, 2)
+shape: (129, 1)
   列 0 = x(t)   — 位置，范围约 [-0.17, 0.17]（归一化坐标）
-  列 1 = v(t)   — 速度，范围约 [-1.09, 1.09]
 ```
 
-**为什么用相空间？** SHM 在 `(x, v)` 平面上是一个椭圆：
-
-```
-(x/A)² + (v/(Aω))² = 1
-```
-
-这和 Kepler 问题的 2D 椭圆轨道数学同构。因此 Kepler 的 `GPTCV` 模型（`input_dim=2`）可以**一字不改**地用于 Spring 数据。
+ω 的范围 [2.2, 6.4] 意味着周期范围约 [0.98, 2.86] 秒，每条轨迹包含 2~6 个完整振荡周期。
 
 ### 数据产出
 
 ```
 data_spring/
-├── train_trajectories.npy   ← float32, shape = (N, 129, 2)
-└── metadata.pt              ← {num_frames, fps, omega_range, ...}
+├── train_trajectories.npy   ← float32, shape = (N, 129, 1)
+└── metadata.pt              ← {num_frames, fps, omega_range, input_dim=1, ...}
 ```
 
 - 所有轨迹存在一个 `.npy` 文件中
@@ -90,7 +78,7 @@ data_spring/
 
 ### 数据生成器
 
-`generate_spring_data.py`，117 行，仅依赖 `numpy`。核心逻辑：
+`generate_spring_data.py`，约 110 行，仅依赖 `numpy`。核心逻辑：
 
 ```python
 t = np.arange(129, dtype=np.float64) / 20.0           # 时间轴
@@ -98,8 +86,7 @@ for i in range(N):
     omega = rng.uniform(2.2, 6.4)
     amp   = rng.uniform(0.10, 0.17)
     phase = rng.uniform(0.0, 2 * np.pi)
-    data[i, :, 0] = amp * np.cos(omega * t + phase)       # x
-    data[i, :, 1] = -amp * omega * np.sin(omega * t + phase)  # v
+    data[i, :, 0] = amp * np.cos(omega * t + phase)       # x — 仅此一列
 ```
 
 ---
@@ -111,10 +98,10 @@ for i in range(N):
 定义在 `model_cv.py`，是一个 decoder-only Transformer，关键区别在于输入/输出是连续值而非离散 token。
 
 ```
-输入张量: (batch_size, seq_len, 2)     ← 相空间 (x, v) 序列
+输入张量: (batch_size, seq_len, 1)     ← 位置序列 x(t)
                     │
     ┌───────────────┴───────────────┐
-    │  Linear(2 → n_embd)           │  ← 可学习的连续值嵌入
+    │  Linear(1 → n_embd)           │  ← 可学习的连续值嵌入
     │  + Position Embedding         │  ← 标准 learned positional encoding
     └───────────────┬───────────────┘
                     │
@@ -138,10 +125,10 @@ for i in range(N):
                     │
     ┌───────────────┴───────────────┐
     │  LayerNorm (final)            │
-    │  Linear(n_embd → 2)           │  ← 投影回相空间
+    │  Linear(n_embd → 1)           │  ← 投影回位置空间
     └───────────────┬───────────────┘
                     │
-输出: (batch_size, seq_len, 2)     ← 预测的下一时刻 (x̂, v̂)
+输出: (batch_size, seq_len, 1)     ← 预测的下一时刻 x̂
 
 损失: MSE(prediction, target)
 ```
@@ -150,26 +137,26 @@ for i in range(N):
 
 | 设计 | 选择 | 原因 |
 |------|------|------|
-| 输入维度 | 2 `(x, v)` | 相空间完整描述 SHM，与 Kepler `(x,y)` 同构 |
-| 嵌入方式 | `Linear(2→embd)` | 连续值不需要 token embedding table |
+| 输入维度 | 1 `(x)` | 仅位置，模型从差分 Δx/Δt 隐式推断速度 |
+| 嵌入方式 | `Linear(1→embd)` | 连续值不需要 token embedding table |
 | 位置编码 | learned | GPT-2 风格，模型可以学习 SHM 的时间结构 |
 | 注意力掩码 | causal | 强制 next-step prediction，不偷看未来 |
 | 激活函数 | SiLU | 连续回归任务中比 GELU 更平滑 |
-| 输出层 | `Linear(embd→2)` | 直接回归，不量化 |
-| 默认配置 | `n_layer=1, n_head=1, n_embd=128` | 最小可学习单元 |
+| 输出层 | `Linear(embd→1)` | 直接回归，不量化 |
+| 默认配置 | `n_layer=1, n_head=1, n_embd=128, input_dim=1` | 最小可学习单元 |
 
 ### 为什么是 1 层 1 头
 
 `n_layer=1, n_head=1` 是最简 Transformer。单层 causal attention 在数学上等价于：
 
 ```
-预测(x_{t+1}, v_{t+1}) = Σ_{i=0}^{t} w_i · (x_i, v_i)
+预测(x_{t+1}) = Σ_{i=0}^{t} w_i · x_i
 ```
 
 其中权重 `w_i` 由 query-key 相似度 + softmax 决定。模型只能用**一个加权平均**来预测下一步——它无法叠加非线性层来构造高阶近似。这个极简设计让模型的归纳偏置完全暴露：
 
-- 如果学到的 `w_i` 是一个对最近几步的短窗口 → 模型学会了局部分析（类似牛顿力学：用当前位置和速度外推）
-- 如果学到的 `w_i` 覆盖整个历史 → 模型学会了全局模式匹配（类似开普勒力学：需要完整轨道来确定周期）
+- 如果学到的 `w_i` 集中在最近几步 → 模型靠局部有限差分外推（隐式学会了速度）
+- 如果学到的 `w_i` 覆盖整个历史 → 模型靠全局模式匹配（记住了完整周期）
 
 ---
 
@@ -298,6 +285,7 @@ python train.py --config configs/spring.yaml --run-name debug_test --gpu 0
 | `n_layer` | 1 | Transformer 层数 |
 | `n_head` | 1 | 每层注意力头数 |
 | `n_embd` | 128 | 隐藏维度 |
+| `input_dim` | 1 | 输入维度（1=仅位置，和 Kepler 的 2D 坐标对应） |
 
 ### training — 训练超参
 
@@ -342,15 +330,15 @@ for block_size in [2, 5, 20, 50, 100]:
        └── chop_trajectories_into_sequences()
            将每条 129 帧轨迹切成多个 block_size 长的片段
 
-    3. 初始化模型: GPTCV(block_size, n_layer=1, n_head=1, n_embd=128)
+    3. 初始化模型: GPTCV(block_size, n_layer=1, n_head=1, n_embd=128, input_dim=1)
 
     4. 训练循环 (n_steps 步):
-       ├── 前向: 输入 (B, block_size, 2) → 预测下一个 (x,v)
+       ├── 前向: 输入 (B, block_size, 1) → 预测下一个 x
        ├── 损失: MSE(预测, 真实)
        ├── 反向传播 + 优化器步进
        └── 定期评估:
             ├── test loss
-            ├── 线性探针 (R² of position/velocity decoding)
+            ├── 线性探针 (R² of position decoding)
             ├── 激活秩、注意力熵
             ├── 权重/激活奇异值
             └── rollout 误差 (自回归生成64步，对比真实轨迹)
@@ -364,7 +352,7 @@ for block_size in [2, 5, 20, 50, 100]:
 
 | block_size | 物理含义 | 预期行为 |
 |-----------|---------|---------|
-| 2 | 只看到上一步 | 必须学会用 (x_t, v_t) 外推 (x_{t+1}, v_{t+1})——纯局部动力学 |
+| 2 | 只看到上一步 | 必须从两步差分 Δx/Δt 外推——纯局部动力学 |
 | 5 | 0.25 秒历史 | 大约 1/4 个周期 |
 | 20 | 1 秒历史 | 约半个到 1 个周期 |
 | 50 | 2.5 秒历史 | 1~2 个完整周期 |
