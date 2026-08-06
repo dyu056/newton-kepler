@@ -302,10 +302,8 @@ def run_linear_probes(train_activation_dict, train_gravitational_force,
     if set(train_activation_dict) != set(eval_activation_dict):
         raise ValueError("Train/eval activation layers do not match")
 
-    probe_targets = [
-        "F_magnitude", "F_direction_x", "F_direction_y", "Fx", "Fy",
-        "r", "inv_r", "r_squared", "inv_r_squared", "inv_r_cubed", "x", "y",
-    ]
+    # Use whatever keys the force function returned (12 for 2D Kepler, 2 for 1D Spring)
+    probe_targets = sorted(train_gravitational_force.keys())
     probe_results = {}
 
     for layer_name, train_activations in train_activation_dict.items():
