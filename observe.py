@@ -116,12 +116,13 @@ def generate_trajectory_and_compute_error(model, inputs, trajectories, condition
             
             # Compute R² scores for each trajectory column
             input_dim = true_aligned.shape[2]
-            all_r2_cols = {f"col_{d}": [] for d in range(input_dim)}
+            _col_names = {0: "x", 1: "y"} if input_dim <= 2 else {d: f"col_{d}" for d in range(input_dim)}
+            all_r2_cols = {_col_names[d]: [] for d in range(input_dim)}
             for traj_idx in range(num_trajectories):
                 for d in range(input_dim):
                     r2_val = _r2_score(true_aligned[traj_idx, :, d],
                                       generated_aligned[traj_idx, :, d])
-                    all_r2_cols[f"col_{d}"].append(r2_val)
+                    all_r2_cols[_col_names[d]].append(r2_val)
             
             # Clear intermediate variables
             del generated_np, true_trajectories_np, generated_only, true_generated, generated_aligned, true_aligned, position_errors
@@ -169,12 +170,13 @@ def generate_trajectory_and_compute_error(model, inputs, trajectories, condition
             
             # Compute R² scores for each trajectory column
             input_dim = true_aligned.shape[2]
-            all_r2_cols = {f"col_{d}": [] for d in range(input_dim)}
+            _col_names = {0: "x", 1: "y"} if input_dim <= 2 else {d: f"col_{d}" for d in range(input_dim)}
+            all_r2_cols = {_col_names[d]: [] for d in range(input_dim)}
             for traj_idx in range(num_trajectories):
                 for d in range(input_dim):
                     r2_val = _r2_score(true_aligned[traj_idx, :, d],
                                       generated_aligned[traj_idx, :, d])
-                    all_r2_cols[f"col_{d}"].append(r2_val)
+                    all_r2_cols[_col_names[d]].append(r2_val)
             
             # Clear intermediate variables
             del generated_np, true_trajectories_np, generated_only, true_generated, generated_aligned, true_aligned, position_errors
