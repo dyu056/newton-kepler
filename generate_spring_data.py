@@ -1,9 +1,10 @@
-"""Generate pure SHM phase-space trajectories — numpy only, no video.
+"""Generate pure SHM position trajectories — numpy only.
 
   x(t) = A · cos(ωt + φ)
-  v(t) = -Aω · sin(ωt + φ)
 
-All parameters read from the YAML config (same file used by train.py).
+No velocity.  The model sees only positions and must infer dynamics from
+position differences, matching the original Kepler (x,y) setup where
+velocities were also implicit.
 
 Usage:
   python generate_spring_data.py --config configs/spring.yaml
@@ -43,7 +44,7 @@ def load_and_validate(path: Path) -> dict:
 
 
 def generate(cfg: dict) -> np.ndarray:
-    """Return float32 array of shape (total, num_frames, 2)."""
+    """Return float32 array of shape (total, num_frames, 1)."""
     gen   = cfg["generation"]
     seed  = int(cfg.get("seed", 3407))
     total = int(gen["total_trajectories"])
@@ -57,8 +58,7 @@ def generate(cfg: dict) -> np.ndarray:
     rng = np.random.default_rng(np.random.SeedSequence([seed, 7919]))
     t   = np.arange(T, dtype=np.float64) / fps              # (T,)
 
-    # Pre-allocate
-    out = np.empty((total, T, 2), dtype=np.float32)
+    out = np.empty((total, T, 1), dtype=np.float32)
 
     for i in range(total):
         omega = float(rng.uniform(w_lo, w_hi))
@@ -66,7 +66,6 @@ def generate(cfg: dict) -> np.ndarray:
         phase = float(rng.uniform(0.0, 2.0 * np.pi))
 
         out[i, :, 0] = amp * np.cos(omega * t + phase)          # x(t)
-        out[i, :, 1] = -amp * omega * np.sin(omega * t + phase) # v(t)
 
     return out
 
@@ -89,8 +88,7 @@ def main() -> None:
     print(f"Generating {total} SHM trajectories …")
     traj = generate(cfg)
     print(f"  shape: {traj.shape}  "
-          f"x∈[{traj[:,:,0].min():.4f}, {traj[:,:,0].max():.4f}]  "
-          f"v∈[{traj[:,:,1].min():.4f}, {traj[:,:,1].max():.4f}]")
+          f"x∈[{traj[:,:,0].min():.4f}, {traj[:,:,0].max():.4f}]")
 
     np.save(out_dir / "train_trajectories.npy", traj)
     print(f"Saved: {out_dir / 'train_trajectories.npy'}  ({traj.nbytes / 1e6:.1f} MB)")
@@ -102,8 +100,8 @@ def main() -> None:
         "fps":        int(gen_cfg["fps"]),
         "omega_range":    (float(gen_cfg["omega_low"]), float(gen_cfg["omega_high"])),
         "amplitude_range": (float(gen_cfg["amplitude_low"]), float(gen_cfg["amplitude_high"])),
-        "input_dim": 2,
-        "columns": ["x(t)", "v(t)"],
+        "input_dim": 1,
+        "columns": ["x(t)"],
     }
     torch.save(meta, out_dir / "metadata.pt")
 

@@ -1,5 +1,6 @@
-# Spring SHM phase-space benchmark — 1-layer conditional attention
-# Uses the same GPTCV model as Kepler, input_dim=2 (x, v)
+# Spring SHM benchmark — 1-layer conditional attention
+# Pure position: input_dim=1 (x only, no explicit velocity).
+# Model infers dynamics from position differences, matching original Kepler setup.
 #
 # THIS FILE IS THE SINGLE SOURCE OF TRUTH.
 #   python generate_spring_data.py --config configs/spring.yaml
@@ -27,6 +28,7 @@ model:
   n_layer: 1
   n_head: 1
   n_embd: 128
+  input_dim: 1                # 1D position only (no explicit velocity)
 
 # ── Training loop ─────────────────────────────────────────────────
 training:

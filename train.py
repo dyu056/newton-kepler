@@ -158,14 +158,14 @@ def _enabled(value, default=False):
     return bool(value)
 
 
-def setup_model(block_size, n_layer=2, n_head=1, n_embd=32, device=None,
+def setup_model(block_size, n_layer=2, n_head=1, n_embd=32, input_dim=1, device=None,
                 varcov_enabled=False, varcov_target_std=0.1):
     """Setup and initialize the GPT model for continuous vision."""
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     GPTConfigCV.block_size = block_size
-    GPTConfigCV.input_dim = 2  # 2D coordinates (x, y)
+    GPTConfigCV.input_dim = int(input_dim)
     GPTConfigCV.n_layer = n_layer
     GPTConfigCV.n_head = n_head
     GPTConfigCV.n_embd = n_embd
@@ -729,7 +729,7 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
     }
 
 def train_one_model(block_size=100, data_dir='data_cv', noise_scale=0.1, lr=1e-3,
-                    weight_decay=0.0, n_layer=2, n_head=1, n_embd=16,
+                    weight_decay=0.0, n_layer=2, n_head=1, n_embd=16, input_dim=1,
                     num_trajectories=10000, n_steps=1001, prob_freq=100,
                     loss_mask='all', seed=1, batch_size=128,
                     scale_batch_by_context=True, progress_bar=None,
@@ -861,7 +861,7 @@ def train_one_model(block_size=100, data_dir='data_cv', noise_scale=0.1, lr=1e-3
     print("\nSetting up model...")
     model = setup_model(
         block_size=block_size, n_layer=n_layer, n_head=n_head,
-        n_embd=n_embd, device=device,
+        n_embd=n_embd, input_dim=input_dim, device=device,
         varcov_enabled=(varcov_observe_enabled or varcov_reg_enabled),
         varcov_target_std=varcov_target_std,
     )
@@ -1114,6 +1114,7 @@ def run_configured_experiments(config, run_dir, overwrite=False, console_stream=
     n_layer = int(model_config.get("n_layer", 2))
     n_head = int(model_config.get("n_head", 1))
     n_embd = int(model_config.get("n_embd", 32))
+    input_dim = int(model_config.get("input_dim", 1))
     learning_rate = float(
         training_config.get("learning_rate", training_config.get("lr", 1e-3))
     )
@@ -1300,6 +1301,7 @@ def run_configured_experiments(config, run_dir, overwrite=False, console_stream=
                             n_layer=n_layer,
                             n_head=n_head,
                             n_embd=n_embd,
+                            input_dim=input_dim,
                             num_trajectories=num_trajectories,
                             n_steps=n_steps,
                             prob_freq=probe_frequency,
