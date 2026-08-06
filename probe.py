@@ -110,7 +110,16 @@ def setup_activation_hooks(model, verbose=False):
 
 
 def compute_gravitational_force(positions):
-    """Compute the original twelve force/position probe targets."""
+    """Compute force/position probe targets.  1D data → SHM force only."""
+    input_dim = positions.shape[-1] if hasattr(positions, 'shape') else 2
+    if input_dim == 1:
+        # 1D SHM: force = -ω²·x  (mass normalised), no y coordinate
+        if torch.is_tensor(positions):
+            x = positions[..., 0]
+            return {"x": x.reshape(-1), "Fx": -x.reshape(-1)}
+        x = np.asarray(positions)[..., 0]
+        return {"x": x.flatten(), "Fx": -x.flatten()}
+
     if torch.is_tensor(positions):
         x = positions[..., 0]
         y = positions[..., 1]
