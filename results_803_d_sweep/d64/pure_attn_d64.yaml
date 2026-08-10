@@ -6,20 +6,20 @@ data:
   num_points_per_trajectory: 100
 
 model:
-  arch: pure_attn        # GPTPureAttn: no MLP, no residual, no LayerNorm
+  arch: pure_attn
   n_layer: 1
   n_head: 1
-  n_embd: 128
-  target_std_S: 0.1      # sigma_init = (0.1/(3d))^(1/4) = 0.127 for d=128
+  n_embd: 64
+  target_std_S: 0.1      # sigma_init = (0.1/(3d))^(1/4) = 0.1511
 
 training:
-  block_sizes: [50]      # chop path -> single target position (rank(Gamma)=1)
+  block_sizes: [50]
   noise_scale: 0.1
   learning_rate: 0.01
   weight_decay: 0.0
   batch_size: 128
   scale_batch_by_context: true
-  n_steps: 20000
+  n_steps: 30000
   progress_bar: false
   loss_mask: last
   optimizer: gd
@@ -39,7 +39,7 @@ probe:
       end: 2000
       every: 50
     - start: 2000
-      end: 20000
+      end: 30000
       every: 500
 
 observe:
@@ -48,10 +48,10 @@ observe:
   attention_entropy:
     enabled: true
   variance_covariance:
-    enabled: false       # pure_attn has no MLP varcov hooks
+    enabled: false
   singular_values:
     enabled: true
-    num_singular_values: 128
+    num_singular_values: 64
 
 regularization:
   variance_covariance:

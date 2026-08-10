@@ -6,14 +6,13 @@ data:
   num_points_per_trajectory: 100
 
 model:
-  arch: pure_attn        # GPTPureAttn: no MLP, no residual, no LayerNorm
   n_layer: 1
   n_head: 1
   n_embd: 128
-  target_std_S: 0.1      # sigma_init = (0.1/(3d))^(1/4) = 0.127 for d=128
+  no_layernorm: true      # build GPTCVNoLN (model_noln.py)
 
 training:
-  block_sizes: [50]      # chop path -> single target position (rank(Gamma)=1)
+  block_sizes: [100]
   noise_scale: 0.1
   learning_rate: 0.01
   weight_decay: 0.0
@@ -21,7 +20,7 @@ training:
   scale_batch_by_context: true
   n_steps: 20000
   progress_bar: false
-  loss_mask: last
+  loss_mask: all
   optimizer: gd
 
 probe:
@@ -48,11 +47,12 @@ observe:
   attention_entropy:
     enabled: true
   variance_covariance:
-    enabled: false       # pure_attn has no MLP varcov hooks
+    enabled: true
   singular_values:
     enabled: true
-    num_singular_values: 128
+    num_singular_values: 128   # full spectrum: 5 truncated effective rank at 5
 
+# The values are measured and saved but do not contribute to total_loss.
 regularization:
   variance_covariance:
     enabled: false
