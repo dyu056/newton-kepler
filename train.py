@@ -40,6 +40,7 @@ from data_utils import (
 )
 from loss import compute_loss_with_mask
 from model_cv import GPTConfigCV, GPTCV
+from model_8_1_att import GPTConfigPureAttn, GPTPureAttn, setup_pure_attn_hooks
 from observe import (
     clear_gpu_cache,
     collect_attention_entropy,
@@ -160,10 +161,25 @@ def _enabled(value, default=False):
 
 
 def setup_model(block_size, n_layer=2, n_head=1, n_embd=32, device=None,
-                varcov_enabled=False, varcov_target_std=0.1):
-    """Setup and initialize the GPT model for continuous vision."""
+                arch="standard", varcov_enabled=False, varcov_target_std=0.1,
+                target_std_S=0.1):
+    """Setup and initialize a model.
+
+    Parameters
+    ----------
+    arch : str
+        "standard" -> GPTCV (model_cv),  "pure_attn" -> GPTPureAttn (model_8_1_att).
+    """
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    if arch == "pure_attn":
+        cfg = GPTConfigPureAttn(
+            block_size=block_size, n_embd=n_embd, n_head=n_head,
+            bias=True, dropout=0.0, target_std_S=target_std_S,
+        )
+        model = GPTPureAttn(cfg).to(device)
+        return model
 
     GPTConfigCV.block_size = block_size
     GPTConfigCV.input_dim = 2  # 2D coordinates (x, y)
@@ -204,6 +220,7 @@ def should_run_probe(completed_step, probe_frequency, probe_schedule=None):
 def train_model(model, train_inputs, train_targets, test_inputs, test_targets, train_trajectories, test_trajectories,
                  n_steps=1001, lr=1e-3, weight_decay=0.0, noise_scale=0.1, prob_freq=100, batch_size=128,
                  loss_mask='all', seed=1, train_orbital_params=None, eval_orbital_params=None,
+                 arch="standard",
                  optimizer_type='adamw',
                  train_sequence_trajectory_ids=None, eval_sequence_trajectory_ids=None,
                  progress_bar=None, probe_schedule=None, probe_enabled=True,
@@ -282,7 +299,10 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
     )
 
     if observables.needs_activation_capture:
-        hooks, activation_dict = setup_activation_hooks(model, verbose=probe_verbose)
+        if arch == "pure_attn":
+            hooks, activation_dict = setup_pure_attn_hooks(model, verbose=probe_verbose)
+        else:
+            hooks, activation_dict = setup_activation_hooks(model, verbose=probe_verbose)
     else:
         hooks, activation_dict = [], {}
 
@@ -731,6 +751,8 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
 
 def train_one_model(block_size=100, data_dir='data_cv', noise_scale=0.1, lr=1e-3,
                     weight_decay=0.0, n_layer=2, n_head=1, n_embd=16,
+                    arch="standard",
+                    target_std_S=0.1,
                     num_trajectories=10000, n_steps=1001, prob_freq=100,
                     loss_mask='all', seed=1, batch_size=128,
                     scale_batch_by_context=True, progress_bar=None,
@@ -860,6 +882,7 @@ def train_one_model(block_size=100, data_dir='data_cv', noise_scale=0.1, lr=1e-3
     model = setup_model(
         block_size=block_size, n_layer=n_layer, n_head=n_head,
         n_embd=n_embd, device=device,
+        arch=arch, target_std_S=target_std_S,
         varcov_enabled=(varcov_observe_enabled or varcov_reg_enabled),
         varcov_target_std=varcov_target_std,
     )
@@ -900,6 +923,7 @@ def train_one_model(block_size=100, data_dir='data_cv', noise_scale=0.1, lr=1e-3
         model, train_inputs, train_targets, test_inputs, test_targets, train_trajectories, test_trajectories,
         n_steps=n_steps, lr=lr, weight_decay=weight_decay, noise_scale=noise_scale, prob_freq=prob_freq,
         loss_mask=loss_mask, batch_size=batch_size, seed=seed,
+        arch=arch,
         train_orbital_params=train_orbital_params, eval_orbital_params=test_orbital_params,
         train_sequence_trajectory_ids=train_sequence_trajectory_ids,
         eval_sequence_trajectory_ids=eval_sequence_trajectory_ids,
@@ -962,6 +986,7 @@ def train_one_model(block_size=100, data_dir='data_cv', noise_scale=0.1, lr=1e-3
         'noise_scale': noise_scale,
         'lr': lr,
         'weight_decay': weight_decay,
+        'arch': arch,
         'n_layer': n_layer,
         'n_head': n_head,
         'n_embd': n_embd,
@@ -1101,9 +1126,12 @@ def run_configured_experiments(config, run_dir, overwrite=False, console_stream=
         )
     ]
 
+    arch = str(model_config.get("arch", "standard"))
     n_layer = int(model_config.get("n_layer", 2))
     n_head = int(model_config.get("n_head", 1))
     n_embd = int(model_config.get("n_embd", 32))
+    target_std_S = float(model_config.get("target_std_S", 0.1))
+    is_pure_attn = (arch == "pure_attn")
     learning_rate = float(
         training_config.get("learning_rate", training_config.get("lr", 1e-3))
     )
@@ -1130,7 +1158,9 @@ def run_configured_experiments(config, run_dir, overwrite=False, console_stream=
     attention_entropy_enabled = _enabled(attention_entropy_config, False)
 
     varcov_observe_config = observe_config.get("variance_covariance", {})
-    varcov_observe_enabled = _enabled(varcov_observe_config, False)
+    varcov_observe_enabled = (
+        False if is_pure_attn else _enabled(varcov_observe_config, False)
+    )
     singular_values_config = observe_config.get("singular_values", {})
     singular_values_enabled = _enabled(singular_values_config, False)
     singular_values_num = (
@@ -1149,7 +1179,9 @@ def run_configured_experiments(config, run_dir, overwrite=False, console_stream=
         raise ValueError(
             "regularization.variance_covariance must be a mapping"
         )
-    varcov_reg_enabled = _enabled(varcov_reg_config, False)
+    varcov_reg_enabled = (
+        False if is_pure_attn else _enabled(varcov_reg_config, False)
+    )
     varcov_reg_start = int(varcov_reg_config.get("start_step", 1))
     varcov_target_std = float(varcov_reg_config.get("target_std", 0.1))
     variance_reg_weight = float(
@@ -1290,6 +1322,8 @@ def run_configured_experiments(config, run_dir, overwrite=False, console_stream=
                             n_layer=n_layer,
                             n_head=n_head,
                             n_embd=n_embd,
+                            arch=arch,
+                            target_std_S=target_std_S,
                             num_trajectories=num_trajectories,
                             n_steps=n_steps,
                             prob_freq=probe_frequency,
