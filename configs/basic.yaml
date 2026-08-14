@@ -10,30 +10,33 @@ model:
   n_head: 1
   n_embd: 128
 training:
-  block_sizes: [2,5,20,50,100]
+  block_sizes: [50]       # chop path -> single target position (rank(Gamma)=1)
   noise_scale: 0.1
-  learning_rate: 0.001
+  learning_rate: 0.01
   weight_decay: 0.0
   batch_size: 128
   scale_batch_by_context: true
-  n_steps: 2000
+  n_steps: 20000
   progress_bar: false
-  loss_mask: all
+  loss_mask: last
 
 probe:
   enabled: true
   verbose: false
   geometry_enabled: false
   frequency: 10
-  num_train_samples: 1000
-  num_eval_samples: 1000
+  num_train_samples: 5000
+  num_eval_samples: 5000
   schedule:
     - start: 0
       end: 200
       every: 5
     - start: 200
+      end: 2000
+      every: 50
+    - start: 2000
       end: 20000
-      every: 100
+      every: 500
 
 observe:
   activation_rank:
@@ -48,7 +51,7 @@ observe:
     enabled: false        # pure_attn 无 MLP，varcov 不可用
   singular_values:        # 新增
     enabled: true
-    num_singular_values: 5
+    num_singular_values: 128
 
 # The values are measured and saved but do not contribute to total_loss.
 regularization:

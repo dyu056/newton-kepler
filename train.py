@@ -329,10 +329,6 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
 
     for i in range(n_steps):
 
-        if i == n_steps // 2:
-            for param_group in optimizer.param_groups:
-                param_group['lr'] *= 0.1
-
         # Sample a random batch from training data
         # train_inputs is on CPU, so we sample indices and move to GPU
         batch_indices = torch.randint(0, num_train_samples, (batch_size,))
