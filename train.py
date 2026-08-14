@@ -220,7 +220,8 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
                  attention_entropy_reg_enabled=False,
                  attention_entropy_weight=0.0,
                  attention_entropy_start=1,
-                 attention_entropy_every=0):
+                 attention_entropy_every=0,
+                 attention_matrix_every=0):
     """
     Train the model on the trajectory data with periodic evaluation.
 
@@ -267,6 +268,8 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
     entropy_terms = []  # 新增：记录注意力熵正则项
     attention_entropy_steps = []   # 新增：独立频率的 attention entropy 观测
     attention_entropy_stats = []
+    attention_matrix_steps = []    # 新增：attention 矩阵 (T x T) 观测，供灰度 GIF
+    attention_matrices = []
     eval_results = []
     eval_steps = []
 
@@ -396,19 +399,34 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
         weighted_covariance_terms.append(float(covariance_term.detach().item()))
         entropy_terms.append(float(entropy_term.detach().item()))  # 记录熵正则项
 
-        # Independent-frequency attention entropy observation (yaml: observe.attention_entropy.every)
-        if (attention_entropy_enabled and attention_entropy_every > 0
-                and completed_step % attention_entropy_every == 0):
+        # Independent-frequency attention observations (yaml: observe.attention_entropy.every,
+        # observe.attention_matrix.every). One shared capture forward serves both.
+        entropy_due = (
+            attention_entropy_enabled and attention_entropy_every > 0
+            and completed_step % attention_entropy_every == 0
+        )
+        matrix_due = (
+            attention_matrix_every > 0
+            and completed_step % attention_matrix_every == 0
+        )
+        if entropy_due or matrix_due:
             set_attention_entropy_capture(model, True)
             was_training = model.training
             model.eval()
             with torch.no_grad():
                 model.forward(batch_inputs, None)
             model.train(was_training)
-            stats = collect_attention_entropy(model)
+            if entropy_due:
+                stats = collect_attention_entropy(model)
+                attention_entropy_steps.append(completed_step)
+                attention_entropy_stats.append(stats)
+            if matrix_due:
+                # Average over batch and heads -> (T, T) attention matrix
+                matrix = model.transformer.h[0].attn.last_weights
+                matrix = matrix.mean(dim=(0, 1)).cpu().numpy()
+                attention_matrix_steps.append(completed_step)
+                attention_matrices.append(matrix)
             set_attention_entropy_capture(model, False)
-            attention_entropy_steps.append(completed_step)
-            attention_entropy_stats.append(stats)
 
         # Clear intermediate variables to save memory
         del inputs_noised, predictions, batch_inputs, batch_targets, batch_indices
@@ -689,6 +707,8 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
         'entropy_terms': entropy_terms,
         'attention_entropy_steps': attention_entropy_steps,
         'attention_entropy_stats': attention_entropy_stats,
+        'attention_matrix_steps': attention_matrix_steps,
+        'attention_matrices': attention_matrices,
         'eval_results': eval_results,
         'eval_steps': eval_steps,
         'memory_stats': memory_stats,
@@ -716,7 +736,8 @@ def train_one_model(block_size=100, data_dir='data_cv', noise_scale=0.1, lr=1e-3
                     attention_entropy_reg_enabled=False,
                     attention_entropy_weight=0.0,
                     attention_entropy_start=1,
-                    attention_entropy_every=0):
+                    attention_entropy_every=0,
+                    attention_matrix_every=0):
     """
     Train a single model with specified hyperparameters.
 
@@ -889,6 +910,7 @@ def train_one_model(block_size=100, data_dir='data_cv', noise_scale=0.1, lr=1e-3
         attention_entropy_weight=attention_entropy_weight,
         attention_entropy_start=attention_entropy_start,
         attention_entropy_every=attention_entropy_every,
+        attention_matrix_every=attention_matrix_every,
     )
 
     train_losses = training_results['train_losses']
@@ -896,6 +918,8 @@ def train_one_model(block_size=100, data_dir='data_cv', noise_scale=0.1, lr=1e-3
     test_losses = training_results['test_losses']
     attention_entropy_steps = training_results['attention_entropy_steps']
     attention_entropy_stats = training_results['attention_entropy_stats']
+    attention_matrix_steps = training_results['attention_matrix_steps']
+    attention_matrices = training_results['attention_matrices']
     eval_results = training_results['eval_results']
     eval_steps = training_results['eval_steps']
     memory_stats = training_results.get('memory_stats', {})
@@ -947,6 +971,7 @@ def train_one_model(block_size=100, data_dir='data_cv', noise_scale=0.1, lr=1e-3
         'activation_rank_enabled': activation_rank_enabled,
         'attention_entropy_enabled': attention_entropy_enabled,
         'attention_entropy_every': attention_entropy_every,
+        'attention_matrix_every': attention_matrix_every,
         'varcov_observe_enabled': varcov_observe_enabled,
         'singular_values_enabled': singular_values_enabled,
         'singular_values_num': singular_values_num,
@@ -973,6 +998,8 @@ def train_one_model(block_size=100, data_dir='data_cv', noise_scale=0.1, lr=1e-3
         'entropy_terms': training_results['entropy_terms'],
         'attention_entropy_steps': attention_entropy_steps,
         'attention_entropy_stats': attention_entropy_stats,
+        'attention_matrix_steps': attention_matrix_steps,
+        'attention_matrices': attention_matrices,
         'eval_results': eval_results,
         'eval_steps': eval_steps,
         'final_error_stats_train': final_eval['error_stats_train'] if final_eval and 'error_stats_train' in final_eval else None,
@@ -1098,6 +1125,11 @@ def run_configured_experiments(config, run_dir, overwrite=False, console_stream=
     attention_entropy_config = observe_config.get("attention_entropy", {})
     attention_entropy_enabled = _enabled(attention_entropy_config, False)
     attention_entropy_every = int(attention_entropy_config.get("every", 0))
+    attention_matrix_config = observe_config.get("attention_matrix", {})
+    attention_matrix_every = (
+        int(attention_matrix_config.get("every", 0))
+        if _enabled(attention_matrix_config, False) else 0
+    )
 
     varcov_observe_config = observe_config.get("variance_covariance", {})
     varcov_observe_enabled = _enabled(varcov_observe_config, False)
@@ -1289,6 +1321,7 @@ def run_configured_experiments(config, run_dir, overwrite=False, console_stream=
                             attention_entropy_weight=attention_entropy_weight,
                             attention_entropy_start=attention_entropy_start,
                             attention_entropy_every=attention_entropy_every,
+                            attention_matrix_every=attention_matrix_every,
                         )
 
                         final_payload = dict(results)

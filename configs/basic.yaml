@@ -41,6 +41,9 @@ observe:
   attention_entropy:
     enabled: true
     every: 10             # 每 N 步独立测量一次 attention entropy
+  attention_matrix:
+    enabled: true
+    every: 10             # 每 N 步保存一次 attention 矩阵 (T x T)，用于灰度 GIF
   variance_covariance:
     enabled: false        # pure_attn 无 MLP，varcov 不可用
   singular_values:        # 新增
