@@ -18,7 +18,10 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import imageio.v2 as imageio
+import imageio
+
+if hasattr(imageio, "v2"):
+    imageio = imageio.v2
 
 
 def load_matrices(npz_path):
