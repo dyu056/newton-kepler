@@ -1,11 +1,15 @@
-"""Activation collection and linear probes for physical and orbital quantities."""
+"""Activation collection and linear probes for physical and orbital quantities.
+
+Also hosts the attention-entropy capture used during training, so the
+measurement frequency can be controlled from the config yaml.
+"""
 
 import numpy as np
 import torch
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
 
-from model_cv import GPTConfigCV
+from model_att import setup_pure_attn_hooks
 
 
 class _ActivationStore(dict):
@@ -15,71 +19,38 @@ class _ActivationStore(dict):
 
 
 def setup_activation_hooks(model, verbose=False):
-    """Register reusable hooks while keeping them dormant during normal training."""
-    activation_dict = _ActivationStore()
-    hooks = []
-    n_layer = GPTConfigCV.n_layer
+    """Register hooks compatible with the pure-attention architecture."""
+    return setup_pure_attn_hooks(model, verbose=verbose)
 
-    def extract_tensor(value):
-        if isinstance(value, tuple):
-            value = value[0]
-        return value.detach()
 
-    def save(name, value):
-        if activation_dict.capture_enabled:
-            activation_dict[name] = extract_tensor(value)
+# ─────────────────────── attention entropy capture ───────────────────────
 
-    def make_attn_output_hook(block_idx):
-        def hook(module, inputs, output):
-            save(f"block_{block_idx}_attn_output", output)
-        return hook
+def set_attention_entropy_capture(model, enabled):
+    """Enable or disable entropy collection on every transformer block."""
+    for block in model.transformer.h:
+        block.attn.capture_attention_stats = bool(enabled)
+        if not enabled:
+            block.attn.last_attention_stats = None
 
-    def make_after_attn_merge_hook(block_idx):
-        def hook(module, inputs):
-            save(f"block_{block_idx}_after_attn_merge", inputs)
-        return hook
 
-    def make_mlp_output_hook(block_idx):
-        def hook(module, inputs, output):
-            save(f"block_{block_idx}_mlp_output", output)
-        return hook
+def collect_attention_entropy(model):
+    """Snapshot the entropy statistics produced by the latest forward pass.
 
-    def make_after_mlp_merge_hook(block_idx):
-        def hook(module, inputs, output):
-            save(f"block_{block_idx}_after_mlp_merge", output)
-        return hook
-
-    def make_mlp_hidden_hook(block_idx):
-        def hook(module, inputs, output):
-            save(f"block_{block_idx}_mlp_hidden", output)
-        return hook
-
-    for block_idx in range(n_layer):
-        block = model.transformer.h[block_idx]
-        hooks.append(block.attn.register_forward_hook(make_attn_output_hook(block_idx)))
-        hooks.append(block.mlp.register_forward_pre_hook(make_after_attn_merge_hook(block_idx)))
-        hooks.append(block.mlp.register_forward_hook(make_mlp_output_hook(block_idx)))
-        hooks.append(block.register_forward_hook(make_after_mlp_merge_hook(block_idx)))
-        hooks.append(block.mlp.silu.register_forward_hook(make_mlp_hidden_hook(block_idx)))
-
-    def input_embed_hook(module, inputs, output):
-        save("input_embed", output)
-
-    def after_pos_emb_hook(module, inputs, output):
-        save("after_pos_emb", output)
-
-    def after_ln_f_hook(module, inputs, output):
-        save("after_ln_f", output)
-
-    hooks.append(model.input_embedding.register_forward_hook(input_embed_hook))
-    hooks.append(model.transformer.drop.register_forward_hook(after_pos_emb_hook))
-    hooks.append(model.transformer.ln_f.register_forward_hook(after_ln_f_hook))
-
-    if verbose:
-        print(f"Hooks registered for {n_layer} transformer blocks")
-        print(f"Total hooks: {len(hooks)}")
-
-    return hooks, activation_dict
+    Returns a per-block dict of the stats recorded by
+    ``PureAttention._record_attention_stats``:
+    mean_entropy, normalized_mean_entropy, entropy_by_head,
+    normalized_entropy_by_head, sequence_length.
+    """
+    results = {}
+    for block_index, block in enumerate(model.transformer.h):
+        stats = block.attn.last_attention_stats
+        if stats is None:
+            raise RuntimeError(
+                f"No attention statistics captured for block {block_index}. "
+                "Enable capture before the forward pass."
+            )
+        results[f"block_{block_index}"] = dict(stats)
+    return results
 
 
 def compute_gravitational_force(positions):

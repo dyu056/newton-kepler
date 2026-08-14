@@ -40,8 +40,9 @@ observe:
     enabled: true
   attention_entropy:
     enabled: true
+    every: 10             # 每 N 步独立测量一次 attention entropy
   variance_covariance:
-    enabled: true
+    enabled: false        # pure_attn 无 MLP，varcov 不可用
   singular_values:        # 新增
     enabled: true
     num_singular_values: 5

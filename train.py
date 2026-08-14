@@ -39,24 +39,24 @@ from data_utils import (
     load_trajectories,
 )
 from loss import compute_loss_with_mask
-from model_cv import GPTConfigCV, GPTCV
+from model_att import GPTConfigPureAttn, GPTPureAttn
 from observe import (
     clear_gpu_cache,
-    collect_attention_entropy,
     collect_variance_covariance,
     compute_activation_rank,
     generate_trajectory_and_compute_error,
     get_gpu_memory_stats,
     print_gpu_memory_stats,
-    set_attention_entropy_capture,
     compute_weight_singular_values,
     compute_activation_singular_values
 )
 from probe import (
     collect_activations,
+    collect_attention_entropy,
     initialize_probe_indices,
     run_geometry_probes,
     run_linear_probes,
+    set_attention_entropy_capture,
     setup_activation_hooks,
     snapshot_activations,
 )
@@ -159,23 +159,22 @@ def _enabled(value, default=False):
     return bool(value)
 
 
-def setup_model(block_size, n_layer=2, n_head=1, n_embd=32, device=None,
+def setup_model(block_size, n_layer=1, n_head=1, n_embd=128, device=None,
                 varcov_enabled=False, varcov_target_std=0.1):
-    """Setup and initialize the GPT model for continuous vision."""
+    """Setup and initialize the pure-attention model (no MLP, no residual, no LN)."""
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    GPTConfigCV.block_size = block_size
-    GPTConfigCV.input_dim = 2  # 2D coordinates (x, y)
-    GPTConfigCV.n_layer = n_layer
-    GPTConfigCV.n_head = n_head
-    GPTConfigCV.n_embd = n_embd
-    GPTConfigCV.attention_alpha = 0.0
-    GPTConfigCV.bias = True
-    GPTConfigCV.varcov_enabled = bool(varcov_enabled)
-    GPTConfigCV.varcov_target_std = float(varcov_target_std)
-
-    model = GPTCV(GPTConfigCV)
+    config = GPTConfigPureAttn(
+        block_size=block_size,
+        n_embd=n_embd,
+        n_head=n_head,
+        input_dim=2,   # 2D coordinates (x, y)
+        bias=True,
+        dropout=0.0,
+        target_std_S=0.1,
+    )
+    model = GPTPureAttn(config)
     model = model.to(device)
     return model
 
@@ -220,7 +219,8 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
                  covariance_reg_weight=0.0,
                  attention_entropy_reg_enabled=False,
                  attention_entropy_weight=0.0,
-                 attention_entropy_start=1):
+                 attention_entropy_start=1,
+                 attention_entropy_every=0):
     """
     Train the model on the trajectory data with periodic evaluation.
 
@@ -265,6 +265,8 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
     weighted_variance_terms = []
     weighted_covariance_terms = []
     entropy_terms = []  # 新增：记录注意力熵正则项
+    attention_entropy_steps = []   # 新增：独立频率的 attention entropy 观测
+    attention_entropy_stats = []
     eval_results = []
     eval_steps = []
 
@@ -393,6 +395,20 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
         weighted_variance_terms.append(float(variance_term.detach().item()))
         weighted_covariance_terms.append(float(covariance_term.detach().item()))
         entropy_terms.append(float(entropy_term.detach().item()))  # 记录熵正则项
+
+        # Independent-frequency attention entropy observation (yaml: observe.attention_entropy.every)
+        if (attention_entropy_enabled and attention_entropy_every > 0
+                and completed_step % attention_entropy_every == 0):
+            set_attention_entropy_capture(model, True)
+            was_training = model.training
+            model.eval()
+            with torch.no_grad():
+                model.forward(batch_inputs, None)
+            model.train(was_training)
+            stats = collect_attention_entropy(model)
+            set_attention_entropy_capture(model, False)
+            attention_entropy_steps.append(completed_step)
+            attention_entropy_stats.append(stats)
 
         # Clear intermediate variables to save memory
         del inputs_noised, predictions, batch_inputs, batch_targets, batch_indices
@@ -671,6 +687,8 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
         'weighted_variance_terms': weighted_variance_terms,
         'weighted_covariance_terms': weighted_covariance_terms,
         'entropy_terms': entropy_terms,
+        'attention_entropy_steps': attention_entropy_steps,
+        'attention_entropy_stats': attention_entropy_stats,
         'eval_results': eval_results,
         'eval_steps': eval_steps,
         'memory_stats': memory_stats,
@@ -697,7 +715,8 @@ def train_one_model(block_size=100, data_dir='data_cv', noise_scale=0.1, lr=1e-3
                     covariance_reg_weight=0.0,
                     attention_entropy_reg_enabled=False,
                     attention_entropy_weight=0.0,
-                    attention_entropy_start=1):
+                    attention_entropy_start=1,
+                    attention_entropy_every=0):
     """
     Train a single model with specified hyperparameters.
 
@@ -869,11 +888,14 @@ def train_one_model(block_size=100, data_dir='data_cv', noise_scale=0.1, lr=1e-3
         attention_entropy_reg_enabled=attention_entropy_reg_enabled,
         attention_entropy_weight=attention_entropy_weight,
         attention_entropy_start=attention_entropy_start,
+        attention_entropy_every=attention_entropy_every,
     )
 
     train_losses = training_results['train_losses']
     total_losses = training_results['total_losses']
     test_losses = training_results['test_losses']
+    attention_entropy_steps = training_results['attention_entropy_steps']
+    attention_entropy_stats = training_results['attention_entropy_stats']
     eval_results = training_results['eval_results']
     eval_steps = training_results['eval_steps']
     memory_stats = training_results.get('memory_stats', {})
@@ -924,6 +946,7 @@ def train_one_model(block_size=100, data_dir='data_cv', noise_scale=0.1, lr=1e-3
         'probe_geometry_enabled': probe_geometry_enabled,
         'activation_rank_enabled': activation_rank_enabled,
         'attention_entropy_enabled': attention_entropy_enabled,
+        'attention_entropy_every': attention_entropy_every,
         'varcov_observe_enabled': varcov_observe_enabled,
         'singular_values_enabled': singular_values_enabled,
         'singular_values_num': singular_values_num,
@@ -948,6 +971,8 @@ def train_one_model(block_size=100, data_dir='data_cv', noise_scale=0.1, lr=1e-3
         'weighted_variance_terms': training_results['weighted_variance_terms'],
         'weighted_covariance_terms': training_results['weighted_covariance_terms'],
         'entropy_terms': training_results['entropy_terms'],
+        'attention_entropy_steps': attention_entropy_steps,
+        'attention_entropy_stats': attention_entropy_stats,
         'eval_results': eval_results,
         'eval_steps': eval_steps,
         'final_error_stats_train': final_eval['error_stats_train'] if final_eval and 'error_stats_train' in final_eval else None,
@@ -1072,6 +1097,7 @@ def run_configured_experiments(config, run_dir, overwrite=False, console_stream=
     activation_rank_enabled = _enabled(activation_rank_config, False)
     attention_entropy_config = observe_config.get("attention_entropy", {})
     attention_entropy_enabled = _enabled(attention_entropy_config, False)
+    attention_entropy_every = int(attention_entropy_config.get("every", 0))
 
     varcov_observe_config = observe_config.get("variance_covariance", {})
     varcov_observe_enabled = _enabled(varcov_observe_config, False)
@@ -1262,6 +1288,7 @@ def run_configured_experiments(config, run_dir, overwrite=False, console_stream=
                             attention_entropy_reg_enabled=attention_entropy_reg_enabled,
                             attention_entropy_weight=attention_entropy_weight,
                             attention_entropy_start=attention_entropy_start,
+                            attention_entropy_every=attention_entropy_every,
                         )
 
                         final_payload = dict(results)
