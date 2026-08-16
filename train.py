@@ -1003,6 +1003,10 @@ def train_one_model(block_size=100, data_dir='data_cv', noise_scale=0.1, lr=1e-3
         'final_probe_results': final_eval['probe_results'] if final_eval else None,
         'final_geometry_probe_results': final_eval['geometry_probe_results'] if final_eval and 'geometry_probe_results' in final_eval else None,
         'memory_stats': memory_stats,
+        'model_state_dict': {
+            name: param.detach().cpu()
+            for name, param in model.state_dict().items()
+        },
     }
 
     return results
@@ -1325,6 +1329,11 @@ def run_configured_experiments(config, run_dir, overwrite=False, console_stream=
                         final_payload["completed_steps"] = n_steps
                         _atomic_save_npz(result_path, final_payload)
                         print(f"Saved result to: {result_path}")
+
+                        # Save model weights for post-hoc inference / orbit plots.
+                        state_path = Path(str(result_path).replace(".npz", ".pt"))
+                        torch.save(results["model_state_dict"], state_path)
+                        print(f"Saved model weights to: {state_path}")
                     finally:
                         _ACTIVE_RESULT_PATH = None
                         _ACTIVE_RESULT_METADATA = {}
