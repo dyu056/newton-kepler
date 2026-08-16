@@ -164,4 +164,10 @@ n-k/
 
 # 临时文件
 *.tmp
-*.tempplots_seed66_pure_attn/
+*.tmp
+*.temp
+
+# 可视化产物（大文件，不提交）
+*.gif
+*.pt
+visualization/*/attention_evolution/
