@@ -168,6 +168,5 @@ n-k/
 *.temp
 
 # 可视化产物（大文件，不提交）
-*.gif
 *.pt
 visualization/*/attention_evolution/
