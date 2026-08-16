@@ -201,8 +201,9 @@ def should_run_probe(completed_step, probe_frequency, probe_schedule=None):
     return False
 
 def train_model(model, train_inputs, train_targets, test_inputs, test_targets, train_trajectories, test_trajectories,
-                 n_steps=1001, lr=1e-3, weight_decay=0.0, noise_scale=0.1, prob_freq=100, batch_size=128,
-                 loss_mask='all', seed=1, train_orbital_params=None, eval_orbital_params=None,
+                 n_steps=1001, lr=1e-3, noise_scale=0.1, prob_freq=100, batch_size=128,
+                 loss_mask='all', seed=1, optimizer_type='gd',
+                 train_orbital_params=None, eval_orbital_params=None,
                  train_sequence_trajectory_ids=None, eval_sequence_trajectory_ids=None,
                  progress_bar=None, probe_schedule=None, probe_enabled=True,
                  probe_num_train_samples=1000, probe_num_eval_samples=1000,
@@ -235,11 +236,11 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
         test_trajectories: Full original test trajectories for evaluation
         n_steps: Number of training steps
         lr: Learning rate
-        weight_decay: Weight decay
         noise_scale: Scale of noise added during training
         prob_freq: Frequency of evaluation (every N steps)
         batch_size: Batch size for training (default: 128)
         loss_mask: 'all' to compute loss on all tokens, 'last' to compute only on last token
+        optimizer_type: 'gd' for SGD full-batch, 'adamw' for AdamW
         seed: Random seed
     Returns:
         Dictionary containing:
@@ -256,7 +257,10 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
     if torch.cuda.is_available() and device.type == "cuda":
         torch.cuda.reset_peak_memory_stats(device)
 
-    optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
+    if optimizer_type == 'gd':
+        optimizer = torch.optim.SGD(model.parameters(), lr=lr)
+    else:
+        optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
     train_losses = []
     total_losses = []
     test_losses = []
@@ -329,11 +333,14 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
 
     for i in range(n_steps):
 
-        # Sample a random batch from training data
-        # train_inputs is on CPU, so we sample indices and move to GPU
-        batch_indices = torch.randint(0, num_train_samples, (batch_size,))
-        batch_inputs = train_inputs[batch_indices].to(device)
-        batch_targets = train_targets[batch_indices].to(device)
+        # Sample data: full-batch for GD, random batch for AdamW
+        if optimizer_type == 'gd':
+            batch_inputs = train_inputs.to(device)
+            batch_targets = train_targets.to(device)
+        else:
+            batch_indices = torch.randint(0, num_train_samples, (batch_size,))
+            batch_inputs = train_inputs[batch_indices].to(device)
+            batch_targets = train_targets[batch_indices].to(device)
 
         # Training step. ``completed_step`` is the number of the optimizer
         # update being performed and is consistently one-based.
@@ -425,7 +432,10 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
             set_attention_entropy_capture(model, False)
 
         # Clear intermediate variables to save memory
-        del inputs_noised, predictions, batch_inputs, batch_targets, batch_indices
+        if optimizer_type == 'gd':
+            del inputs_noised, predictions, batch_inputs, batch_targets
+        else:
+            del inputs_noised, predictions, batch_inputs, batch_targets, batch_indices
 
         evaluation_due = (
             observables.needs_periodic_eval
@@ -711,10 +721,11 @@ def train_model(model, train_inputs, train_targets, test_inputs, test_targets, t
     }
 
 def train_one_model(block_size=100, data_dir='data_cv', noise_scale=0.1, lr=1e-3,
-                    weight_decay=0.0, n_layer=2, n_head=1, n_embd=16,
+                    n_layer=2, n_head=1, n_embd=16,
                     num_trajectories=10000, n_steps=1001, prob_freq=100,
                     loss_mask='all', seed=1, batch_size=128,
                     scale_batch_by_context=True, progress_bar=None,
+                    optimizer_type='gd',
                     probe_schedule=None, probe_enabled=True,
                     probe_num_train_samples=1000, probe_num_eval_samples=1000,
                     probe_verbose=False, probe_geometry_enabled=True,
@@ -750,7 +761,7 @@ def train_one_model(block_size=100, data_dir='data_cv', noise_scale=0.1, lr=1e-3
         Dictionary containing model results and statistics
     """
     print(f"\n{'='*80}")
-    print(f"Training model: block_size={block_size}, noise_scale={noise_scale}, lr={lr}, weight_decay={weight_decay}, n_layer={n_layer}, n_head={n_head}, n_embd={n_embd}, num_trajectories={num_trajectories}, loss_mask={loss_mask}")
+    print(f"Training model: block_size={block_size}, noise_scale={noise_scale}, lr={lr}, optimizer={optimizer_type}, n_layer={n_layer}, n_head={n_head}, n_embd={n_embd}, num_trajectories={num_trajectories}, loss_mask={loss_mask}")
     print(f"{'='*80}")
 
     # Ensure num_trajectories is an integer
@@ -880,8 +891,8 @@ def train_one_model(block_size=100, data_dir='data_cv', noise_scale=0.1, lr=1e-3
     print("\nTraining model with periodic evaluation...")
     training_results = train_model(
         model, train_inputs, train_targets, test_inputs, test_targets, train_trajectories, test_trajectories,
-        n_steps=n_steps, lr=lr, weight_decay=weight_decay, noise_scale=noise_scale, prob_freq=prob_freq,
-        loss_mask=loss_mask, batch_size=batch_size, seed=seed,
+        n_steps=n_steps, lr=lr, noise_scale=noise_scale, prob_freq=prob_freq,
+        loss_mask=loss_mask, batch_size=batch_size, seed=seed, optimizer_type=optimizer_type,
         train_orbital_params=train_orbital_params, eval_orbital_params=test_orbital_params,
         train_sequence_trajectory_ids=train_sequence_trajectory_ids,
         eval_sequence_trajectory_ids=eval_sequence_trajectory_ids,
@@ -948,7 +959,7 @@ def train_one_model(block_size=100, data_dir='data_cv', noise_scale=0.1, lr=1e-3
         'block_size': block_size,
         'noise_scale': noise_scale,
         'lr': lr,
-        'weight_decay': weight_decay,
+        'optimizer_type': optimizer_type,
         'n_layer': n_layer,
         'n_head': n_head,
         'n_embd': n_embd,
@@ -1104,7 +1115,7 @@ def run_configured_experiments(config, run_dir, overwrite=False, console_stream=
     learning_rate = float(
         training_config.get("learning_rate", training_config.get("lr", 1e-3))
     )
-    weight_decay = float(training_config.get("weight_decay", 0.0))
+    optimizer_type = str(training_config.get("optimizer", "gd"))
     batch_size = int(training_config.get("batch_size", 128))
     scale_batch_by_context = bool(
         training_config.get("scale_batch_by_context", True)
@@ -1288,12 +1299,12 @@ def run_configured_experiments(config, run_dir, overwrite=False, console_stream=
                             data_dir=data_dir,
                             noise_scale=noise_scale,
                             lr=learning_rate,
-                            weight_decay=weight_decay,
                             n_layer=n_layer,
                             n_head=n_head,
                             n_embd=n_embd,
                             num_trajectories=num_trajectories,
                             n_steps=n_steps,
+                            optimizer_type=optimizer_type,
                             prob_freq=probe_frequency,
                             loss_mask=loss_mask,
                             seed=experiment_seed,
