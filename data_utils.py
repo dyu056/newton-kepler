@@ -130,23 +130,23 @@ def chop_trajectories_into_sequences(trajectories, block_size, seed=None):
     
     Returns:
         inputs: array of shape (num_sequences, block_size, 2)
-        targets: array of shape (num_sequences, 1, 2)
+        targets: array of shape (num_sequences, block_size, 2)
     """
     if seed is not None:
         np.random.seed(seed)
-    
+
     num_trajectories, num_points, _ = trajectories.shape
     seq_length = block_size + 1  # block_size input points + 1 target point
     num_sequences_per_trajectory = num_points // block_size  # e.g., 100 // 50 = 2, 100 // 10 = 10
-    
+
     all_inputs = []
     all_targets = []
     sequence_trajectory_ids = []
-    
+
     for trajectory_id, traj in enumerate(trajectories):
         # Calculate valid starting positions (must have at least seq_length points remaining)
         max_start = num_points - seq_length + 1
-        
+
         # Randomly select num_sequences_per_trajectory starting positions
         if max_start <= num_sequences_per_trajectory:
             # If we can't select enough unique positions, use all available
@@ -154,11 +154,13 @@ def chop_trajectories_into_sequences(trajectories, block_size, seed=None):
         else:
             # Randomly sample without replacement
             start_positions = np.random.choice(max_start, size=num_sequences_per_trajectory, replace=False)
-        
+
         # Create sequences starting at selected positions
         for i in start_positions:
             input_seq = traj[i:i+block_size]  # (block_size, 2)
-            target_seq = traj[i+block_size:i+block_size+1]  # (1, 2) - just the next point
+            # Shifted full-sequence targets: every position predicts the NEXT point,
+            # matching the autoregressive rollout the model will run at inference.
+            target_seq = traj[i+1:i+block_size+1]  # (block_size, 2)
             all_inputs.append(input_seq)
             all_targets.append(target_seq)
             sequence_trajectory_ids.append(trajectory_id)

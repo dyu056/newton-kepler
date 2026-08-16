@@ -18,7 +18,7 @@ training:
   scale_batch_by_context: true
   n_steps: 20000
   progress_bar: false
-  loss_mask: last
+  loss_mask: all        # supervise every position's prediction (autoregressive rollout needs this)
 
 probe:
   enabled: true
