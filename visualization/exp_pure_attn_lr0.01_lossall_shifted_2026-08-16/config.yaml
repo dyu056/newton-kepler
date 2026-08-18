@@ -10,18 +10,18 @@ model:
   n_head: 1
   n_embd: 128
 training:
-  block_sizes: [100]      # full-trajectory path: attention matrix 100 x 100
+  block_sizes: [50]       # chop path -> single target position (rank(Gamma)=1)
   noise_scale: 0.1
   learning_rate: 0.01
-  optimizer: gd           # SGD full-batch (no AdamW, no weight decay)
+  weight_decay: 0.0
   batch_size: 128
   scale_batch_by_context: true
-  n_steps: 25000
+  n_steps: 20000
   progress_bar: false
   loss_mask: all        # supervise every position's prediction (autoregressive rollout needs this)
 
 probe:
-  enabled: false         # 线性 probe R² 暂不测（省评估时间）
+  enabled: true
   verbose: false
   geometry_enabled: false
   frequency: 10
@@ -30,7 +30,7 @@ probe:
   schedule:
     - start: 0
       end: 200
-      every: 20
+      every: 5
     - start: 200
       end: 2000
       every: 50
@@ -43,10 +43,10 @@ observe:
     enabled: true
   attention_entropy:
     enabled: true
-    every: 20             # 每 N 步独立测量一次 attention entropy
+    every: 10             # 每 N 步独立测量一次 attention entropy
   attention_matrix:
     enabled: true
-    every: 20             # 每 N 步保存一次 attention 矩阵 (T x T)，用于灰度 GIF
+    every: 10             # 每 N 步保存一次 attention 矩阵 (T x T)，用于灰度 GIF
   variance_covariance:
     enabled: false        # pure_attn 无 MLP，varcov 不可用
   singular_values:        # 新增

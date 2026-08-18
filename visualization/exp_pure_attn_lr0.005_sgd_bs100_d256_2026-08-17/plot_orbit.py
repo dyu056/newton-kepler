@@ -75,14 +75,52 @@ def main():
         gen = model.generate(cond, max_new_tokens=100 - args.cond_points)
         pred_full = gen.squeeze(0).cpu().numpy()
 
-    # Plot
-    fig, ax = plt.subplots(figsize=(6.5, 6.5))
-    ax.plot(real[:, 0], real[:, 1], "o-", color="#2166AC", ms=3, lw=1.2,
-            label="Real (test trajectory)")
-    ax.plot(pred_full[:args.cond_points, 0], pred_full[:args.cond_points, 1],
-            "s", color="#888888", ms=4, label="Conditioning points")
-    ax.plot(pred_full[args.cond_points:, 0], pred_full[args.cond_points:, 1],
-            "o-", color="#C44E52", ms=3, lw=1.2, label="Model prediction")
+    # Plot — colorblind-safe (Okabe-Ito palette) + shape/linestyle double encoding
+    fig, ax = plt.subplots(figsize=(7, 7))
+
+    # Find the orbit period: smallest P such that x_t ~ x_{t-P}
+    # The full 100-point trajectory wraps the ellipse ~6 times; we draw ONE
+    # clean revolution to avoid the multi-loop chord tangle.
+    diffs = [
+        (P, np.linalg.norm(real[P:] - real[:-P], axis=1).mean())
+        for P in range(5, 40)
+    ]
+    period = min(diffs, key=lambda pd: pd[1])[0]
+    one_rev = real[:period + 1]
+
+    # Real orbit: solid blue line over ONE revolution (a clean ellipse),
+    # with an arrow showing the direction of motion
+    ax.plot(one_rev[:, 0], one_rev[:, 1], "-", color="#0072B2", lw=2.2,
+            label=f"Real orbit (1 revolution = {period} points)")
+    ax.annotate("", xy=one_rev[5], xytext=one_rev[3],
+                arrowprops=dict(arrowstyle="->", color="#0072B2", lw=1.8))
+
+    # Conditioning points: thin black polyline in temporal order, with
+    # "start" and "end" labels only (the window spans >1 revolution since
+    # the orbit period is 16 points, so per-point labels would overlap)
+    cond_pts = real[:args.cond_points]
+    ax.plot(cond_pts[:, 0], cond_pts[:, 1], "-", color="black", lw=1.0,
+            alpha=0.55, label=f"Conditioning path (first {args.cond_points} points)")
+    ax.plot(cond_pts[0, 0], cond_pts[0, 1], "s", color="black",
+            ms=8, mfc="none", mew=1.8)
+    ax.annotate("start", (cond_pts[0, 0], cond_pts[0, 1]),
+                textcoords="offset points", xytext=(8, -12),
+                fontsize=9, color="black", fontweight="bold")
+    ax.plot(cond_pts[-1, 0], cond_pts[-1, 1], "s", color="black",
+            ms=8, mfc="none", mew=1.8)
+    ax.annotate("end", (cond_pts[-1, 0], cond_pts[-1, 1]),
+                textcoords="offset points", xytext=(8, 6),
+                fontsize=9, color="black", fontweight="bold")
+
+    # Model prediction: dashed orange line with open circles
+    pred_pts = pred_full[args.cond_points:]
+    ax.plot(pred_pts[:, 0], pred_pts[:, 1], "--", color="#E69F00", lw=1.8,
+            label=f"Model prediction ({len(pred_pts)} generated points)")
+    ax.plot(pred_pts[:, 0], pred_pts[:, 1], "o", color="#E69F00",
+            ms=4, mfc="none", mew=1.0)
+    # Mark the prediction start
+    ax.plot(pred_pts[0, 0], pred_pts[0, 1], "*", color="#D55E00",
+            ms=14, label="Prediction start")
 
     ax.set_xlabel("x", fontsize=12)
     ax.set_ylabel("y", fontsize=12)

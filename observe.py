@@ -214,7 +214,13 @@ def compute_activation_rank(activation_dict, eps=1e-12, numerical_tol=1e-6):
         x = x.reshape(-1, x.shape[-1])
         x = x - x.mean(dim=0, keepdim=True)
 
-        singular_values = torch.linalg.svdvals(x)
+        # cuSOLVER 对 50 万行大矩阵会间歇性执行失败并污染整个 CUDA 上下文
+        # （连 CPU 兜底里的 .cpu() 传输都会跟着报错），故激活矩阵 SVD
+        # 一律走 CPU numpy（500k x 128 约 1-2 秒）。原 GPU 路径：
+        #   singular_values = torch.linalg.svdvals(x)
+        singular_values = torch.from_numpy(
+            np.linalg.svd(x.cpu().numpy(), compute_uv=False)
+        ).to(x.device)
         energy = singular_values.square()
         total_energy = energy.sum()
 
